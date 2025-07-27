@@ -1070,7 +1070,7 @@
                     differences.push({ path, type: 'TypeChanged', reason: 'Різні типи', oldValue: typeof elem1, newValue: typeof elem2 });
                     return differences;
                 }
-                if (Array1.isArray(elem1)) {
+                if (Array.isArray(elem1)) {
                     if (settings.arrayCompareMode === 'key' && !tryCompareArraysByKey(elem1, elem2, keysOnly, path, differences, settings)) {
                         compareArraysByIndex(elem1, elem2, keysOnly, path, differences, settings);
                     } else if (settings.arrayCompareMode === 'index') {
