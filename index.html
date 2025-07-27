@@ -1100,6 +1100,7 @@
                 const sourceTitle = currentMode === 'schema' ? 'JSON Schema' : 'Source';
                 const targetTitle = currentMode === 'schema' ? 'JSON для валідації' : 'Target';
 
+                // Use the new rendering function that handles syntax and diff highlighting
                 const sourceHtmlContent = sourceJson ? jsonTraverseAndRender(sourceJson, differences, 'source') : '';
                 const targetHtmlContent = targetJson ? jsonTraverseAndRender(targetJson, differences, 'target') : '';
 
@@ -1251,7 +1252,7 @@
                 applyFiltersAndSort();
             }
             
-            // New function to traverse JSON and apply highlighting
+            // Fixed function to traverse JSON and apply highlighting
             function jsonTraverseAndRender(obj, diffs, side, currentPath = '$', indentLevel = 0) {
                 const indentSpace = ' '.repeat(indentLevel * 2);
                 let html = '';
@@ -1259,7 +1260,25 @@
                 const diffMap = new Map(diffs.map(d => [d.path, d.type]));
 
                 // Helper to apply syntax highlighting and line class
-                const applyLineHighlighting = (lineText, path, isKeyLine = false) => {
+                const applySyntaxHighlighting = (value) => {
+                    let formattedValue;
+                    if (typeof value === 'string') {
+                        formattedValue = `<span class="json-string">${escapeHtml(JSON.stringify(value))}</span>`;
+                    } else if (typeof value === 'number') {
+                        formattedValue = `<span class="json-number">${value}</span>`;
+                    } else if (typeof value === 'boolean') {
+                        formattedValue = `<span class="json-boolean">${value}</span>`;
+                    } else if (value === null) {
+                        formattedValue = `<span class="json-null">null</span>`;
+                    } else {
+                        // Fallback for other types, should not usually happen with valid JSON primitives
+                        formattedValue = escapeHtml(String(value));
+                    }
+                    return formattedValue;
+                };
+
+
+                const getLineClass = (path, isKeyLine = false) => {
                     let lineClass = '';
                     const type = diffMap.get(path);
 
@@ -1268,10 +1287,9 @@
                         else if (side === 'source' && type.includes('Removed')) lineClass = 'diff-removed-text';
                         else if (type.includes('Changed') || type.includes('Error')) lineClass = 'diff-changed-text';
                     } else if (isKeyLine) {
-                        // If it's a key line but no direct diff, check for child diffs
+                        // Check for child diffs if no direct diff on this line (for object/array parent lines)
                         for (const [diffPathFromMap, diffType] of diffMap.entries()) {
-                            // Ensure diffPathFromMap is a string before calling startsWith
-                            const diffPathStr = String(diffPathFromMap);
+                            const diffPathStr = String(diffPathFromMap); // Ensure it's a string
                             if (diffPathStr.startsWith(path + '.') || diffPathStr.startsWith(path + '[')) {
                                 if (side === 'target' && diffType.includes('Added')) { lineClass = 'diff-added-text'; break; }
                                 if (side === 'source' && diffType.includes('Removed')) { lineClass = 'diff-removed-text'; break; }
@@ -1279,27 +1297,17 @@
                             }
                         }
                     }
-
-                    // Apply JSON syntax highlighting
-                    let formattedLine = escapeHtml(lineText);
-                    formattedLine = formattedLine.replace(/"([^"]+)"(\s*:\s*)/g, '<span class="json-key">"$1"</span><span class="json-colon">$2</span>');
-                    formattedLine = formattedLine.replace(/:\s*(".*?[^\\]")/g, ':<span class="json-string">$1</span>');
-                    formattedLine = formattedLine.replace(/:\s*(-?\d+(\.\d+)?([eE][+-]?\d+)?)/g, ':<span class="json-number">$1</span>');
-                    formattedLine = formattedLine.replace(/:\s*(true|false)/g, ':<span class="json-boolean">$1</span>');
-                    formattedLine = formattedLine.replace(/:\s*(null)/g, ':<span class="json-null">$1</span>');
-                    formattedLine = formattedLine.replace(/([\{\}\[\]])/g, '<span class="json-bracket">$1</span>');
-                    formattedLine = formattedLine.replace(/,(\s*)$/g, '<span class="json-comma">,</span>$1');
-
-                    return `<span class="diff-line ${lineClass}" data-path="${path}">${formattedLine}</span>`;
+                    return lineClass;
                 };
 
                 if (typeof obj !== 'object' || obj === null) {
                     // Handle primitive values at any level
-                    return applyLineHighlighting(JSON.stringify(obj), currentPath);
+                    const lineClass = getLineClass(currentPath);
+                    return `<span class="diff-line ${lineClass}" data-path="${currentPath}">${applySyntaxHighlighting(obj)}</span>`;
                 }
 
                 if (Array.isArray(obj)) {
-                    html += applyLineHighlighting(indentSpace + '[', currentPath) + '\n';
+                    html += `<span class="diff-line ${getLineClass(currentPath)}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">[</span></span>\n`;
                     const potentialKeys = ['id', 'productId', 'variantId', 'reviewId', 'key', 'name'];
                     const bestKey = potentialKeys.find(key => obj.every(item => item && typeof item === 'object' && item[key] !== undefined));
 
@@ -1308,42 +1316,41 @@
                         let itemPath = `${currentPath}[${i}]`; // Default for index-based paths
 
                         if (bestKey && typeof item === 'object' && item !== null && item[bestKey] !== undefined) {
-                             // Use key-based path for lookup for objects within arrays
-                             // Ensure the key value is stringified for path consistency
-                             itemPath = `${currentPath}[${bestKey}=${JSON.stringify(item[bestKey])}]`;
+                            itemPath = `${currentPath}[${bestKey}=${JSON.stringify(item[bestKey])}]`;
                         }
                         
                         html += jsonTraverseAndRender(item, diffs, side, itemPath, indentLevel + 1);
                         if (i < obj.length - 1) {
-                            html += applyLineHighlighting(indentSpace + '],', itemPath) + '\n'; // Add comma for non-last elements
-                        } else {
-                            html += '\n';
+                            html += `<span class="json-comma">,</span>`; // Comma after element
                         }
+                        html += `\n`;
                     }
-                    html += applyLineHighlighting(indentSpace + ']', currentPath);
+                    html += `<span class="diff-line ${getLineClass(currentPath)}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">]</span></span>`;
                 } else { // Object
-                    html += applyLineHighlighting(indentSpace + '{', currentPath) + '\n';
+                    html += `<span class="diff-line ${getLineClass(currentPath)}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">{</span></span>\n`;
                     const keys = Object.keys(obj);
                     for (let i = 0; i < keys.length; i++) {
                         const key = keys[i];
                         const propPath = `${currentPath}.${key}`;
                         
+                        // Render value recursively
                         const valueHtml = jsonTraverseAndRender(obj[key], diffs, side, propPath, indentLevel + 1);
-                        // Only stringify the key, not the whole line, as valueHtml is already HTML
-                        const keyLineContent = `"${key}": ${valueHtml}`; 
                         
-                        html += applyLineHighlighting(indentSpace + '  ' + keyLineContent, propPath, true); // Mark as key line
+                        // Construct the line for the key-value pair
+                        const keyLineContent = `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> ${valueHtml}`;
+                        
+                        html += `<span class="diff-line ${getLineClass(propPath, true)}" data-path="${propPath}">${indentSpace}  ${keyLineContent}`;
                         if (i < keys.length - 1) {
-                            html += applyLineHighlighting(',', propPath) + '\n'; // Add comma for non-last elements
-                        } else {
-                            html += '\n';
+                            html += `<span class="json-comma">,</span>`; // Comma after property
                         }
+                        html += `</span>\n`; // Close span for the line and add newline
                     }
-                    html += applyLineHighlighting(indentSpace + '}', currentPath);
+                    html += `<span class="diff-line ${getLineClass(currentPath)}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">}</span></span>`;
                 }
                 return html;
             }
 
+            // Corrected escapeHtml function: only escapes HTML entities, not JSON strings
             function escapeHtml(text) {
                 const str = String(text); 
                 const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
