@@ -277,8 +277,7 @@
             color: #e0e0e0;
         }
 
-        /* JSON Syntax Highlighting */
-        /* Updated color for colon and comma for better visibility */
+        /* JSON Syntax Highlightings */
         .json-key { color: var(--json-key); }
         .json-string { color: var(--json-string); }
         .json-number { color: var(--json-number); }
@@ -769,7 +768,7 @@
                     if (i < keys.length - 1) {
                         html += `<span class="json-comma">,</span>`;
                     }
-                    html += `\n`;
+                    html += `</span>\n`; // Close span for the line and add newline
                 }
                 html += formatAndHighlightLine(indentSpace + '<span class="json-bracket">}</span>', currentPath);
             }
@@ -848,7 +847,7 @@
                             const value = node[key];
                             const childLi = document.createElement('li');
                             childLi.dataset.path = propPath;
-                            childLi.classList.add(getLineClass(propPath, true, diffMap, side)); // Apply diff class to this specific item line
+                            childLi.classList.add(getLineClass(propPath, true, diffMap, side)); // Apply line class to this specific item line
                             
                             if (typeof value !== 'object' || value === null) {
                                 // Primitive value: display key-value directly in this <li>
@@ -958,16 +957,21 @@
             let currentSourceView = isCodeMode ? sourceViewCode : sourceViewTree;
             let currentTargetView = isCodeMode ? targetViewCode : targetViewTree;
 
+            // Reset heights
+            if (sourceViewCode) sourceViewCode.style.height = 'auto';
+            if (targetViewCode) targetViewCode.style.height = 'auto';
+            if (sourceViewTree) sourceViewTree.style.height = 'auto';
+            if (targetViewTree) targetViewTree.style.height = 'auto';
+
+            // Set max height for visible views
             if (currentSourceView && currentTargetView) {
-                currentSourceView.style.height = 'auto';
-                currentTargetView.style.height = 'auto';
                 const maxHeight = Math.max(currentSourceView.scrollHeight, currentTargetView.scrollHeight);
                 currentSourceView.style.height = `${maxHeight}px`;
                 currentTargetView.style.height = `${maxHeight}px`;
-            } else if (currentSourceView) { // Only source view might be present if target is empty
-                currentSourceView.style.height = 'auto';
-            } else if (currentTargetView) { // Only target view might be present if source is empty
-                currentTargetView.style.height = 'auto';
+            } else if (currentSourceView) { 
+                currentSourceView.style.height = `${currentSourceView.scrollHeight}px`;
+            } else if (currentTargetView) { 
+                currentTargetView.style.height = `${currentTargetView.scrollHeight}px`;
             }
         }
         
@@ -1043,9 +1047,10 @@
                 themeToggle.checked = true;
             }
 
-            function showLoader() { loader.style.display = 'flex'; }
-            function hideLoader() { loader.style.display = 'none'; }
+            // Moved parseJson, setupDropZone, checkFilesReady outside DOMContentLoaded
+            // to ensure they are accessible globally if needed, and to avoid re-declarations.
 
+            // Function to parse JSON content from textarea
             function parseJson(text, dropZone, errorEl) {
                 try {
                     if (!text || text.trim() === '') {
@@ -1068,6 +1073,7 @@
                 }
             }
 
+            // Function to setup drag-and-drop functionality for a drop zone
             function setupDropZone(dropZone, textArea, fileNameEl, errorEl, fileContentCallback) {
                 textArea.addEventListener('input', () => {
                     const content = textArea.value;
@@ -1116,62 +1122,28 @@
                 });
             }
 
-            setupDropZone(dropZone1, document.getElementById('sourceText'), document.getElementById('fileName1'), document.getElementById('sourceError'), content => sourceFileContent = content);
-            setupDropZone(dropZone2, document.getElementById('targetText'), document.getElementById('fileName2'), document.getElementById('targetError'), content => targetFileContent = content);
-            setupDropZone(dropZoneSchema, document.getElementById('schemaText'), document.getElementById('fileNameSchema'), document.getElementById('schemaError'), content => schemaFileContent = content);
-
-            modeSelector.addEventListener('change', e => {
-                currentMode = e.target.value;
-                updateUiForMode();
-                checkFilesReady();
-            });
-
-            function updateUiForMode() {
-                const sourceTextArea = document.getElementById('sourceText');
-                const targetTextArea = document.getElementById('targetText');
-                const sourceFileNameEl = document.getElementById('fileName1');
-                const targetFileNameEl = document.getElementById('fileName2');
-                const schemaFileNameEl = document.getElementById('fileNameSchema');
-
-                if (currentMode === 'schema') {
-                    dropZoneSchema.classList.remove('hidden');
-                    sourceTextArea.placeholder = 'Перетягніть сюди JSON Schema або вставте код';
-                    targetTextArea.placeholder = 'Перетягніть сюди JSON для валідації або вставте код';
-                    if (sourceFileContent) {
-                         try { JSON.parse(sourceFileContent); }
-                         catch { sourceFileNameEl.textContent = ''; sourceFileContent = null; sourceTextArea.value = ''; }
-                    }
-                } else {
-                    dropZoneSchema.classList.add('hidden');
-                    sourceTextArea.placeholder = 'Перетягніть сюди Source файл або вставте JSON';
-                    targetTextArea.placeholder = 'Перетягніть сюди Target файл або вставте JSON';
-                    schemaFileNameEl.textContent = '';
-                    schemaFileContent = null;
-                    document.getElementById('schemaText').value = '';
-                }
-                document.getElementById('sourceError').style.display = 'none';
-                document.getElementById('targetError').style.display = 'none';
-                document.getElementById('schemaError').style.display = 'none';
-                dropZone1.classList.remove('invalid');
-                dropZone2.classList.remove('invalid');
-                dropZoneSchema.classList.remove('invalid');
-            }
-
-
+            // Function to check if files are ready for comparison
             function checkFilesReady() {
                 let isReady = false;
-                const sourceValid = !document.getElementById('sourceError').style.display || document.getElementById('sourceError').style.display === 'none';
-                const targetValid = !document.getElementById('targetError').style.display || document.getElementById('targetError').style.display === 'none';
-                const schemaValid = !document.getElementById('schemaError').style.display || document.getElementById('schemaError').style.display === 'none';
+                const sourceValid = (!document.getElementById('sourceError').style.display || document.getElementById('sourceError').style.display === 'none') && (sourceFileContent !== null && sourceFileContent.trim() !== '');
+                const targetValid = (!document.getElementById('targetError').style.display || document.getElementById('targetError').style.display === 'none') && (targetFileContent !== null && targetFileContent.trim() !== '');
+                const schemaValid = (!document.getElementById('schemaError').style.display || document.getElementById('schemaError').style.display === 'none') && (schemaFileContent !== null && schemaFileContent.trim() !== '');
+
 
                 if (currentMode === 'schema') {
-                    isReady = schemaFileContent && targetFileContent && schemaValid && targetValid;
+                    isReady = schemaValid && targetValid;
                 } else {
-                    isReady = sourceFileContent && targetFileContent && sourceValid && targetValid;
+                    isReady = sourceValid && targetValid;
                 }
                 compareBtn.disabled = !isReady;
             }
 
+            // Initial setup for drop zones (needs to be inside DOMContentLoaded as it accesses DOM elements)
+            setupDropZone(dropZone1, document.getElementById('sourceText'), document.getElementById('fileName1'), document.getElementById('sourceError'), content => sourceFileContent = content);
+            setupDropZone(dropZone2, document.getElementById('targetText'), document.getElementById('fileName2'), document.getElementById('targetError'), content => targetFileContent = content);
+            setupDropZone(dropZoneSchema, document.getElementById('schemaText'), document.getElementById('fileNameSchema'), document.getElementById('schemaError'), content => schemaFileContent = content);
+
+            // Event listener for compare button
             compareBtn.addEventListener('click', () => {
                 showLoader();
                 setTimeout(() => {
@@ -1188,11 +1160,11 @@
                     }
 
                     let canProceed = false;
-                     if (currentMode === 'schema') {
+                    if (currentMode === 'schema') {
                         canProceed = schemaJson && targetJson;
-                     } else {
+                    } else {
                         canProceed = sourceJson && targetJson;
-                     }
+                    }
 
                     if (!canProceed) {
                         hideLoader();
@@ -1573,8 +1545,8 @@
                                 <td data-sort-value="${d.type}">${d.type}</td>
                                 <td data-sort-value="${d.path}"><pre>${escapeHtml(d.path)}</pre></td>
                                 <td data-sort-value="${d.reason}">${escapeHtml(d.reason)}</td>
-                                <td data-sort-value="${d.oldValue || ''}"><pre>${escapeHtml(d.oldValue || '')}</pre></td>
-                                <td data-sort-value="${d.newValue || ''}"><pre>${escapeHtml(d.newValue || '')}</pre></td>
+                                <td><pre>${escapeHtml(d.oldValue || '')}</pre></td>
+                                <td><pre>${escapeHtml(d.newValue || '')}</pre></td>
                             </tr>`;
                     }).join('');
                     
@@ -1614,7 +1586,7 @@
                     });
                 });
 
-                tableContainer.addEventListener('click', (e) => {
+                document.getElementById('table-container').addEventListener('click', (e) => { // Use table-container for event delegation
                     const header = e.target.closest('th.sortable');
                     if (header) {
                         const key = header.dataset.key;
@@ -1670,1514 +1642,80 @@
 
             function toggleCollapsible() {
                 this.closest('.collapsible-section').classList.toggle('collapsed');
-                // Give a slight delay for content to render before re-syncing heights
                 setTimeout(synchronizeJsonViewHeights, 450); 
             }
 
-            // --- DOMContentLoaded finishes initialization ---
-            document.addEventListener('DOMContentLoaded', () => {
-                // --- DOM Elements (local references for event handlers) ---
-                const dropZone1 = document.getElementById('dropZone1');
-                const dropZone2 = document.getElementById('dropZone2');
-                const dropZoneSchema = document.getElementById('dropZoneSchema');
-                const compareBtn = document.getElementById('compareBtn');
-                const exportBtn = document.getElementById('exportBtn');
-                const resultsContainer = document.getElementById('results');
-                const modeSelector = document.querySelector('.mode-selector');
-                const loader = document.getElementById('loader');
-                const settingsBtn = document.getElementById('settingsBtn');
-                const settingsModal = document.getElementById('settingsModal');
-                const closeSettingsModalBtn = document.getElementById('closeSettingsModal');
-                const saveSettingsBtn = document.getElementById('saveSettingsBtn');
-                const clearAllBtn = document.getElementById('clearAllBtn');
-                const copyResultsBtn = document.getElementById('copyResultsBtn');
-                const widthToggleBtn = document.getElementById('widthToggleBtn');
-                const widthEnterIcon = document.getElementById('width-enter-icon');
-                const widthExitIcon = document.getElementById('width-exit-icon');
+            // --- Initial load ---
+            loadSettings();
+            updateUiForMode();
+            initializeTooltips();
 
-                // --- State ---
-                let sourceFileContent = null;
-                let targetFileContent = null;
-                let schemaFileContent = null;
-                let globalDifferences = [];
-                let currentMode = 'direct';
+            clearAllBtn.addEventListener('click', () => {
+                document.getElementById('sourceText').value = '';
+                document.getElementById('targetText').value = '';
+                document.getElementById('schemaText').value = '';
+                document.getElementById('fileName1').textContent = '';
+                document.getElementById('fileName2').textContent = '';
+                document.getElementById('fileNameSchema').textContent = '';
+                document.getElementById('sourceError').style.display = 'none';
+                document.getElementById('targetError').style.display = 'none';
+                document.getElementById('schemaError').style.display = 'none';
+                dropZone1.classList.remove('invalid');
+                dropZone2.classList.remove('invalid');
+                dropZoneSchema.classList.remove('invalid');
+                resultsContainer.innerHTML = '';
+                resultsContainer.style.display = 'none';
+                exportBtn.style.display = 'none';
+                copyResultsBtn.style.display = 'none';
+                sourceFileContent = null;
+                targetFileContent = null;
+                schemaFileContent = null;
+                globalDifferences = [];
+                checkFilesReady();
+                showToast('Всі поля очищено!', 'info');
+            });
 
-                let settings = {
-                    ignorePaths: [],
-                    arrayCompareMode: 'key',
-                    caseSensitive: true,
-                };
+            copyResultsBtn.addEventListener('click', () => {
+                const table = resultsContainer.querySelector('table');
+                if (!table) {
+                    showToast('Немає звіту для копіювання!', 'info');
+                    return;
+                }
 
-                // --- Initial calls for setup ---
-                loadSettings();
-                updateUiForMode();
-                initializeTooltips();
+                const headerCells = Array.from(table.querySelectorAll('thead th'));
+                const header = headerCells.map(th => {
+                    let text = th.innerText.trim();
+                    text = text.replace(/[\u2195\u25B2\u25BC]/g, '').trim(); 
+                    return `"${text.replace(/"/g, '""')}"`;
+                }).join(',');
 
-                // --- Event Listeners ---
-                settingsBtn.addEventListener('click', () => { settingsModal.style.display = 'flex'; initializeTooltips(); });
-                closeSettingsModalBtn.addEventListener('click', () => { settingsModal.style.display = 'none'; });
-                saveSettingsBtn.addEventListener('click', saveSettings);
-                window.addEventListener('click', (event) => {
-                    if (event.target === settingsModal) {
-                        settingsModal.style.display = 'none';
-                    }
-                });
+                const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr => 
+                    Array.from(tr.querySelectorAll('td')).map(td => {
+                        let cellText = td.querySelector('pre') ? td.querySelector('pre').innerText : td.innerText;
+                        return `"${cellText.replace(/"/g, '""')}"`;
+                    }).join(',')
+                );
                 
-                themeToggle.addEventListener('change', () => {
-                    document.body.classList.toggle('dark-mode');
-                    localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
-                });
-
-                // Re-apply theme on load
-                if (localStorage.getItem('theme') === 'dark') {
-                    document.body.classList.add('dark-mode');
-                    themeToggle.checked = true;
-                }
-
-                function showLoader() { loader.style.display = 'flex'; }
-                function hideLoader() { loader.style.display = 'none'; }
-
-                function parseJson(text, dropZone, errorEl) {
-                    try {
-                        if (!text || text.trim() === '') {
-                            errorEl.style.display = 'none';
-                            dropZone.classList.remove('invalid');
-                            return null;
-                        }
-                        const parsed = JSON.parse(text);
-                        if (currentMode !== 'schema' && (typeof parsed !== 'object' || parsed === null)) {
-                            throw new Error("Вхідні дані повинні бути JSON-об'єктом або масивом.");
-                        }
-                        errorEl.style.display = 'none';
-                        dropZone.classList.remove('invalid');
-                        return parsed;
-                    } catch (jsonError) {
-                        errorEl.textContent = `Помилка: Не є валідним JSON. ${jsonError.message}`;
-                        errorEl.style.display = 'block';
-                        dropZone.classList.add('invalid');
-                        return null;
-                    }
-                }
-
-                function setupDropZone(dropZone, textArea, fileNameEl, errorEl, fileContentCallback) {
-                    textArea.addEventListener('input', () => {
-                        const content = textArea.value;
-                        fileContentCallback(content);
-                        const parsed = parseJson(content, dropZone, errorEl);
-                        if (!parsed && content.trim() !== '') {
-                            showToast(`Помилка у файлі: ${fileNameEl.textContent || dropZone.querySelector('textarea').placeholder.split(' ')[2]}. ${errorEl.textContent}`, 'error');
-                        }
-                        fileNameEl.textContent = '';
-                        checkFilesReady();
-                    });
-
-                    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
-                    dropZone.addEventListener('dragleave', e => { e.preventDefault(); dropZone.classList.remove('dragover'); });
-                    dropZone.addEventListener('drop', e => {
-                        e.preventDefault();
-                        dropZone.classList.remove('dragover');
-                        const file = e.dataTransfer.files[0];
-                        if (!file) return;
-
-                        if (file.size > 5 * 1024 * 1024) {
-                            showToast("Файл занадто великий. Максимальний розмір - 5MB.", 'error');
-                            return;
-                        }
-
-                        if (file.type === 'application/json' || file.name.endsWith('.json')) {
-                            fileNameEl.textContent = file.name;
-                            const reader = new FileReader();
-                            reader.onload = (event) => {
-                                const content = event.target.result;
-                                textArea.value = content;
-                                fileContentCallback(content);
-                                const parsed = parseJson(content, dropZone, errorEl);
-                                if (!parsed) {
-                                    showToast(`Помилка у файлі '${file.name}'. ${errorEl.textContent}`, 'error');
-                                } else {
-                                    showToast(`Файл '${file.name}' завантажено.`, 'success');
-                                }
-                                checkFilesReady();
-                            };
-                            reader.readAsText(file);
-                        } else {
-                            showToast('Будь ласка, перетягніть JSON файл.', 'error');
-                            fileNameEl.textContent = ''; textArea.value = ''; fileContentCallback(null); checkFilesReady();
-                        }
-                    });
-                }
-
-                setupDropZone(dropZone1, document.getElementById('sourceText'), document.getElementById('fileName1'), document.getElementById('sourceError'), content => sourceFileContent = content);
-                setupDropZone(dropZone2, document.getElementById('targetText'), document.getElementById('fileName2'), document.getElementById('targetError'), content => targetFileContent = content);
-                setupDropZone(dropZoneSchema, document.getElementById('schemaText'), document.getElementById('fileNameSchema'), document.getElementById('schemaError'), content => schemaFileContent = content);
-
-                modeSelector.addEventListener('change', e => {
-                    currentMode = e.target.value;
-                    updateUiForMode();
-                    checkFilesReady();
-                });
-
-                function updateUiForMode() {
-                    const sourceTextArea = document.getElementById('sourceText');
-                    const targetTextArea = document.getElementById('targetText');
-                    const sourceFileNameEl = document.getElementById('fileName1');
-                    const targetFileNameEl = document.getElementById('fileName2');
-                    const schemaFileNameEl = document.getElementById('fileNameSchema');
-
-                    if (currentMode === 'schema') {
-                        dropZoneSchema.classList.remove('hidden');
-                        sourceTextArea.placeholder = 'Перетягніть сюди JSON Schema або вставте код';
-                        targetTextArea.placeholder = 'Перетягніть сюди JSON для валідації або вставте код';
-                        if (sourceFileContent) {
-                             try { JSON.parse(sourceFileContent); }
-                             catch { sourceFileNameEl.textContent = ''; sourceFileContent = null; sourceTextArea.value = ''; }
-                        }
-                    } else {
-                        dropZoneSchema.classList.add('hidden');
-                        sourceTextArea.placeholder = 'Перетягніть сюди Source файл або вставте JSON';
-                        targetTextArea.placeholder = 'Перетягніть сюди Target файл або вставте JSON';
-                        schemaFileNameEl.textContent = '';
-                        schemaFileContent = null;
-                        document.getElementById('schemaText').value = '';
-                    }
-                    document.getElementById('sourceError').style.display = 'none';
-                    document.getElementById('targetError').style.display = 'none';
-                    document.getElementById('schemaError').style.display = 'none';
-                    dropZone1.classList.remove('invalid');
-                    dropZone2.classList.remove('invalid');
-                    dropZoneSchema.classList.remove('invalid');
-                }
-
-
-                function checkFilesReady() {
-                    let isReady = false;
-                    const sourceValid = !document.getElementById('sourceError').style.display || document.getElementById('sourceError').style.display === 'none';
-                    const targetValid = !document.getElementById('targetError').style.display || document.getElementById('targetError').style.display === 'none';
-                    const schemaValid = !document.getElementById('schemaError').style.display || document.getElementById('schemaError').style.display === 'none';
-
-                    if (currentMode === 'schema') {
-                        isReady = schemaFileContent && targetFileContent && schemaValid && targetValid;
-                    } else {
-                        isReady = sourceFileContent && targetFileContent && sourceValid && targetValid;
-                    }
-                    compareBtn.disabled = !isReady;
-                }
-
-                compareBtn.addEventListener('click', () => {
-                    showLoader();
-                    setTimeout(() => {
-                        let sourceJson = null;
-                        let targetJson = null;
-                        let schemaJson = null;
-
-                        if (currentMode === 'schema') {
-                            schemaJson = parseJson(schemaFileContent, dropZoneSchema, document.getElementById('schemaError'));
-                            targetJson = parseJson(targetFileContent, dropZone2, document.getElementById('targetError'));
-                        } else {
-                            sourceJson = parseJson(sourceFileContent, dropZone1, document.getElementById('sourceError'));
-                            targetJson = parseJson(targetFileContent, dropZone2, document.getElementById('targetError'));
-                        }
-
-                        let canProceed = false;
-                         if (currentMode === 'schema') {
-                            canProceed = schemaJson && targetJson;
-                         } else {
-                            canProceed = sourceJson && targetJson;
-                         }
-
-                        if (!canProceed) {
-                            hideLoader();
-                            showToast("Будь ласка, перевірте вхідні дані. Один або декілька файлів не є валідними JSON.", 'error');
-                            return;
-                        }
-
-                        try {
-                            globalDifferences = [];
-                            if (currentMode === 'direct') {
-                                globalDifferences = findDifferences(sourceJson, targetJson, false, '$', settings);
-                                renderReport(globalDifferences, sourceJson, targetJson);
-                            } else if (currentMode === 'keys') {
-                                globalDifferences = findDifferences(sourceJson, targetJson, true, '$', settings);
-                                renderReport(globalDifferences, sourceJson, targetJson);
-                            } else if (currentMode === 'schema') {
-                                globalDifferences = validateWithSchema(targetJson, schemaJson);
-                                renderReport(globalDifferences, schemaJson, targetJson); // Pass schema as "source" for display purposes
-                            }
-                            showToast(`Порівняння завершено. Знайдено ${globalDifferences.length} відмінностей.`, 'success');
-                        } catch (e) {
-                            console.error("Помилка аналізу/валідації:", e);
-                            showToast(`Сталася непередбачена помилка: ${e.message}`, 'error');
-                            resultsContainer.innerHTML = `<p style="color: var(--red);">Помилка: ${e.message}</p>`;
-                            resultsContainer.style.display = 'block';
-                        } finally {
-                            hideLoader();
-                        }
-                    }, 50);
-                });
-
-                document.getElementById('exportTxt').addEventListener('click', (e) => { e.preventDefault(); exportReport('txt'); });
-                document.getElementById('exportJson').addEventListener('click', (e) => { e.preventDefault(); exportReport('json'); });
-                document.getElementById('exportCsv').addEventListener('click', (e) => { e.preventDefault(); exportReport('csv'); });
-
-                function exportReport(format) {
-                    let content = '';
-                    let fileName = `comparison_report_${new Date().toISOString().slice(0,10)}`;
-                    let mimeType = 'text/plain;charset=utf-8';
-
-                    if (globalDifferences.length === 0) {
-                        content = "Відмінностей не знайдено.";
-                    } else if (format === 'txt') {
-                        content = globalDifferences.map(d => {
-                            let line = `Тип: ${d.type}\nШлях: ${d.path}\nПричина: ${d.reason}\n`;
-                            if (d.oldValue !== undefined) line += `Старе значення: ${d.oldValue}\n`;
-                            if (d.newValue !== undefined) line += `Нове значення: ${d.newValue}\n`;
-                            return line + '---';
-                        }).join('\n');
-                        fileName += '.txt';
-                    } else if (format === 'json') {
-                        content = JSON.stringify(globalDifferences, null, 2);
-                        fileName += '.json';
-                        mimeType = 'application/json;charset=utf-8';
-                    } else if (format === 'csv') {
-                        const header = "Type,Path,Reason,OldValue,NewValue\n";
-                        const rows = globalDifferences.map(d => {
-                            const escapeCsv = (val) => {
-                                if (val == null) return '';
-                                const str = String(val);
-                                if (str.includes('"') || str.includes(',') || str.includes('\n')) {
-                                    return `"${str.replace(/"/g, '""')}"`;
-                                }
-                                return str;
-                            };
-                            return [escapeCsv(d.type), escapeCsv(d.path), escapeCsv(d.reason), escapeCsv(d.oldValue), escapeCsv(d.newValue)].join(',');
-                        }).join('\n');
-                        content = "\uFEFF" + header + rows;
-                        fileName += '.csv';
-                        mimeType = 'text/csv;charset=utf-8';
-                    }
-                    
-                    const blob = new Blob([content], { type: mimeType });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = fileName;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                    showToast(`Звіт експортовано у ${format.toUpperCase()} формат.`, 'success');
-                }
+                const csvContent = [header, ...rows].join('\n');
                 
-                function isPathIgnored(path, ignorePatterns) {
-                    return ignorePatterns.some(pattern => {
-                        let regexPattern = '^' + pattern.replace(/\$/g, '\\$').replace(/\./g, '\\.').replace(/\[\*\]/g, '\\[[0-9]+\\]');
-                        if (pattern.endsWith('.*')) {
-                            regexPattern = regexPattern.slice(0, -2) + '(\\.|$).*';
-                        } else if (pattern.endsWith('[*]')) {
-                            regexPattern = regexPattern.slice(0, -3) + '\\[[0-9]+\\](\\.|$).*';
-                        }
-                        const regex = new RegExp(regexPattern);
-                        return regex.test(path);
-                    });
-                }
-
-                // --- CORE COMPARISON LOGIC ---
-                function findDifferences(elem1, elem2, keysOnly, path = '$', settings) {
-                    if (isPathIgnored(path, settings.ignorePaths)) return [];
-                    const differences = [];
-                    if (typeof elem1 !== typeof elem2 || Array.isArray(elem1) !== Array.isArray(elem2)) {
-                        differences.push({ path, type: 'TypeChanged', reason: 'Різні типи', oldValue: typeof elem1, newValue: typeof elem2 });
-                        return differences;
-                    }
-                    if (Array.isArray(elem1)) {
-                        if (settings.arrayCompareMode === 'key' && !tryCompareArraysByKey(elem1, elem2, keysOnly, path, differences, settings)) {
-                            compareArraysByIndex(elem1, elem2, keysOnly, path, differences, settings);
-                        } else if (settings.arrayCompareMode === 'index') {
-                            compareArraysByIndex(elem1, elem2, keysOnly, path, differences, settings);
-                        }
-                    } else if (typeof elem1 === 'object' && elem1 !== null) {
-                        compareObjects(elem1, elem2, keysOnly, path, differences, settings);
-                    } else {
-                        let val1 = elem1;
-                        let val2 = elem2;
-                        if (typeof val1 === 'string' && !settings.caseSensitive) {
-                            val1 = val1.toLowerCase();
-                            val2 = val2.toLowerCase();
-                        }
-                        if (!keysOnly && val1 !== val2) {
-                            differences.push({ path, type: 'ValueChanged', reason: 'Різні значення', oldValue: JSON.stringify(elem1), newValue: JSON.stringify(elem2) });
-                        }
-                    }
-                    return differences;
-                }
-
-                function compareObjects(obj1, obj2, keysOnly, path, differences, settings) {
-                    const allKeys = new Set([...Object.keys(obj1), ...Object.keys(obj2)]);
-                    allKeys.forEach(key => {
-                        const currentPath = `${path}.${key}`;
-                        if (isPathIgnored(currentPath, settings.ignorePaths)) return;
-                        if (key in obj1 && !(key in obj2)) {
-                            differences.push({ path: currentPath, type: 'Removed', reason: 'Властивість видалена', oldValue: JSON.stringify(obj1[key], null, 2) });
-                        } else if (!(key in obj1) && key in obj2) {
-                            differences.push({ path: currentPath, type: 'Added', reason: 'Властивість додана', newValue: JSON.stringify(obj2[key], null, 2) });
-                        } else {
-                            differences.push(...findDifferences(obj1[key], obj2[key], keysOnly, currentPath, settings));
-                        }
-                    });
-                }
-                
-                function tryCompareArraysByKey(arr1, arr2, keysOnly, path, differences, settings) {
-                    const potentialKeys = ['id', 'productId', 'variantId', 'reviewId', 'key', 'name'];
-                    if (arr1.length === 0 && arr2.length === 0) return true;
-                    if (arr1.length > 0 && (typeof arr1[0] !== 'object' || arr1[0] === null)) return false;
-                    if (arr2.length > 0 && (typeof arr2[0] !== 'object' || arr2[0] === null)) return false;
-
-                    const bestKey = potentialKeys.find(key => 
-                        (arr1.length === 0 || arr1.every(item => item && typeof item === 'object' && key in item)) &&
-                        (arr2.length === 0 || arr2.every(item => item && typeof item === 'object' && key in item))
-                    );
-                    
-                    if (!bestKey) return false;
-
-                    const dict1 = new Map(arr1.map(item => [item[bestKey], item]));
-                    const dict2 = new Map(arr2.map(item => [item[bestKey], item]));
-
-                    dict1.forEach((value, key) => {
-                        const currentPath = `${path}[${bestKey}=${JSON.stringify(key)}]`;
-                        if (isPathIgnored(currentPath, settings.ignorePaths)) return;
-                        if (!dict2.has(key)) {
-                            differences.push({ path: currentPath, type: 'Removed', reason: 'Об\'єкт видалено', oldValue: JSON.stringify(value, null, 2) });
-                        } else {
-                            differences.push(...findDifferences(value, dict2.get(key), keysOnly, currentPath, settings));
-                            dict2.delete(key);
-                        }
-                    });
-
-                    dict2.forEach((value, key) => {
-                        const currentPath = `${path}[${bestKey}=${JSON.stringify(key)}]`;
-                        if (isPathIgnored(currentPath, settings.ignorePaths)) return;
-                        if (!dict1.has(key)) {
-                            differences.push({ path: currentPath, type: 'Added', reason: 'Об\'єкт додано', newValue: JSON.stringify(value, null, 2) });
-                        }
-                    });
-                    return true;
-                }
-
-                function compareArraysByIndex(arr1, arr2, keysOnly, path, differences, settings) {
-                    if (arr1.length !== arr2.length && !keysOnly) {
-                        differences.push({ path, type: 'LengthChanged', reason: 'Різна кількість елементів', oldValue: arr1.length, newValue: arr2.length });
-                    }
-                    const len = Math.min(arr1.length, arr2.length);
-                    for (let i = 0; i < len; i++) {
-                        const currentPath = `${path}[${i}]`;
-                        if (isPathIgnored(currentPath, settings.ignorePaths)) continue;
-                        differences.push(...findDifferences(arr1[i], arr2[i], keysOnly, currentPath, settings));
-                    }
-                    for (let i = len; i < arr1.length; i++) {
-                        const currentPath = `${path}[${i}]`;
-                        if (isPathIgnored(currentPath, settings.ignorePaths)) continue;
-                        differences.push({ path: currentPath, type: 'Removed', reason: 'Елемент видалено', oldValue: JSON.stringify(arr1[i], null, 2) });
-                    }
-                    for (let i = len; i < arr2.length; i++) {
-                        const currentPath = `${path}[${i}]`;
-                        if (isPathIgnored(currentPath, settings.ignorePaths)) continue;
-                        differences.push({ path: currentPath, type: 'Added', reason: 'Елемент додано', newValue: JSON.stringify(arr2[i], null, 2) });
-                    }
-                }
-
-                // --- JSON SCHEMA VALIDATION ---
-                function validateWithSchema(data, schema) {
-                    const ajv = new Ajv();
-                    try {
-                        const validate = ajv.compile(schema);
-                        const valid = validate(data);
-                        if (valid) {
-                            return [];
-                        }
-                        return validate.errors.map(err => ({
-                            path: err.instancePath || '$',
-                            type: 'SchemaError',
-                            reason: err.message || 'Помилка валідації',
-                            oldValue: `Rule: ${err.keyword}, Params: ${JSON.stringify(err.params)}`,
-                            newValue: `Value: ${JSON.stringify(err.data)}`
-                        }));
-                    } catch (e) {
-                        return [{
-                            path: '$',
-                            type: 'SchemaParseError',
-                            reason: `Некоректна JSON-схема: ${e.message}`,
-                            oldValue: 'N/A',
-                            newValue: 'N/A'
-                        }];
-                    }
-                }
-
-                // --- REPORT GENERATION ---
-                function renderReport(differences, sourceJson, targetJson) {
-                    let reportHtml = ``;
-                    if (differences.length === 0) {
-                        reportHtml = `<h2>✅ ${currentMode === 'schema' ? 'JSON валідний за схемою' : 'Відмінностей не знайдено'}.</h2>`;
-                    } else {
-                        const stats = differences.reduce((acc, diff) => {
-                            if (diff.type.toLowerCase().includes('add')) acc.added++;
-                            else if (diff.type.toLowerCase().includes('remov')) acc.removed++;
-                            else acc.changed++;
-                            return acc;
-                        }, { added: 0, removed: 0, changed: 0 });
-                        
-                        reportHtml = `
-                            <div class="collapsible-section collapsed">
-                                <button class="collapsible-header">
-                                    <h2>Детальний звіт про відмінності</h2>
-                                    <span class="collapse-icon">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                                    </span>
-                                </button>
-                                <div class="collapsible-content">
-                                    <div>
-                                        <div class="stats-bar">
-                                            <span class="stat-item"><span class="icon-circle icon-circle-added">+</span> Додано: ${stats.added}</span>
-                                            <span class="stat-item"><span class="icon-circle icon-circle-removed">-</span> Видалено: ${stats.removed}</span>
-                                            <span class="stat-item"><span class="icon-circle icon-circle-changed">⇄</span> Змінено: ${stats.changed}</span>
-                                            <span class="stat-item"><span class="icon-circle icon-circle-total">Σ</span> Всього: ${differences.length}</span>
-                                        </div>
-                                        <div class="results-controls">
-                                            <input type="search" id="searchInput" placeholder="Пошук у звіті...">
-                                            <div class="filter-group">
-                                                <label><input type="checkbox" class="filter-cb" value="add" checked> Додані</label>
-                                                <label><input type="checkbox" class="filter-cb" value="remov" checked> Видалені</label>
-                                                <label><input type="checkbox" class="filter-cb" value="chang" checked> Змінені</label>
-                                                ${currentMode === 'schema' ? `<label><input type="checkbox" class="filter-cb" value="schema" checked> Помилки схеми</label>` : ''}
-                                            </div>
-                                        </div>
-                                        <div id="table-container"></div>
-                                    </div>
-                                </div>
-                            </div>`;
-                    }
-                    
-                    const sourceTitle = currentMode === 'schema' ? 'JSON Schema' : 'Source';
-                    const targetTitle = currentMode === 'schema' ? 'JSON для валідації' : 'Target';
-
-                    // Use the new rendering function that handles syntax and diff highlighting
-                    const sourceHtmlContent = sourceJson ? jsonTraverseAndRender(sourceJson, differences, 'source') : '';
-                    const targetHtmlContent = targetJson ? jsonTraverseAndRender(targetJson, differences, 'target') : '';
-
-                    reportHtml += `
-                        <div class="collapsible-section collapsed">
-                            <button class="collapsible-header">
-                                <h2>JSON файли</h2>
-                                <span class="collapse-icon">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                                </span>
-                            </button>
-                            <div class="collapsible-content">
-                                <div class="json-view-controls" style="text-align: right; margin-bottom: 10px;">
-                                    <label><input type="radio" name="jsonViewMode" value="code" checked> Код</label>
-                                    <label><input type="radio" name="jsonViewMode" value="tree"> Дерево</label>
-                                </div>
-                                <div class="json-view">
-                                    <div id="sourceJsonWrapper" style="${sourceJson ? '' : 'display: none;'}">
-                                        <h3>${sourceTitle}</h3>
-                                        <pre id="sourceJsonViewCode">${sourceHtmlContent}</pre>
-                                        <div id="sourceJsonViewTree" class="json-tree-view" style="display: none;"></div>
-                                    </div>
-                                    <div id="targetJsonWrapper" style="grid-column: ${sourceJson ? 'auto' : 'span 2'};">
-                                        <h3>${targetTitle}</h3>
-                                        <pre id="targetJsonViewCode">${targetHtmlContent}</pre>
-                                        <div id="targetJsonViewTree" class="json-tree-view" style="display: none;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>`;
-                    
-                    resultsContainer.innerHTML = reportHtml;
-                    resultsContainer.style.display = 'block';
-                    exportBtn.style.display = 'inline-block';
-                    copyResultsBtn.style.display = 'inline-block';
-
-                    renderInteractiveTable(differences);
-                    synchronizeJsonViewHeights();
-                    setupCollapsibleSections();
-                    setupJsonViewToggle(sourceJson, targetJson, differences); // Setup tree view
-                    resultsContainer.scrollIntoView({ behavior: 'smooth' });
-                    initializeTooltips(); // Re-initialize tooltips for new dynamic content
-                }
-
-                function renderInteractiveTable(allDifferences) {
-                    const tableContainer = document.getElementById('table-container');
-                    let searchTerm = '';
-                    let activeFilters = ['add', 'remov', 'chang'];
-                    if (currentMode === 'schema') {
-                        activeFilters.push('schema');
-                    }
-                    let sortState = { column: null, direction: 'asc' };
-
-                    function applyFiltersAndSort() {
-                        let filtered = allDifferences.filter(d => {
-                            const typeMatch = activeFilters.some(f => d.type.toLowerCase().includes(f));
-                            if (!typeMatch) return false;
-
-                            const searchMatch = !searchTerm || Object.values(d).some(val => 
-                                String(val).toLowerCase().includes(searchTerm)
-                            );
-                            return searchMatch;
-                        });
-
-                        if (sortState.column !== null) {
-                            filtered.sort((a, b) => {
-                                const valA = a[sortState.column];
-                                const valB = b[sortState.column];
-                                if (valA === undefined || valB === undefined || valA === null || valB === null) {
-                                    if (valA === undefined || valA === null) return sortState.direction === 'asc' ? 1 : -1;
-                                    if (valB === undefined || valB === null) return sortState.direction === 'asc' ? -1 : 1;
-                                }
-                                if (typeof valA === 'string' && typeof valB === 'string') {
-                                    return (sortState.direction === 'asc' ? 1 : -1) * valA.localeCompare(valB, 'uk', { numeric: true });
-                                }
-                                if (valA < valB) return sortState.direction === 'asc' ? -1 : 1;
-                                if (valA > valB) return sortState.direction === 'asc' ? 1 : -1;
-                                return 0;
-                            });
-                        }
-                        
-                        updateTableDOM(filtered);
-                    }
-
-                    function updateTableDOM(differences) {
-                        const rows = differences.map(d => {
-                            const iconSymbol = { 
-                                Added: '+', Removed: '-', 
-                                ValueChanged: '⇄', TypeChanged: 'T', 
-                                LengthChanged: 'L', SchemaError: '!',
-                                SchemaParseError: 'X'
-                            }[d.type] || '?';
-                            
-                            let iconClass = 'icon-circle';
-                            if (d.type.toLowerCase().includes('add')) iconClass += ' icon-circle-added';
-                            else if (d.type.toLowerCase().includes('remov')) iconClass += ' icon-circle-removed';
-                            else iconClass += ' icon-circle-changed';
-                            
-                            return `
-                                <tr>
-                                    <td><span class="${iconClass}">${iconSymbol}</span></td>
-                                    <td data-sort-value="${d.type}">${d.type}</td>
-                                    <td data-sort-value="${d.path}"><pre>${escapeHtml(d.path)}</pre></td>
-                                    <td data-sort-value="${d.reason}">${escapeHtml(d.reason)}</td>
-                                    <td data-sort-value="${d.oldValue || ''}"><pre>${escapeHtml(d.oldValue || '')}</pre></td>
-                                    <td data-sort-value="${d.newValue || ''}"><pre>${escapeHtml(d.newValue || '')}</pre></td>
-                                </tr>`;
-                        }).join('');
-                        
-                        const headers = [
-                            { key: '', label: '', sortable: false },
-                            { key: 'type', label: 'Тип', sortable: true },
-                            { key: 'path', label: 'Шлях', sortable: true },
-                            { key: 'reason', label: 'Причина', sortable: true },
-                            { key: 'oldValue', label: currentMode === 'schema' ? 'Правило схеми / Старе значення' : 'Старе значення', sortable: true },
-                            { key: 'newValue', label: currentMode === 'schema' ? 'Значення / Нове значення' : 'Нове значення', sortable: true },
-                        ];
-
-                        const headerHtml = headers.map((h) => {
-                            let classes = h.sortable ? 'sortable' : '';
-                            if (h.key === sortState.column) {
-                                classes += sortState.direction === 'asc' ? ' sort-asc' : ' sort-desc';
-                            }
-                            return `<th class="${classes}" data-key="${h.key}">${h.label}</th>`;
-                        }).join('');
-
-                        tableContainer.innerHTML = `
-                            <table>
-                                <thead><tr>${headerHtml}</tr></thead>
-                                <tbody>${rows}</tbody>
-                            </table>`;
-                    }
-
-                    document.getElementById('searchInput').addEventListener('input', (e) => {
-                        searchTerm = e.target.value.toLowerCase();
-                        applyFiltersAndSort();
-                    });
-
-                    document.querySelectorAll('.filter-cb').forEach(cb => {
-                        cb.addEventListener('change', () => {
-                            activeFilters = Array.from(document.querySelectorAll('.filter-cb:checked')).map(c => c.value);
-                            applyFiltersAndSort();
-                        });
-                    });
-
-                    tableContainer.addEventListener('click', (e) => {
-                        const header = e.target.closest('th.sortable');
-                        if (header) {
-                            const key = header.dataset.key;
-                            if (sortState.column === key) {
-                                sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
-                            } else {
-                                sortState.column = key;
-                                sortState.direction = 'asc';
-                            }
-                            applyFiltersAndSort();
-                        }
-                    });
-
-                    applyFiltersAndSort();
-                }
-                
-                // Function to synchronize heights between code view and tree view, called after content changes.
-                function synchronizeJsonViewHeights() {
-                    const sourceViewCode = document.getElementById('sourceJsonViewCode'); 
-                    const targetViewCode = document.getElementById('targetJsonViewCode');
-                    const sourceViewTree = document.getElementById('sourceJsonViewTree');
-                    const targetViewTree = document.getElementById('targetJsonViewTree');
-
-                    const isCodeMode = document.querySelector('input[name="jsonViewMode"][value="code"]').checked;
-
-                    let currentSourceView = isCodeMode ? sourceViewCode : sourceViewTree;
-                    let currentTargetView = isCodeMode ? targetViewCode : targetViewTree;
-
-                    // Reset heights
-                    if (sourceViewCode) sourceViewCode.style.height = 'auto';
-                    if (targetViewCode) targetViewCode.style.height = 'auto';
-                    if (sourceViewTree) sourceViewTree.style.height = 'auto';
-                    if (targetViewTree) targetViewTree.style.height = 'auto';
-
-                    // Set max height for visible views
-                    if (currentSourceView && currentTargetView) {
-                        const maxHeight = Math.max(currentSourceView.scrollHeight, currentTargetView.scrollHeight);
-                        currentSourceView.style.height = `${maxHeight}px`;
-                        currentTargetView.style.height = `${maxHeight}px`;
-                    } else if (currentSourceView) { 
-                        currentSourceView.style.height = `${currentSourceView.scrollHeight}px`;
-                    } else if (currentTargetView) { 
-                        currentTargetView.style.height = `${currentTargetView.scrollHeight}px`;
-                    }
-                }
-                
-                function setupCollapsibleSections() {
-                    document.querySelectorAll('.collapsible-header').forEach(header => {
-                        header.removeEventListener('click', toggleCollapsible);
-                        header.addEventListener('click', toggleCollapsible);
-                    });
-                }
-
-                function toggleCollapsible() {
-                    this.closest('.collapsible-section').classList.toggle('collapsed');
-                    setTimeout(synchronizeJsonViewHeights, 450); 
-                }
-
-                // --- DOMContentLoaded finishes initialization ---
-                document.addEventListener('DOMContentLoaded', () => {
-                    // --- DOM Elements (local references for event handlers) ---
-                    const dropZone1 = document.getElementById('dropZone1');
-                    const dropZone2 = document.getElementById('dropZone2');
-                    const dropZoneSchema = document.getElementById('dropZoneSchema');
-                    const compareBtn = document.getElementById('compareBtn');
-                    const exportBtn = document.getElementById('exportBtn');
-                    const resultsContainer = document.getElementById('results');
-                    const modeSelector = document.querySelector('.mode-selector');
-                    const loader = document.getElementById('loader');
-                    const settingsBtn = document.getElementById('settingsBtn');
-                    const settingsModal = document.getElementById('settingsModal');
-                    const closeSettingsModalBtn = document.getElementById('closeSettingsModal');
-                    const saveSettingsBtn = document.getElementById('saveSettingsBtn');
-                    const clearAllBtn = document.getElementById('clearAllBtn');
-                    const copyResultsBtn = document.getElementById('copyResultsBtn');
-                    const widthToggleBtn = document.getElementById('widthToggleBtn');
-                    const widthEnterIcon = document.getElementById('width-enter-icon');
-                    const widthExitIcon = document.getElementById('width-exit-icon');
-
-                    // --- State ---
-                    let sourceFileContent = null;
-                    let targetFileContent = null;
-                    let schemaFileContent = null;
-                    let globalDifferences = [];
-                    let currentMode = 'direct';
-
-                    let settings = {
-                        ignorePaths: [],
-                        arrayCompareMode: 'key',
-                        caseSensitive: true,
-                    };
-
-                    // --- Initial calls for setup ---
-                    loadSettings();
-                    updateUiForMode();
-                    initializeTooltips();
-
-                    // --- Event Listeners ---
-                    settingsBtn.addEventListener('click', () => { settingsModal.style.display = 'flex'; initializeTooltips(); });
-                    closeSettingsModalBtn.addEventListener('click', () => { settingsModal.style.display = 'none'; });
-                    saveSettingsBtn.addEventListener('click', saveSettings);
-                    window.addEventListener('click', (event) => {
-                        if (event.target === settingsModal) {
-                            settingsModal.style.display = 'none';
-                        }
-                    });
-                    
-                    themeToggle.addEventListener('change', () => {
-                        document.body.classList.toggle('dark-mode');
-                        localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
-                    });
-
-                    // Re-apply theme on load
-                    if (localStorage.getItem('theme') === 'dark') {
-                        document.body.classList.add('dark-mode');
-                        themeToggle.checked = true;
-                    }
-
-                    function showLoader() { loader.style.display = 'flex'; }
-                    function hideLoader() { loader.style.display = 'none'; }
-
-                    function parseJson(text, dropZone, errorEl) {
-                        try {
-                            if (!text || text.trim() === '') {
-                                errorEl.style.display = 'none';
-                                dropZone.classList.remove('invalid');
-                                return null;
-                            }
-                            const parsed = JSON.parse(text);
-                            if (currentMode !== 'schema' && (typeof parsed !== 'object' || parsed === null)) {
-                                throw new Error("Вхідні дані повинні бути JSON-об'єктом або масивом.");
-                            }
-                            errorEl.style.display = 'none';
-                            dropZone.classList.remove('invalid');
-                            return parsed;
-                        } catch (jsonError) {
-                            errorEl.textContent = `Помилка: Не є валідним JSON. ${jsonError.message}`;
-                            errorEl.style.display = 'block';
-                            dropZone.classList.add('invalid');
-                            return null;
-                        }
-                    }
-
-                    function setupDropZone(dropZone, textArea, fileNameEl, errorEl, fileContentCallback) {
-                        textArea.addEventListener('input', () => {
-                            const content = textArea.value;
-                            fileContentCallback(content);
-                            const parsed = parseJson(content, dropZone, errorEl);
-                            if (!parsed && content.trim() !== '') {
-                                showToast(`Помилка у файлі: ${fileNameEl.textContent || dropZone.querySelector('textarea').placeholder.split(' ')[2]}. ${errorEl.textContent}`, 'error');
-                            }
-                            fileNameEl.textContent = '';
-                            checkFilesReady();
-                        });
-
-                        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
-                        dropZone.addEventListener('dragleave', e => { e.preventDefault(); dropZone.classList.remove('dragover'); });
-                        dropZone.addEventListener('drop', e => {
-                            e.preventDefault();
-                            dropZone.classList.remove('dragover');
-                            const file = e.dataTransfer.files[0];
-                            if (!file) return;
-
-                            if (file.size > 5 * 1024 * 1024) {
-                                showToast("Файл занадто великий. Максимальний розмір - 5MB.", 'error');
-                                return;
-                            }
-
-                            if (file.type === 'application/json' || file.name.endsWith('.json')) {
-                                fileNameEl.textContent = file.name;
-                                const reader = new FileReader();
-                                reader.onload = (event) => {
-                                    const content = event.target.result;
-                                    textArea.value = content;
-                                    fileContentCallback(content);
-                                    const parsed = parseJson(content, dropZone, errorEl);
-                                    if (!parsed) {
-                                        showToast(`Помилка у файлі '${file.name}'. ${errorEl.textContent}`, 'error');
-                                    } else {
-                                        showToast(`Файл '${file.name}' завантажено.`, 'success');
-                                    }
-                                    checkFilesReady();
-                                };
-                                reader.readAsText(file);
-                            } else {
-                                showToast('Будь ласка, перетягніть JSON файл.', 'error');
-                                fileNameEl.textContent = ''; textArea.value = ''; fileContentCallback(null); checkFilesReady();
-                            }
-                        });
-                    }
-
-                    setupDropZone(dropZone1, document.getElementById('sourceText'), document.getElementById('fileName1'), document.getElementById('sourceError'), content => sourceFileContent = content);
-                    setupDropZone(dropZone2, document.getElementById('targetText'), document.getElementById('fileName2'), document.getElementById('targetError'), content => targetFileContent = content);
-                    setupDropZone(dropZoneSchema, document.getElementById('schemaText'), document.getElementById('fileNameSchema'), document.getElementById('schemaError'), content => schemaFileContent = content);
-
-                    modeSelector.addEventListener('change', e => {
-                        currentMode = e.target.value;
-                        updateUiForMode();
-                        checkFilesReady();
-                    });
-
-                    function updateUiForMode() {
-                        const sourceTextArea = document.getElementById('sourceText');
-                        const targetTextArea = document.getElementById('targetText');
-                        const sourceFileNameEl = document.getElementById('fileName1');
-                        const targetFileNameEl = document.getElementById('fileName2');
-                        const schemaFileNameEl = document.getElementById('fileNameSchema');
-
-                        if (currentMode === 'schema') {
-                            dropZoneSchema.classList.remove('hidden');
-                            sourceTextArea.placeholder = 'Перетягніть сюди JSON Schema або вставте код';
-                            targetTextArea.placeholder = 'Перетягніть сюди JSON для валідації або вставте код';
-                            if (sourceFileContent) {
-                                 try { JSON.parse(sourceFileContent); }
-                                 catch { sourceFileNameEl.textContent = ''; sourceFileContent = null; sourceTextArea.value = ''; }
-                            }
-                        } else {
-                            dropZoneSchema.classList.add('hidden');
-                            sourceTextArea.placeholder = 'Перетягніть сюди Source файл або вставте JSON';
-                            targetTextArea.placeholder = 'Перетягніть сюди Target файл або вставте JSON';
-                            schemaFileNameEl.textContent = '';
-                            schemaFileContent = null;
-                            document.getElementById('schemaText').value = '';
-                        }
-                        document.getElementById('sourceError').style.display = 'none';
-                        document.getElementById('targetError').style.display = 'none';
-                        document.getElementById('schemaError').style.display = 'none';
-                        dropZone1.classList.remove('invalid');
-                        dropZone2.classList.remove('invalid');
-                        dropZoneSchema.classList.remove('invalid');
-                    }
-
-
-                    function checkFilesReady() {
-                        let isReady = false;
-                        const sourceValid = !document.getElementById('sourceError').style.display || document.getElementById('sourceError').style.display === 'none';
-                        const targetValid = !document.getElementById('targetError').style.display || document.getElementById('targetError').style.display === 'none';
-                        const schemaValid = !document.getElementById('schemaError').style.display || document.getElementById('schemaError').style.display === 'none';
-
-                        if (currentMode === 'schema') {
-                            isReady = schemaFileContent && targetFileContent && schemaValid && targetValid;
-                        } else {
-                            isReady = sourceFileContent && targetFileContent && sourceValid && targetValid;
-                        }
-                        compareBtn.disabled = !isReady;
-                    }
-
-                    compareBtn.addEventListener('click', () => {
-                        showLoader();
-                        setTimeout(() => {
-                            let sourceJson = null;
-                            let targetJson = null;
-                            let schemaJson = null;
-
-                            if (currentMode === 'schema') {
-                                schemaJson = parseJson(schemaFileContent, dropZoneSchema, document.getElementById('schemaError'));
-                                targetJson = parseJson(targetFileContent, dropZone2, document.getElementById('targetError'));
-                            } else {
-                                sourceJson = parseJson(sourceFileContent, dropZone1, document.getElementById('sourceError'));
-                                targetJson = parseJson(targetFileContent, dropZone2, document.getElementById('targetError'));
-                            }
-
-                            let canProceed = false;
-                             if (currentMode === 'schema') {
-                                canProceed = schemaJson && targetJson;
-                             } else {
-                                canProceed = sourceJson && targetJson;
-                             }
-
-                            if (!canProceed) {
-                                hideLoader();
-                                showToast("Будь ласка, перевірте вхідні дані. Один або декілька файлів не є валідними JSON.", 'error');
-                                return;
-                            }
-
-                            try {
-                                globalDifferences = [];
-                                if (currentMode === 'direct') {
-                                    globalDifferences = findDifferences(sourceJson, targetJson, false, '$', settings);
-                                    renderReport(globalDifferences, sourceJson, targetJson);
-                                } else if (currentMode === 'keys') {
-                                    globalDifferences = findDifferences(sourceJson, targetJson, true, '$', settings);
-                                    renderReport(globalDifferences, sourceJson, targetJson);
-                                } else if (currentMode === 'schema') {
-                                    globalDifferences = validateWithSchema(targetJson, schemaJson);
-                                    renderReport(globalDifferences, schemaJson, targetJson); // Pass schema as "source" for display purposes
-                                }
-                                showToast(`Порівняння завершено. Знайдено ${globalDifferences.length} відмінностей.`, 'success');
-                            } catch (e) {
-                                console.error("Помилка аналізу/валідації:", e);
-                                showToast(`Сталася непередбачена помилка: ${e.message}`, 'error');
-                                resultsContainer.innerHTML = `<p style="color: var(--red);">Помилка: ${e.message}</p>`;
-                                resultsContainer.style.display = 'block';
-                            } finally {
-                                hideLoader();
-                            }
-                        }, 50);
-                    });
-
-                    document.getElementById('exportTxt').addEventListener('click', (e) => { e.preventDefault(); exportReport('txt'); });
-                    document.getElementById('exportJson').addEventListener('click', (e) => { e.preventDefault(); exportReport('json'); });
-                    document.getElementById('exportCsv').addEventListener('click', (e) => { e.preventDefault(); exportReport('csv'); });
-
-                    function exportReport(format) {
-                        let content = '';
-                        let fileName = `comparison_report_${new Date().toISOString().slice(0,10)}`;
-                        let mimeType = 'text/plain;charset=utf-8';
-
-                        if (globalDifferences.length === 0) {
-                            content = "Відмінностей не знайдено.";
-                        } else if (format === 'txt') {
-                            content = globalDifferences.map(d => {
-                                let line = `Тип: ${d.type}\nШлях: ${d.path}\nПричина: ${d.reason}\n`;
-                                if (d.oldValue !== undefined) line += `Старе значення: ${d.oldValue}\n`;
-                                if (d.newValue !== undefined) line += `Нове значення: ${d.newValue}\n`;
-                                return line + '---';
-                            }).join('\n');
-                            fileName += '.txt';
-                        } else if (format === 'json') {
-                            content = JSON.stringify(globalDifferences, null, 2);
-                            fileName += '.json';
-                            mimeType = 'application/json;charset=utf-8';
-                        } else if (format === 'csv') {
-                            const header = "Type,Path,Reason,OldValue,NewValue\n";
-                            const rows = globalDifferences.map(d => {
-                                const escapeCsv = (val) => {
-                                    if (val == null) return '';
-                                    const str = String(val);
-                                    if (str.includes('"') || str.includes(',') || str.includes('\n')) {
-                                        return `"${str.replace(/"/g, '""')}"`;
-                                    }
-                                    return str;
-                                };
-                                return [escapeCsv(d.type), escapeCsv(d.path), escapeCsv(d.reason), escapeCsv(d.oldValue), escapeCsv(d.newValue)].join(',');
-                            }).join('\n');
-                            content = "\uFEFF" + header + rows;
-                            fileName += '.csv';
-                            mimeType = 'text/csv;charset=utf-8';
-                        }
-                        
-                        const blob = new Blob([content], { type: mimeType });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = fileName;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                        showToast(`Звіт експортовано у ${format.toUpperCase()} формат.`, 'success');
-                    }
-                    
-                    function isPathIgnored(path, ignorePatterns) {
-                        return ignorePatterns.some(pattern => {
-                            let regexPattern = '^' + pattern.replace(/\$/g, '\\$').replace(/\./g, '\\.').replace(/\[\*\]/g, '\\[[0-9]+\\]');
-                            if (pattern.endsWith('.*')) {
-                                regexPattern = regexPattern.slice(0, -2) + '(\\.|$).*';
-                            } else if (pattern.endsWith('[*]')) {
-                                regexPattern = regexPattern.slice(0, -3) + '\\[[0-9]+\\](\\.|$).*';
-                            }
-                            const regex = new RegExp(regexPattern);
-                            return regex.test(path);
-                        });
-                    }
-
-                    // --- CORE COMPARISON LOGIC ---
-                    function findDifferences(elem1, elem2, keysOnly, path = '$', settings) {
-                        if (isPathIgnored(path, settings.ignorePaths)) return [];
-                        const differences = [];
-                        if (typeof elem1 !== typeof elem2 || Array.isArray(elem1) !== Array.isArray(elem2)) {
-                            differences.push({ path, type: 'TypeChanged', reason: 'Різні типи', oldValue: typeof elem1, newValue: typeof elem2 });
-                            return differences;
-                        }
-                        if (Array.isArray(elem1)) {
-                            if (settings.arrayCompareMode === 'key' && !tryCompareArraysByKey(elem1, elem2, keysOnly, path, differences, settings)) {
-                                compareArraysByIndex(elem1, elem2, keysOnly, path, differences, settings);
-                            } else if (settings.arrayCompareMode === 'index') {
-                                compareArraysByIndex(elem1, elem2, keysOnly, path, differences, settings);
-                            }
-                        } else if (typeof elem1 === 'object' && elem1 !== null) {
-                            compareObjects(elem1, elem2, keysOnly, path, differences, settings);
-                        } else {
-                            let val1 = elem1;
-                            let val2 = elem2;
-                            if (typeof val1 === 'string' && !settings.caseSensitive) {
-                                val1 = val1.toLowerCase();
-                                val2 = val2.toLowerCase();
-                            }
-                            if (!keysOnly && val1 !== val2) {
-                                differences.push({ path, type: 'ValueChanged', reason: 'Різні значення', oldValue: JSON.stringify(elem1), newValue: JSON.stringify(elem2) });
-                            }
-                        }
-                        return differences;
-                    }
-
-                    function compareObjects(obj1, obj2, keysOnly, path, differences, settings) {
-                        const allKeys = new Set([...Object.keys(obj1), ...Object.keys(obj2)]);
-                        allKeys.forEach(key => {
-                            const currentPath = `${path}.${key}`;
-                            if (isPathIgnored(currentPath, settings.ignorePaths)) return;
-                            if (key in obj1 && !(key in obj2)) {
-                                differences.push({ path: currentPath, type: 'Removed', reason: 'Властивість видалена', oldValue: JSON.stringify(obj1[key], null, 2) });
-                            } else if (!(key in obj1) && key in obj2) {
-                                differences.push({ path: currentPath, type: 'Added', reason: 'Властивість додана', newValue: JSON.stringify(obj2[key], null, 2) });
-                            } else {
-                                differences.push(...findDifferences(obj1[key], obj2[key], keysOnly, currentPath, settings));
-                            }
-                        });
-                    }
-                    
-                    function tryCompareArraysByKey(arr1, arr2, keysOnly, path, differences, settings) {
-                        const potentialKeys = ['id', 'productId', 'variantId', 'reviewId', 'key', 'name'];
-                        if (arr1.length === 0 && arr2.length === 0) return true;
-                        if (arr1.length > 0 && (typeof arr1[0] !== 'object' || arr1[0] === null)) return false;
-                        if (arr2.length > 0 && (typeof arr2[0] !== 'object' || arr2[0] === null)) return false;
-
-                        const bestKey = potentialKeys.find(key => 
-                            (arr1.length === 0 || arr1.every(item => item && typeof item === 'object' && key in item)) &&
-                            (arr2.length === 0 || arr2.every(item => item && typeof item === 'object' && key in item))
-                        );
-                        
-                        if (!bestKey) return false;
-
-                        const dict1 = new Map(arr1.map(item => [item[bestKey], item]));
-                        const dict2 = new Map(arr2.map(item => [item[bestKey], item]));
-
-                        dict1.forEach((value, key) => {
-                            const currentPath = `${path}[${bestKey}=${JSON.stringify(key)}]`;
-                            if (isPathIgnored(currentPath, settings.ignorePaths)) return;
-                            if (!dict2.has(key)) {
-                                differences.push({ path: currentPath, type: 'Removed', reason: 'Об\'єкт видалено', oldValue: JSON.stringify(value, null, 2) });
-                            } else {
-                                differences.push(...findDifferences(value, dict2.get(key), keysOnly, currentPath, settings));
-                                dict2.delete(key);
-                            }
-                        });
-
-                        dict2.forEach((value, key) => {
-                            const currentPath = `${path}[${bestKey}=${JSON.stringify(key)}]`;
-                            if (isPathIgnored(currentPath, settings.ignorePaths)) return;
-                            if (!dict1.has(key)) {
-                                differences.push({ path: currentPath, type: 'Added', reason: 'Об\'єкт додано', newValue: JSON.stringify(value, null, 2) });
-                            }
-                        });
-                        return true;
-                    }
-
-                    function compareArraysByIndex(arr1, arr2, keysOnly, path, differences, settings) {
-                        if (arr1.length !== arr2.length && !keysOnly) {
-                            differences.push({ path, type: 'LengthChanged', reason: 'Різна кількість елементів', oldValue: arr1.length, newValue: arr2.length });
-                        }
-                        const len = Math.min(arr1.length, arr2.length);
-                        for (let i = 0; i < len; i++) {
-                            const currentPath = `${path}[${i}]`;
-                            if (isPathIgnored(currentPath, settings.ignorePaths)) continue;
-                            differences.push(...findDifferences(arr1[i], arr2[i], keysOnly, currentPath, settings));
-                        }
-                        for (let i = len; i < arr1.length; i++) {
-                            const currentPath = `${path}[${i}]`;
-                            if (isPathIgnored(currentPath, settings.ignorePaths)) continue;
-                            differences.push({ path: currentPath, type: 'Removed', reason: 'Елемент видалено', oldValue: JSON.stringify(arr1[i], null, 2) });
-                        }
-                        for (let i = len; i < arr2.length; i++) {
-                            const currentPath = `${path}[${i}]`;
-                            if (isPathIgnored(currentPath, settings.ignorePaths)) continue;
-                            differences.push({ path: currentPath, type: 'Added', reason: 'Елемент додано', newValue: JSON.stringify(arr2[i], null, 2) });
-                        }
-                    }
-
-                    // --- JSON SCHEMA VALIDATION ---
-                    function validateWithSchema(data, schema) {
-                        const ajv = new Ajv();
-                        try {
-                            const validate = ajv.compile(schema);
-                            const valid = validate(data);
-                            if (valid) {
-                                return [];
-                            }
-                            return validate.errors.map(err => ({
-                                path: err.instancePath || '$',
-                                type: 'SchemaError',
-                                reason: err.message || 'Помилка валідації',
-                                oldValue: `Rule: ${err.keyword}, Params: ${JSON.stringify(err.params)}`,
-                                newValue: `Value: ${JSON.stringify(err.data)}`
-                            }));
-                        } catch (e) {
-                            return [{
-                                path: '$',
-                                type: 'SchemaParseError',
-                                reason: `Некоректна JSON-схема: ${e.message}`,
-                                oldValue: 'N/A',
-                                newValue: 'N/A'
-                            }];
-                        }
-                    }
-
-                    // --- REPORT GENERATION ---
-                    function renderReport(differences, sourceJson, targetJson) {
-                        let reportHtml = ``;
-                        if (differences.length === 0) {
-                            reportHtml = `<h2>✅ ${currentMode === 'schema' ? 'JSON валідний за схемою' : 'Відмінностей не знайдено'}.</h2>`;
-                        } else {
-                            const stats = differences.reduce((acc, diff) => {
-                                if (diff.type.toLowerCase().includes('add')) acc.added++;
-                                else if (diff.type.toLowerCase().includes('remov')) acc.removed++;
-                                else acc.changed++;
-                                return acc;
-                            }, { added: 0, removed: 0, changed: 0 });
-                            
-                            reportHtml = `
-                                <div class="collapsible-section collapsed">
-                                    <button class="collapsible-header">
-                                        <h2>Детальний звіт про відмінності</h2>
-                                        <span class="collapse-icon">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                                        </span>
-                                    </button>
-                                    <div class="collapsible-content">
-                                        <div>
-                                            <div class="stats-bar">
-                                                <span class="stat-item"><span class="icon-circle icon-circle-added">+</span> Додано: ${stats.added}</span>
-                                                <span class="stat-item"><span class="icon-circle icon-circle-removed">-</span> Видалено: ${stats.removed}</span>
-                                                <span class="stat-item"><span class="icon-circle icon-circle-changed">⇄</span> Змінено: ${stats.changed}</span>
-                                                <span class="stat-item"><span class="icon-circle icon-circle-total">Σ</span> Всього: ${differences.length}</span>
-                                            </div>
-                                            <div class="results-controls">
-                                                <input type="search" id="searchInput" placeholder="Пошук у звіті...">
-                                                <div class="filter-group">
-                                                    <label><input type="checkbox" class="filter-cb" value="add" checked> Додані</label>
-                                                    <label><input type="checkbox" class="filter-cb" value="remov" checked> Видалені</label>
-                                                    <label><input type="checkbox" class="filter-cb" value="chang" checked> Змінені</label>
-                                                    ${currentMode === 'schema' ? `<label><input type="checkbox" class="filter-cb" value="schema" checked> Помилки схеми</label>` : ''}
-                                                </div>
-                                            </div>
-                                            <div id="table-container"></div>
-                                        </div>
-                                    </div>
-                                </div>`;
-                        }
-                        
-                        const sourceTitle = currentMode === 'schema' ? 'JSON Schema' : 'Source';
-                        const targetTitle = currentMode === 'schema' ? 'JSON для валідації' : 'Target';
-
-                        // Use the new rendering function that handles syntax and diff highlighting
-                        const sourceHtmlContent = sourceJson ? jsonTraverseAndRender(sourceJson, differences, 'source') : '';
-                        const targetHtmlContent = targetJson ? jsonTraverseAndRender(targetJson, differences, 'target') : '';
-
-                        reportHtml += `
-                            <div class="collapsible-section collapsed">
-                                <button class="collapsible-header">
-                                    <h2>JSON файли</h2>
-                                    <span class="collapse-icon">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                                    </span>
-                                </button>
-                                <div class="collapsible-content">
-                                    <div class="json-view-controls" style="text-align: right; margin-bottom: 10px;">
-                                        <label><input type="radio" name="jsonViewMode" value="code" checked> Код</label>
-                                        <label><input type="radio" name="jsonViewMode" value="tree"> Дерево</label>
-                                    </div>
-                                    <div class="json-view">
-                                        <div id="sourceJsonWrapper" style="${sourceJson ? '' : 'display: none;'}">
-                                            <h3>${sourceTitle}</h3>
-                                            <pre id="sourceJsonViewCode">${sourceHtmlContent}</pre>
-                                            <div id="sourceJsonViewTree" class="json-tree-view" style="display: none;"></div>
-                                        </div>
-                                        <div id="targetJsonWrapper" style="grid-column: ${sourceJson ? 'auto' : 'span 2'};">
-                                            <h3>${targetTitle}</h3>
-                                            <pre id="targetJsonViewCode">${targetHtmlContent}</pre>
-                                            <div id="targetJsonViewTree" class="json-tree-view" style="display: none;"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>`;
-                        
-                        resultsContainer.innerHTML = reportHtml;
-                        resultsContainer.style.display = 'block';
-                        exportBtn.style.display = 'inline-block';
-                        copyResultsBtn.style.display = 'inline-block';
-
-                        renderInteractiveTable(differences);
-                        synchronizeJsonViewHeights();
-                        setupCollapsibleSections();
-                        setupJsonViewToggle(sourceJson, targetJson, differences); // Setup tree view
-                        resultsContainer.scrollIntoView({ behavior: 'smooth' });
-                        initializeTooltips(); // Re-initialize tooltips for new dynamic content
-                    }
-
-                    function renderInteractiveTable(allDifferences) {
-                        const tableContainer = document.getElementById('table-container');
-                        let searchTerm = '';
-                        let activeFilters = ['add', 'remov', 'chang'];
-                        if (currentMode === 'schema') {
-                            activeFilters.push('schema');
-                        }
-                        let sortState = { column: null, direction: 'asc' };
-
-                        function applyFiltersAndSort() {
-                            let filtered = allDifferences.filter(d => {
-                                const typeMatch = activeFilters.some(f => d.type.toLowerCase().includes(f));
-                                if (!typeMatch) return false;
-
-                                const searchMatch = !searchTerm || Object.values(d).some(val => 
-                                    String(val).toLowerCase().includes(searchTerm)
-                                );
-                                return searchMatch;
-                            });
-
-                            if (sortState.column !== null) {
-                                filtered.sort((a, b) => {
-                                    const valA = a[sortState.column];
-                                    const valB = b[sortState.column];
-                                    if (valA === undefined || valB === undefined || valA === null || valB === null) {
-                                        if (valA === undefined || valA === null) return sortState.direction === 'asc' ? 1 : -1;
-                                        if (valB === undefined || valB === null) return sortState.direction === 'asc' ? -1 : 1;
-                                    }
-                                    if (typeof valA === 'string' && typeof valB === 'string') {
-                                        return (sortState.direction === 'asc' ? 1 : -1) * valA.localeCompare(valB, 'uk', { numeric: true });
-                                    }
-                                    if (valA < valB) return sortState.direction === 'asc' ? -1 : 1;
-                                    if (valA > valB) return sortState.direction === 'asc' ? 1 : -1;
-                                    return 0;
-                                });
-                            }
-                            
-                            updateTableDOM(filtered);
-                        }
-
-                        function updateTableDOM(differences) {
-                            const rows = differences.map(d => {
-                                const iconSymbol = { 
-                                    Added: '+', Removed: '-', 
-                                    ValueChanged: '⇄', TypeChanged: 'T', 
-                                    LengthChanged: 'L', SchemaError: '!',
-                                    SchemaParseError: 'X'
-                                }[d.type] || '?';
-                                
-                                let iconClass = 'icon-circle';
-                                if (d.type.toLowerCase().includes('add')) iconClass += ' icon-circle-added';
-                                else if (d.type.toLowerCase().includes('remov')) iconClass += ' icon-circle-removed';
-                                else iconClass += ' icon-circle-changed';
-                                
-                                return `
-                                    <tr>
-                                        <td><span class="${iconClass}">${iconSymbol}</span></td>
-                                        <td data-sort-value="${d.type}">${d.type}</td>
-                                        <td data-sort-value="${d.path}"><pre>${escapeHtml(d.path)}</pre></td>
-                                        <td data-sort-value="${d.reason}">${escapeHtml(d.reason)}</td>
-                                        <td><pre>${escapeHtml(d.oldValue || '')}</pre></td>
-                                        <td><pre>${escapeHtml(d.newValue || '')}</pre></td>
-                                    </tr>`;
-                            }).join('');
-                            
-                            const headers = [
-                                { key: '', label: '', sortable: false },
-                                { key: 'type', label: 'Тип', sortable: true },
-                                { key: 'path', label: 'Шлях', sortable: true },
-                                { key: 'reason', label: 'Причина', sortable: true },
-                                { key: 'oldValue', label: currentMode === 'schema' ? 'Правило схеми / Старе значення' : 'Старе значення', sortable: true },
-                                { key: 'newValue', label: currentMode === 'schema' ? 'Значення / Нове значення' : 'Нове значення', sortable: true },
-                            ];
-
-                            const headerHtml = headers.map((h) => {
-                                let classes = h.sortable ? 'sortable' : '';
-                                if (h.key === sortState.column) {
-                                    classes += sortState.direction === 'asc' ? ' sort-asc' : ' sort-desc';
-                                }
-                                return `<th class="${classes}" data-key="${h.key}">${h.label}</th>`;
-                            }).join('');
-
-                            tableContainer.innerHTML = `
-                                <table>
-                                    <thead><tr>${headerHtml}</tr></thead>
-                                    <tbody>${rows}</tbody>
-                                </table>`;
-                        }
-
-                        document.getElementById('searchInput').addEventListener('input', (e) => {
-                            searchTerm = e.target.value.toLowerCase();
-                            applyFiltersAndSort();
-                        });
-
-                        document.querySelectorAll('.filter-cb').forEach(cb => {
-                            cb.addEventListener('change', () => {
-                                activeFilters = Array.from(document.querySelectorAll('.filter-cb:checked')).map(c => c.value);
-                                applyFiltersAndSort();
-                            });
-                        });
-
-                        document.getElementById('table-container').addEventListener('click', (e) => { // Use table-container for event delegation
-                            const header = e.target.closest('th.sortable');
-                            if (header) {
-                                const key = header.dataset.key;
-                                if (sortState.column === key) {
-                                    sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
-                                } else {
-                                    sortState.column = key;
-                                    sortState.direction = 'asc';
-                                }
-                                applyFiltersAndSort();
-                            }
-                        });
-
-                        applyFiltersAndSort();
-                    }
-                    
-                    // Function to synchronize heights between code view and tree view, called after content changes.
-                    function synchronizeJsonViewHeights() {
-                        const sourceViewCode = document.getElementById('sourceJsonViewCode'); 
-                        const targetViewCode = document.getElementById('targetJsonViewCode');
-                        const sourceViewTree = document.getElementById('sourceJsonViewTree');
-                        const targetViewTree = document.getElementById('targetJsonViewTree');
-
-                        const isCodeMode = document.querySelector('input[name="jsonViewMode"][value="code"]').checked;
-
-                        let currentSourceView = isCodeMode ? sourceViewCode : sourceViewTree;
-                        let currentTargetView = isCodeMode ? targetViewCode : targetViewTree;
-
-                        // Reset heights
-                        if (sourceViewCode) sourceViewCode.style.height = 'auto';
-                        if (targetViewCode) targetViewCode.style.height = 'auto';
-                        if (sourceViewTree) sourceViewTree.style.height = 'auto';
-                        if (targetViewTree) targetViewTree.style.height = 'auto';
-
-                        // Set max height for visible views
-                        if (currentSourceView && currentTargetView) {
-                            const maxHeight = Math.max(currentSourceView.scrollHeight, currentTargetView.scrollHeight);
-                            currentSourceView.style.height = `${maxHeight}px`;
-                            currentTargetView.style.height = `${maxHeight}px`;
-                        } else if (currentSourceView) { 
-                            currentSourceView.style.height = `${currentSourceView.scrollHeight}px`;
-                        } else if (currentTargetView) { 
-                            currentTargetView.style.height = `${currentTargetView.scrollHeight}px`;
-                        }
-                    }
-                    
-                    function setupCollapsibleSections() {
-                        document.querySelectorAll('.collapsible-header').forEach(header => {
-                            header.removeEventListener('click', toggleCollapsible);
-                            header.addEventListener('click', toggleCollapsible);
-                        });
-                    }
-
-                    function toggleCollapsible() {
-                        this.closest('.collapsible-section').classList.toggle('collapsed');
-                        setTimeout(synchronizeJsonViewHeights, 450); 
-                    }
-
-                    // --- JSON View Toggle Logic ---
-                    function setupJsonViewToggle(sourceJson, targetJson, differences) {
-                        const radioButtons = document.querySelectorAll('input[name="jsonViewMode"]');
-                        const sourceCodeView = document.getElementById('sourceJsonViewCode');
-                        const targetCodeView = document.getElementById('targetJsonViewCode');
-                        const sourceTreeView = document.getElementById('sourceJsonViewTree');
-                        const targetTreeView = document.getElementById('targetJsonViewTree');
-                        
-                        // Re-create tree views every time to ensure they reflect current diffs/settings
-                        if (sourceJson) {
-                            createJsonTree(sourceJson, sourceTreeView, differences, 'source');
-                        } else {
-                            sourceTreeView.innerHTML = ''; // Clear if no source JSON
-                        }
-                        if (targetJson) {
-                            createJsonTree(targetJson, targetTreeView, differences, 'target');
-                        } else {
-                            targetTreeView.innerHTML = ''; // Clear if no target JSON
-                        }
-
-                        radioButtons.forEach(radio => {
-                            radio.removeEventListener('change', handleJsonViewChange); // Remove old listeners
-                            radio.addEventListener('change', handleJsonViewChange);
-                        });
-
-                        function handleJsonViewChange(event) {
-                            if (event.target.value === 'code') {
-                                if (sourceCodeView) sourceCodeView.style.display = 'block';
-                                if (sourceTreeView) sourceTreeView.style.display = 'none';
-                                if (targetCodeView) targetCodeView.style.display = 'block';
-                                if (targetTreeView) targetTreeView.style.display = 'none';
-                            } else { // tree mode
-                                if (sourceCodeView) sourceCodeView.style.display = 'none';
-                                if (sourceTreeView) sourceTreeView.style.display = 'block';
-                                if (targetCodeView) targetCodeView.style.display = 'none';
-                                if (targetTreeView) targetTreeView.style.display = 'block';
-                            }
-                            synchronizeJsonViewHeights(); // Re-adjust heights after mode change
-                        }
-
-                        // Ensure initial state is "code" and heights are synced
-                        if (document.querySelector('input[name="jsonViewMode"][value="code"]').checked) {
-                             synchronizeJsonViewHeights();
-                        } else {
-                             // If tree mode was checked, ensure tree views are displayed
-                            if (sourceCodeView) sourceCodeView.style.display = 'none';
-                            if (sourceTreeView) sourceTreeView.style.display = 'block';
-                            if (targetCodeView) targetCodeView.style.display = 'none';
-                            if (targetTreeView) targetTreeView.style.display = 'block';
-                            synchronizeJsonViewHeights();
-                        }
-                    }
-
-                    // --- Initial load ---
-                    loadSettings();
-                    updateUiForMode();
-                    initializeTooltips();
-
-                    clearAllBtn.addEventListener('click', () => {
-                        document.getElementById('sourceText').value = '';
-                        document.getElementById('targetText').value = '';
-                        document.getElementById('schemaText').value = '';
-                        document.getElementById('fileName1').textContent = '';
-                        document.getElementById('fileName2').textContent = '';
-                        document.getElementById('fileNameSchema').textContent = '';
-                        document.getElementById('sourceError').style.display = 'none';
-                        document.getElementById('targetError').style.display = 'none';
-                        document.getElementById('schemaError').style.display = 'none';
-                        dropZone1.classList.remove('invalid');
-                        dropZone2.classList.remove('invalid');
-                        dropZoneSchema.classList.remove('invalid');
-                        resultsContainer.innerHTML = '';
-                        resultsContainer.style.display = 'none';
-                        exportBtn.style.display = 'none';
-                        copyResultsBtn.style.display = 'none';
-                        sourceFileContent = null;
-                        targetFileContent = null;
-                        schemaFileContent = null;
-                        globalDifferences = [];
-                        checkFilesReady();
-                        showToast('Всі поля очищено!', 'info');
-                    });
-
-                    copyResultsBtn.addEventListener('click', () => {
-                        const table = resultsContainer.querySelector('table');
-                        if (!table) {
-                            showToast('Немає звіту для копіювання!', 'info');
-                            return;
-                        }
-
-                        const headerCells = Array.from(table.querySelectorAll('thead th'));
-                        const header = headerCells.map(th => {
-                            let text = th.innerText.trim();
-                            text = text.replace(/[\u2195\u25B2\u25BC]/g, '').trim(); 
-                            return `"${text.replace(/"/g, '""')}"`;
-                        }).join(',');
-
-                        const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr => 
-                            Array.from(tr.querySelectorAll('td')).map(td => {
-                                let cellText = td.querySelector('pre') ? td.querySelector('pre').innerText : td.innerText;
-                                return `"${cellText.replace(/"/g, '""')}"`;
-                            }).join(',')
-                        );
-                        
-                        const csvContent = [header, ...rows].join('\n');
-                        
-                        navigator.clipboard.writeText(csvContent).then(() => {
-                            showToast('Звіт скопійовано до буфера обміну!', 'success');
-                        }).catch(err => {
-                            console.error('Failed to copy: ', err);
-                            showToast('Не вдалося скопіювати. Перевірте дозволи у вашому браузері.', 'error');
-                        });
-                    });
-                    
-                    // --- Fullscreen Logic ---
-                    widthToggleBtn.addEventListener('click', () => {
-                        const mainContainer = document.getElementById('main-container'); // Need local reference here
-                        mainContainer.classList.toggle('full-width');
-                        const isFullWidth = mainContainer.classList.contains('full-width');
-                        widthEnterIcon.style.display = isFullWidth ? 'none' : 'block';
-                        widthExitIcon.style.display = isFullWidth ? 'block' : 'none';
-                        synchronizeJsonViewHeights();
-                    });
+                navigator.clipboard.writeText(csvContent).then(() => {
+                    showToast('Звіт скопійовано до буфера обміну!', 'success');
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                    showToast('Не вдалося скопіювати. Перевірте дозволи у вашому браузері.', 'error');
                 });
+            });
+            
+            // --- Fullscreen Logic ---
+            widthToggleBtn.addEventListener('click', () => {
+                const mainContainer = document.getElementById('main-container'); // Need local reference here
+                mainContainer.classList.toggle('full-width');
+                const isFullWidth = mainContainer.classList.contains('full-width');
+                widthEnterIcon.style.display = isFullWidth ? 'none' : 'block';
+                widthExitIcon.style.display = isFullWidth ? 'block' : 'none';
+                synchronizeJsonViewHeights();
+            });
+        });
     </script>
 </body>
 </html>
