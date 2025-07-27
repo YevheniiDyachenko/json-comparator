@@ -1267,8 +1267,10 @@
                         else if (type.includes('Changed') || type.includes('Error')) lineClass = 'diff-changed-text';
                     } else if (isKeyLine) {
                         // If it's a key line but no direct diff, check for child diffs
-                        for (const [diffPath, diffType] of diffs.entries()) {
-                            if (diffPath.startsWith(path + '.') || diffPath.startsWith(path + '[')) {
+                        for (const [diffPathFromMap, diffType] of diffMap.entries()) { // Fixed: use diffPathFromMap
+                            // Ensure diffPathFromMap is a string before calling startsWith
+                            const diffPathStr = String(diffPathFromMap);
+                            if (diffPathStr.startsWith(path + '.') || diffPathStr.startsWith(path + '[')) {
                                 if (side === 'target' && diffType.includes('Added')) { lineClass = 'diff-added-text'; break; }
                                 if (side === 'source' && diffType.includes('Removed')) { lineClass = 'diff-removed-text'; break; }
                                 if (diffType.includes('Changed') || diffType.includes('Error')) { lineClass = 'diff-changed-text'; break; }
