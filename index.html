@@ -218,14 +218,42 @@
         .controls-table { margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
         .controls-table input, .controls-table button { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--main-color); color: var(--text-color); }
         .json-view { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
-        .json-view pre { background-color: #f1f3f5; padding: 15px; border-radius: 8px; line-height: 1.6em; }
-        body.dark-mode .json-view pre { background-color: #2c2c2c; }
-        .diff-added { background-color: #e6ffed; display: block; border-left: 3px solid var(--green); }
-        .diff-removed { background-color: #ffeef0; display: block; border-left: 3px solid var(--red); }
-        .diff-changed { background-color: #e6f7ff; font-weight: bold; border-radius: 3px; }
-        body.dark-mode .diff-added { background-color: rgba(40, 167, 69, 0.15); }
-        body.dark-mode .diff-removed { background-color: rgba(220, 53, 69, 0.15); }
-        body.dark-mode .diff-changed { background-color: rgba(0, 123, 255, 0.15); }
+        .json-view pre {
+        background-color: var(--main-color);
+        padding: 15px;
+        border-radius: 8px;
+        line-height: 1.6em;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        overflow-x: auto;
+        border: 1px solid var(--border-color);
+        margin: 0;
+        font-size: 14px;
+    }
+
+    body.dark-mode .json-view pre {
+        background-color: #1e1e1e;
+        color: #e0e0e0;
+    }
+
+    .json-key { color: #9c27b0; }          /* Фіолетовий для ключів */
+    .json-string { color: #4caf50; }       /* Зелений для рядків */
+    .json-number { color: #2196f3; }       /* Синій для чисел */
+    .json-boolean { color: #ff9800; }      /* Помаранчевий для булевих значень */
+    .json-null { color: #f44336; }         /* Червоний для null */
+    .json-bracket { color: #795548; }      /* Коричневий для дужок */
+    .json-comma { color: #795548; }        /* Коричневий для ком */
+    .json-colon { color: #795548; }        /* Коричневий для двокрапок */
+
+    body.dark-mode .json-key { color: #ba68c8; }
+    body.dark-mode .json-string { color: #81c784; }
+    body.dark-mode .json-number { color: #64b5f6; }
+    body.dark-mode .json-boolean { color: #ffb74d; }
+    body.dark-mode .json-null { color: #e57373; }
+    body.dark-mode .json-bracket,
+    body.dark-mode .json-comma,
+    body.dark-mode .json-colon { color: #a1887f; }
         
         /* Loading Overlay */
         #loader {
@@ -703,60 +731,106 @@
                 resultsContainer.scrollIntoView({ behavior: 'smooth' });
             }
 
-            function renderJsonToHtml(element, diffMap, isSourceView, path = '$', indentLevel = 0) {
-                const indent = ' '.repeat(indentLevel * 2);
-                if (Array.isArray(element)) {
-                    let html = '[\n';
-                    const potentialKeys = ['id', 'productId', 'variantId', 'reviewId', 'key', 'name'];
-                    const bestKey = potentialKeys.find(key => element.length > 0 && element.every(item => item && typeof item === 'object' && key in item));
-                    for (let i = 0; i < element.length; i++) {
-                        const item = element[i];
-                        let itemPathForLookup = `${path}[${i}]`;
-                        let itemPathForRecursion = itemPathForLookup;
-                        let lineClass = '';
-                        if (bestKey && typeof item === 'object' && item !== null && bestKey in item) {
-                            const keyBasedPath = `${path}[${bestKey}=${item[bestKey]}]`;
-                            const diff = diffMap.get(keyBasedPath);
-                            if (diff) {
-                                if (diff.type === 'Added' && !isSourceView) lineClass = 'diff-added';
-                                if (diff.type === 'Removed' && isSourceView) lineClass = 'diff-removed';
-                            }
-                            itemPathForRecursion = keyBasedPath;
-                        }
-                        const itemHtml = renderJsonToHtml(item, diffMap, isSourceView, itemPathForRecursion, indentLevel + 1);
-                        html += `<span class="${lineClass}">${indent}  ${itemHtml}`;
-                        if (i < element.length - 1) html += ',';
-                        html += `</span>\n`;
-                    }
-                    html += `${indent}]`;
-                    return html;
-                } else if (typeof element === 'object' && element !== null) {
-                    let html = '{\n';
-                    const keys = Object.keys(element);
-                    for (let i = 0; i < keys.length; i++) {
-                        const key = keys[i];
-                        const propPath = `${path}.${key}`;
-                        const diff = diffMap.get(propPath);
-                        let lineClass = '';
-                        if (diff) {
-                            if (diff.type === 'Added' && !isSourceView) lineClass = 'diff-added';
-                            if (diff.type === 'Removed' && isSourceView) lineClass = 'diff-removed';
-                        }
-                        html += `<span class='${lineClass}'>${indent}  "${key}": ${renderJsonToHtml(element[key], diffMap, isSourceView, propPath, indentLevel + 1)}`;
-                        if (i < keys.length - 1) html += ',';
-                        html += `</span>\n`;
-                    }
-                    html += `${indent}}`;
-                    return html;
-                } else {
-                    const diff = diffMap.get(path);
-                    let valueClass = '';
-                    if (diff && (diff.type === 'ValueChanged' || diff.type === 'TypeChanged')) {
-                        valueClass = 'diff-changed';
-                    }
-                    return `<span class='${valueClass}'>${escapeHtml(JSON.stringify(element))}</span>`;
+           function renderJsonToHtml(element, diffMap, isSourceView, path = '$', indentLevel = 0) {
+    const indent = ' '.repeat(indentLevel * 2);
+    
+    // Стилі для різних типів даних
+    const typeStyles = {
+        'key': 'color: #9c27b0;',          // Фіолетовий для ключів
+        'string': 'color: #4caf50;',       // Зелений для рядків
+        'number': 'color: #2196f3;',       // Синій для чисел
+        'boolean': 'color: #ff9800;',      // Помаранчевий для булевих значень
+        'null': 'color: #f44336;',         // Червоний для null
+        'bracket': 'color: #795548;',      // Коричневий для дужок
+        'comma': 'color: #795548;',        // Коричневий для ком
+        'colon': 'color: #795548;'        // Коричневий для двокрапок
+    };
+
+    function style(type, content) {
+        return `<span style="${typeStyles[type]}">${content}</span>`;
+    }
+
+    if (Array.isArray(element)) {
+        let html = style('bracket', '[\n');
+        const potentialKeys = ['id', 'productId', 'variantId', 'reviewId', 'key', 'name'];
+        const bestKey = potentialKeys.find(key => element.length > 0 && element.every(item => item && typeof item === 'object' && key in item));
+        
+        for (let i = 0; i < element.length; i++) {
+            const item = element[i];
+            let itemPathForLookup = `${path}[${i}]`;
+            let itemPathForRecursion = itemPathForLookup;
+            let lineClass = '';
+            
+            if (bestKey && typeof item === 'object' && item !== null && bestKey in item) {
+                const keyBasedPath = `${path}[${bestKey}=${item[bestKey]}]`;
+                const diff = diffMap.get(keyBasedPath);
+                if (diff) {
+                    if (diff.type === 'Added' && !isSourceView) lineClass = 'diff-added';
+                    if (diff.type === 'Removed' && isSourceView) lineClass = 'diff-removed';
                 }
+                itemPathForRecursion = keyBasedPath;
             }
+            
+            const itemHtml = renderJsonToHtml(item, diffMap, isSourceView, itemPathForRecursion, indentLevel + 1);
+            html += `<span class="${lineClass}">${indent}  ${itemHtml}`;
+            if (i < element.length - 1) html += style('comma', ',');
+            html += `</span>\n`;
+        }
+        
+        html += `${indent}${style('bracket', ']')}`;
+        return html;
+    } 
+    else if (typeof element === 'object' && element !== null) {
+        let html = style('bracket', '{\n');
+        const keys = Object.keys(element);
+        
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const propPath = `${path}.${key}`;
+            const diff = diffMap.get(propPath);
+            let lineClass = '';
+            
+            if (diff) {
+                if (diff.type === 'Added' && !isSourceView) lineClass = 'diff-added';
+                if (diff.type === 'Removed' && isSourceView) lineClass = 'diff-removed';
+            }
+            
+            html += `<span class='${lineClass}'>${indent}  ${style('key', `"${key}"`)}${style('colon', ': ')}${renderJsonToHtml(element[key], diffMap, isSourceView, propPath, indentLevel + 1)}`;
+            if (i < keys.length - 1) html += style('comma', ',');
+            html += `</span>\n`;
+        }
+        
+        html += `${indent}${style('bracket', '}')}`;
+        return html;
+    } 
+    else {
+        const diff = diffMap.get(path);
+        let valueClass = '';
+        
+        if (diff && (diff.type === 'ValueChanged' || diff.type === 'TypeChanged')) {
+            valueClass = 'diff-changed';
+        }
+        
+        let content;
+        if (typeof element === 'string') {
+            content = style('string', JSON.stringify(element));
+        } 
+        else if (typeof element === 'number') {
+            content = style('number', element);
+        } 
+        else if (typeof element === 'boolean') {
+            content = style('boolean', element);
+        } 
+        else if (element === null) {
+            content = style('null', 'null');
+        } 
+        else {
+            content = escapeHtml(JSON.stringify(element));
+        }
+        
+        return `<span class='${valueClass}'>${content}</span>`;
+    }
+}
 
             function setupReportInteractivity() {
                 const analyzeBtn = document.getElementById('analyzeBtn');
