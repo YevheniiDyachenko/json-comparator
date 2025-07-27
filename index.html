@@ -91,6 +91,8 @@
         .export-container:hover .export-dropdown { display: block; }
         #clearAllBtn, #copyResultsBtn { background-color: #6c757d; }
         #clearAllBtn:hover, #copyResultsBtn:hover { background-color: #5a6268; }
+        #geminiBtn { background-color: var(--gemini-accent); }
+        #geminiBtn:hover { background-color: #732d91; }
 
         #results { background-color: var(--main-color); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px var(--shadow-color); display: none; }
         h2 { color: var(--header-color); border-bottom: 2px solid var(--border-color); padding-bottom: 10px; }
@@ -118,18 +120,19 @@
         .json-view pre { background-color: #f1f3f5; padding: 15px; border-radius: 8px; line-height: 1.6em; white-space: pre-wrap; word-wrap: break-word; }
         body.dark-mode .json-view pre { background-color: #2c2c2c; }
         
+        .diff-line { display: block; padding-left: 2em; text-indent: -2em; }
         .diff-line-added { background-color: rgba(40, 167, 69, 0.1); }
         .diff-line-removed { background-color: rgba(220, 53, 69, 0.1); }
-        .diff-line-added::before { content: '➕'; margin-right: 8px; }
-        .diff-line-removed::before { content: '➖'; margin-right: 8px; }
+        .diff-line-added::before { content: '➕'; color: var(--green); margin-right: 8px; }
+        .diff-line-removed::before { content: '➖'; color: var(--red); margin-right: 8px; }
         .diff-line-changed > .diff-key { font-weight: bold; color: var(--blue); }
         .diff-line-changed > .diff-value { font-weight: bold; color: var(--blue); background-color: rgba(0, 123, 255, 0.1); border-radius: 3px; padding: 0 2px;}
 
         .collapsible-header { width: 100%; background: transparent; border: none; padding: 0; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         .collapsible-header h2 { border: none; }
-        .collapse-icon { font-size: 1.5em; transition: transform 0.3s ease; }
+        .collapse-icon { transition: transform 0.3s ease; color: var(--text-color); }
         .collapsible-content { max-height: 1000px; overflow: hidden; transition: max-height 0.4s ease-in-out; }
-        .collapsible-section.collapsed .collapsible-content { max-height: 0; padding-top: 0; padding-bottom: 0; margin-top: 0; }
+        .collapsible-section.collapsed .collapsible-content { max-height: 0; padding-top: 0; padding-bottom: 0; margin-top: 0; overflow: hidden; }
         .collapsible-section.collapsed .collapse-icon { transform: rotate(-90deg); }
 
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1001; }
@@ -148,10 +151,7 @@
         .modal-body .radio-group label { display: inline-block; margin-right: 15px; font-weight: normal; }
         .modal-body .checkbox-group { display: flex; align-items: center; gap: 10px; }
         .modal-footer { text-align: right; border-top: 1px solid var(--border-color); padding-top: 20px; margin-top: 20px; }
-        .tooltip { position: relative; display: inline-block; cursor: help; }
-        .tooltip .tooltiptext { visibility: hidden; width: 220px; background-color: #555; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 1; bottom: 125%; left: 50%; margin-left: -110px; opacity: 0; transition: opacity 0.3s; }
-        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
-
+        
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -170,39 +170,27 @@
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="ignorePaths">
-                            Поля для ігнорування
-                            <span class="tooltip">❓<span class="tooltiptext">Вкажіть шляхи до полів, які потрібно ігнорувати. Кожен шлях з нового рядка. Наприклад: $.updatedAt або $.items[*].timestamp</span></span>
-                        </label>
-                        <textarea id="ignorePaths" placeholder="$.timestamp&#10;$.user.lastLogin"></textarea>
+                        <label for="ignorePaths">Поля для ігнорування</label>
+                        <textarea id="ignorePaths" placeholder="$.timestamp&#10;$.user.lastLogin" title="Вкажіть шляхи до полів, які потрібно ігнорувати. Кожен шлях з нового рядка. Наприклад: $.updatedAt або $.items[*].timestamp"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>
-                            Режим порівняння масивів
-                            <span class="tooltip">❓<span class="tooltiptext">"Розумний" намагається знайти об'єкти за ключем (id, key). "Простий" порівнює елементи за їх позицією (індексом).</span></span>
-                        </label>
+                        <label>Режим порівняння масивів</label>
                         <div class="radio-group">
                             <input type="radio" id="arrayModeKey" name="arrayCompareMode" value="key" checked>
-                            <label for="arrayModeKey">Розумний (за ключем)</label>
+                            <label for="arrayModeKey" title='"Розумний" намагається знайти об\'єкти за ключем (id, key). "Простий" порівнює елементи за їх позицією (індексом).'>Розумний (за ключем)</label>
                             <input type="radio" id="arrayModeIndex" name="arrayCompareMode" value="index">
-                            <label for="arrayModeIndex">Простий (за індексом)</label>
+                            <label for="arrayModeIndex" title='"Розумний" намагається знайти об\'єкти за ключем (id, key). "Простий" порівнює елементи за їх позицією (індексом).'>Простий (за індексом)</label>
                         </div>
                     </div>
                     <div class="form-group">
                         <div class="checkbox-group">
                             <input type="checkbox" id="caseSensitive">
-                            <label for="caseSensitive">
-                                Враховувати регістр символів
-                                 <span class="tooltip">❓<span class="tooltiptext">Якщо вимкнено, "Text" та "text" будуть вважатися однаковими.</span></span>
-                            </label>
+                            <label for="caseSensitive" title='Якщо вимкнено, "Text" та "text" будуть вважатися однаковими.'>Враховувати регістр символів</label>
                         </div>
                     </div>
                      <div class="form-group">
-                        <label for="geminiApiKey">
-                            Gemini API Ключ
-                            <span class="tooltip">❓<span class="tooltiptext">Ваш ключ для доступу до функцій Gemini AI. Зберігається локально у вашому браузері.</span></span>
-                        </label>
-                        <input type="text" id="geminiApiKey" placeholder="Введіть ваш API ключ">
+                        <label for="geminiApiKey">Gemini API Ключ</label>
+                        <input type="text" id="geminiApiKey" placeholder="Введіть ваш API ключ" title="Ваш ключ для доступу до функцій Gemini AI. Зберігається локально у вашому браузері.">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -259,6 +247,7 @@
                 </div>
                  <button id="clearAllBtn" class="action-btn" title="Очистити всі поля та результати">Очистити</button>
                  <button id="copyResultsBtn" class="action-btn" style="display:none;" title="Скопіювати звіт у форматі CSV">Копіювати</button>
+                 <button id="geminiBtn" class="action-btn" style="display:none;" title="Проаналізувати зміни за допомогою Gemini AI">Аналіз з Gemini AI</button>
             </div>
 
             <div id="results">
@@ -288,6 +277,7 @@
             const saveSettingsBtn = document.getElementById('saveSettingsBtn');
             const clearAllBtn = document.getElementById('clearAllBtn');
             const copyResultsBtn = document.getElementById('copyResultsBtn');
+            const geminiBtn = document.getElementById('geminiBtn');
             
             // --- State ---
             let sourceFileContent = null;
@@ -620,6 +610,7 @@
                     resultsContainer.innerHTML = '<h2>✅ Відмінностей не знайдено</h2>';
                     exportBtn.style.display = 'none';
                     copyResultsBtn.style.display = 'none';
+                    geminiBtn.style.display = 'none';
                 } else {
                     const stats = differences.reduce((acc, diff) => {
                         if (diff.type.toLowerCase().includes('add')) acc.added++;
@@ -632,7 +623,9 @@
                         <div class="collapsible-section collapsed">
                             <button class="collapsible-header">
                                 <h2>Детальний звіт про відмінності (${differences.length})</h2>
-                                <span class="collapse-icon">▶</span>
+                                <span class="collapse-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                </span>
                             </button>
                             <div class="collapsible-content">
                                 <div class="stats-bar">
@@ -664,6 +657,9 @@
 
                     exportBtn.style.display = 'inline-block';
                     copyResultsBtn.style.display = 'inline-block';
+                    if (settings.geminiApiKey) {
+                        geminiBtn.style.display = 'inline-block';
+                    }
                 }
                 resultsContainer.style.display = 'block';
                 resultsContainer.scrollIntoView({ behavior: 'smooth' });
@@ -749,8 +745,9 @@
                 });
 
                 tableContainer.addEventListener('click', (e) => {
-                    if (e.target.matches('th.sortable')) {
-                        const key = e.target.dataset.key;
+                    const header = e.target.closest('th.sortable');
+                    if (header) {
+                        const key = header.dataset.key;
                         if (sortState.column === key) {
                             sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
                         } else {
@@ -788,61 +785,25 @@
 
             function generateHighlightedJsonHtml(obj, diffs, side) {
                 const diffMap = new Map(diffs.map(d => [d.path, d.type]));
-                
-                function replacer(key, value) {
-                    let path;
-                    if (this.path !== undefined) {
-                        path = [...this.path, key];
-                    } else {
-                        path = [key];
-                    }
-                    
-                    if (typeof value === 'object' && value !== null) {
-                        Object.defineProperty(value, '__path', { 
-                            value: path.join('.').replace(/\.([0-9]+)/g, '[$1]').substring(2), 
-                            enumerable: false,
-                            configurable: true
-                        });
-                        Object.defineProperty(value, '__parentPath', { 
-                            value: this, 
-                            enumerable: false,
-                            configurable: true
-                        });
-                    }
-                    return value;
-                }
-                
-                const objWithPath = JSON.parse(JSON.stringify({root: obj}, (k, v) => {
-                    if (k === '') {
-                        v.path = [];
-                        return v;
-                    }
-                    if (this.path) {
-                        v.path = [...this.path, k];
-                    }
-                    return v;
-                })).root;
 
-
-                function highlighter(currentObj, indent) {
+                function highlighter(currentObj, indent, path) {
                     if (currentObj === null || typeof currentObj !== 'object') {
                         return `<span class="diff-value">${JSON.stringify(currentObj)}</span>`;
                     }
 
                     let output = '';
-                    const path = currentObj.__path || '$';
                     
                     if (Array.isArray(currentObj)) {
                         output += '[\n';
                         for (let i = 0; i < currentObj.length; i++) {
                             const item = currentObj[i];
-                            const itemPath = item && item.__path ? item.__path : `${path}[${i}]`;
+                            const itemPath = `${path}[${i}]`;
                             const itemDiffType = diffMap.get(itemPath);
-                            let lineClass = '';
-                            if (side === 'target' && itemDiffType && itemDiffType.includes('Added')) lineClass = 'diff-line-added';
-                            if (side === 'source' && itemDiffType && itemDiffType.includes('Removed')) lineClass = 'diff-line-removed';
+                            let lineClass = 'diff-line';
+                            if (side === 'target' && itemDiffType && itemDiffType.includes('Added')) lineClass += ' diff-line-added';
+                            if (side === 'source' && itemDiffType && itemDiffType.includes('Removed')) lineClass += ' diff-line-removed';
                             
-                            output += `<span class="${lineClass}">${indent}  ${highlighter(item, indent + '  ')}</span>${i < currentObj.length - 1 ? ',' : ''}\n`;
+                            output += `<span class="${lineClass}">${indent}  ${highlighter(item, indent + '  ', itemPath)}</span>${i < currentObj.length - 1 ? ',' : ''}\n`;
                         }
                         output += `${indent}]`;
                     } else {
@@ -851,28 +812,27 @@
                         for (let i = 0; i < keys.length; i++) {
                             const key = keys[i];
                             const value = currentObj[key];
-                            const valuePath = value && value.__path ? value.__path : `${path}.${key}`;
+                            const valuePath = `${path}.${key}`;
                             const keyDiffType = diffMap.get(valuePath);
 
-                            let lineClass = '';
-                            if (side === 'target' && keyDiffType && keyDiffType.includes('Added')) lineClass = 'diff-line-added';
-                            if (side === 'source' && keyDiffType && keyDiffType.includes('Removed')) lineClass = 'diff-line-removed';
-                            if (keyDiffType && keyDiffType.includes('ValueChanged')) lineClass = 'diff-line-changed';
+                            let lineClass = 'diff-line';
+                            if (side === 'target' && keyDiffType && keyDiffType.includes('Added')) lineClass += ' diff-line-added';
+                            if (side === 'source' && keyDiffType && keyDiffType.includes('Removed')) lineClass += ' diff-line-removed';
+                            if (keyDiffType && keyDiffType.includes('ValueChanged')) lineClass += ' diff-line-changed';
 
-                            output += `<span class="${lineClass}">${indent}  <span class="diff-key">"${key}"</span>: ${highlighter(value, indent + '  ')}</span>${i < keys.length - 1 ? ',' : ''}\n`;
+                            output += `<span class="${lineClass}">${indent}  <span class="diff-key">"${key}"</span>: ${highlighter(value, indent + '  ', valuePath)}</span>${i < keys.length - 1 ? ',' : ''}\n`;
                         }
                         output += `${indent}}`;
                     }
                     return output;
                 }
 
-                return highlighter(obj, '');
+                return highlighter(obj, '', '$');
             }
             
             // --- Initial load ---
             loadSettings();
 
-            // Add Clear All and Copy Results functionality
             clearAllBtn.addEventListener('click', () => {
                 document.getElementById('sourceText').value = '';
                 document.getElementById('targetText').value = '';
@@ -884,6 +844,7 @@
                 resultsContainer.style.display = 'none';
                 exportBtn.style.display = 'none';
                 copyResultsBtn.style.display = 'none';
+                geminiBtn.style.display = 'none';
                 sourceFileContent = null;
                 targetFileContent = null;
                 checkFilesReady();
@@ -908,6 +869,10 @@
                     console.error('Failed to copy: ', err);
                     alert('Не вдалося скопіювати. Перевірте дозволи у вашому браузері.');
                 });
+            });
+
+            geminiBtn.addEventListener('click', () => {
+                alert('Функція аналізу з Gemini AI знаходиться в розробці.');
             });
         });
     </script>
