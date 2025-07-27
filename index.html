@@ -38,7 +38,16 @@
             transition: background-color 0.3s;
         }
         
-        .container { max-width: 1400px; margin: 20px auto; padding: 20px; }
+        .container { 
+            max-width: 1400px; 
+            margin: 20px auto; 
+            padding: 20px;
+            transition: max-width 0.3s ease-in-out;
+        }
+        .container.full-width {
+            max-width: 98%;
+        }
+
         .header { text-align: center; margin-bottom: 30px; position: relative; }
         .header h1 { color: var(--header-color); font-weight: 600; }
 
@@ -51,9 +60,9 @@
         input:checked + .slider { background-color: var(--accent-color); }
         input:checked + .slider:before { transform: translateX(26px); }
 
-        #settingsBtn, #fullscreenBtn { background: none; border: none; cursor: pointer; font-size: 1.4em; color: var(--text-color); opacity: 0.7; transition: opacity 0.2s, transform 0.2s; padding: 0; display: flex; align-items: center; justify-content: center; }
-        #settingsBtn:hover, #fullscreenBtn:hover { opacity: 1; transform: scale(1.1); }
-        #fullscreenBtn svg { width: 22px; height: 22px; }
+        #settingsBtn, #widthToggleBtn { background: none; border: none; cursor: pointer; font-size: 1.4em; color: var(--text-color); opacity: 0.7; transition: opacity 0.2s, transform 0.2s; padding: 0; display: flex; align-items: center; justify-content: center; }
+        #settingsBtn:hover, #widthToggleBtn:hover { opacity: 1; transform: scale(1.1); }
+        #widthToggleBtn svg { width: 22px; height: 22px; }
 
         .mode-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; background-color: var(--main-color); padding: 8px; border-radius: 12px; box-shadow: 0 2px 8px var(--shadow-color); border: 1px solid var(--border-color); }
         .mode-selector label { padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: background-color 0.2s, color 0.2s; font-weight: 500; }
@@ -119,15 +128,6 @@
         .diff-added-text { background-color: rgba(40, 167, 69, 0.2); }
         .diff-removed-text { background-color: rgba(220, 53, 69, 0.2); }
         .diff-changed-text { background-color: rgba(0, 123, 255, 0.2); }
-
-
-        .collapsible-header { width: 100%; background: transparent; border: none; padding: 0; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .collapsible-header h2 { border: none; }
-        .collapse-icon { transition: transform 0.3s ease; color: var(--text-color); }
-        .collapsible-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.4s ease-out; }
-        .collapsible-content > div { overflow: hidden; }
-        .collapsible-section:not(.collapsed) .collapsible-content { grid-template-rows: 1fr; }
-        .collapsible-section.collapsed .collapse-icon { transform: rotate(-90deg); }
 
         #loader, .gemini-loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1001; }
         .loader-spinner { border: 8px solid #f3f3f3; border-top: 8px solid var(--accent-color); border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; }
@@ -199,12 +199,12 @@
             </div>
         </div>
 
-        <div class="container">
+        <div class="container" id="main-container">
             <div class="header">
                  <div class="top-controls">
-                    <button id="fullscreenBtn" title="Повноекранний режим">
-                        <svg id="fullscreen-enter-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-                        <svg id="fullscreen-exit-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 0-2-2h-3M3 16h3a2 2 0 0 0 2-2v-3"/></svg>
+                    <button id="widthToggleBtn" title="Перемкнути ширину">
+                        <svg id="width-enter-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                        <svg id="width-exit-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><path d="M9 3h6v6M15 21H9v-6M3 9V3h6M21 15v6h-6"/></svg>
                     </button>
                     <div class="theme-switch-wrapper">
                         <label class="theme-switch" for="checkbox" title="Перемкнути тему">
@@ -262,6 +262,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- DOM Elements ---
+            const mainContainer = document.getElementById('main-container');
             const dropZone1 = document.getElementById('dropZone1');
             const dropZone2 = document.getElementById('dropZone2');
             const compareBtn = document.getElementById('compareBtn');
@@ -277,9 +278,9 @@
             const clearAllBtn = document.getElementById('clearAllBtn');
             const copyResultsBtn = document.getElementById('copyResultsBtn');
             const geminiBtn = document.getElementById('geminiBtn');
-            const fullscreenBtn = document.getElementById('fullscreenBtn');
-            const fsEnterIcon = document.getElementById('fullscreen-enter-icon');
-            const fsExitIcon = document.getElementById('fullscreen-exit-icon');
+            const widthToggleBtn = document.getElementById('widthToggleBtn');
+            const widthEnterIcon = document.getElementById('width-enter-icon');
+            const widthExitIcon = document.getElementById('width-exit-icon');
             
             // --- State ---
             let sourceFileContent = null;
@@ -1016,4 +1017,4 @@
         });
     </script>
 </body>
-</html>
+</ht
