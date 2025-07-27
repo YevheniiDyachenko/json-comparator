@@ -227,7 +227,7 @@
         .results-controls .filter-group label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
         
         .stats-bar { display: flex; gap: 20px; padding: 15px; background-color: var(--bg-color); border-radius: 8px; margin-bottom: 20px; }
-        .stat-item { font-size: 1.1em; font-weight: 500; }
+        .stat-item { font-size: 1.1em; font-weight: 500; display: flex; align-items: center; gap: 8px; }
 
         .json-view { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
         .json-view pre {
@@ -1068,7 +1068,7 @@
                     reportHtml = `
                         <div class="collapsible-section collapsed">
                             <button class="collapsible-header">
-                                <h2>Детальний звіт про відмінності (${differences.length})</h2>
+                                <h2>Детальний звіт про відмінності</h2>
                                 <span class="collapse-icon">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                                 </span>
@@ -1076,9 +1076,10 @@
                             <div class="collapsible-content">
                                 <div>
                                     <div class="stats-bar">
-                                        <span class="stat-item added">➕ Додано: ${stats.added}</span>
-                                        <span class="stat-item removed">➖ Видалено: ${stats.removed}</span>
-                                        <span class="stat-item changed">🔄 Змінено: ${stats.changed}</span>
+                                        <span class="stat-item"><span class="icon-circle icon-circle-added">+</span> Додано: ${stats.added}</span>
+                                        <span class="stat-item"><span class="icon-circle icon-circle-removed">-</span> Видалено: ${stats.removed}</span>
+                                        <span class="stat-item"><span class="icon-circle icon-circle-changed">⇄</span> Змінено: ${stats.changed}</span>
+                                        <span class="stat-item">Всього: ${differences.length}</span>
                                     </div>
                                     <div class="results-controls">
                                         <input type="search" id="searchInput" placeholder="Пошук у звіті...">
@@ -1391,7 +1392,7 @@
             // --- Initial load ---
             loadSettings();
             updateUiForMode();
-            initializeTooltips(); // Initial call for static tooltips
+            initializeTooltips();
 
             clearAllBtn.addEventListener('click', () => {
                 document.getElementById('sourceText').value = '';
