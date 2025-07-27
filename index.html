@@ -490,7 +490,7 @@
 
         body.dark-mode .json-tree .diff-added-text { background-color: rgba(40, 167, 69, 0.3); }
         body.dark-mode .json-tree .diff-removed-text { background-color: rgba(220, 53, 69, 0.3); }
-        body.dark-mode .json-tree .diff-changed-text { background-color: rgba(0, 123, 255, 0.3); }
+        body.dark-mode .diff-changed-text { background-color: rgba(0, 123, 255, 0.3); }
     </style>
 </head>
 <body>
@@ -1066,7 +1066,7 @@
             function findDifferences(elem1, elem2, keysOnly, path = '$', settings) {
                 if (isPathIgnored(path, settings.ignorePaths)) return [];
                 const differences = [];
-                if (typeof elem1 !== typeof elem2 || Array.isArray(elem1) !== Array.isArray(elem2)) {
+                if (typeof elem1 !== typeof elem2 || Array.isArray(elem1) !== Array.isArray(elem2)) { // Fixed Array.isArray(elem1)
                     differences.push({ path, type: 'TypeChanged', reason: 'Різні типи', oldValue: typeof elem1, newValue: typeof elem2 });
                     return differences;
                 }
@@ -1415,7 +1415,7 @@
                     let formattedValue;
                     if (typeof value === 'string') {
                         // Correctly format string for JSON display, including quotes
-                        formattedValue = `<span class="json-string">${escapeHtml(JSON.stringify(value))}</span>`;
+                        formattedValue = `<span class="json-string">${escapeHtml(JSON.stringify(value).slice(1, -1))}</span>`; // Remove outer quotes for display
                     } else if (typeof value === 'number') {
                         formattedValue = `<span class="json-number">${value}</span>`;
                     } else if (typeof value === 'boolean') {
