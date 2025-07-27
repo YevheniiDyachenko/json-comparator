@@ -139,8 +139,8 @@
         .collapsible-header { width: 100%; background: transparent; border: none; padding: 0; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         .collapsible-header h2 { border: none; }
         .collapse-icon { transition: transform 0.3s ease; color: var(--text-color); }
-        .collapsible-content { max-height: 1000px; overflow: hidden; transition: max-height 0.4s ease-in-out; }
-        .collapsible-section.collapsed .collapsible-content { max-height: 0; padding-top: 0; padding-bottom: 0; margin-top: 0; overflow: hidden; }
+        .collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out; }
+        .collapsible-section:not(.collapsed) .collapsible-content { max-height: 5000px; /* Large enough value */ }
         .collapsible-section.collapsed .collapse-icon { transform: rotate(-90deg); }
 
         #loader, .gemini-loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1001; }
@@ -164,6 +164,8 @@
         .modal-body .checkbox-group { display: flex; align-items: center; gap: 10px; }
         .modal-footer { text-align: right; border-top: 1px solid var(--border-color); padding-top: 20px; margin-top: 20px; }
         
+        .sync-scroll-container { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -190,7 +192,7 @@
                         <label>Режим порівняння масивів</label>
                         <div class="radio-group">
                             <input type="radio" id="arrayModeKey" name="arrayCompareMode" value="key" checked>
-                            <label for="arrayModeKey" title='"Розумний" режим намагається знайти відповідні об\'єкти в масивах за унікальним ключем (наприклад, "id" або "key"), що корисно для невпорядкованих даних.'>Розумний (за ключем)</label>
+                            <label for="arrayModeKey" title='"Розумний" режим: шукає об\'єкти в масивах за ключем (id, name), ідеально для невпорядкованих списків.'>Розумний (за ключем)</label>
                             <input type="radio" id="arrayModeIndex" name="arrayCompareMode" value="index">
                             <label for="arrayModeIndex" title='"Простий" режим порівнює елементи масивів за їхньою позицією (індексом), що підходить для впорядкованих списків.'>Простий (за індексом)</label>
                         </div>
@@ -771,14 +773,18 @@
                                 </span>
                             </button>
                             <div class="collapsible-content">
+                                <div class="sync-scroll-container">
+                                    <label for="syncScroll">Синхронне прокручування:</label>
+                                    <input type="checkbox" id="syncScroll" checked>
+                                </div>
                                 <div class="json-view">
                                     <div>
                                         <h3>Source</h3>
-                                        <pre>${sourceHtml}</pre>
+                                        <pre id="sourceJsonView">${sourceHtml}</pre>
                                     </div>
                                     <div>
                                         <h3>Target</h3>
-                                        <pre>${targetHtml}</pre>
+                                        <pre id="targetJsonView">${targetHtml}</pre>
                                     </div>
                                 </div>
                             </div>
@@ -790,66 +796,84 @@
             }
 
             function generateHighlightedJsonHtml(obj, diffs, side) {
-                const diffMap = new Map(diffs.map(d => [d.path, d.type]));
+                const diffMap = new Map();
+                diffs.forEach(d => {
+                    // Normalize path for lookup
+                    const normPath = d.path.replace(/\[\d+\]/g, '[]');
+                    if (!diffMap.has(normPath)) diffMap.set(normPath, []);
+                    diffMap.get(normPath).push(d);
+                });
+
                 const lines = JSON.stringify(obj, null, 2).split('\n');
-
-                const pathMap = new Map();
-                let currentPath = [];
-                let indentLevel = 0;
-
-                const jsonLines = JSON.stringify(obj, null, 2).split('\n');
-                const pathPerLine = [];
                 let pathStack = [];
+                const pathPerLine = [];
 
-                for (const line of jsonLines) {
+                for (const line of lines) {
                     const indent = (line.match(/^\s*/) || [''])[0].length / 2;
                     pathStack.length = indent;
                     
                     const keyMatch = line.match(/"([^"]+)"\s*:/);
                     if (keyMatch) {
                         pathStack.push(keyMatch[1]);
-                    } else {
-                        const arrayMatch = line.match(/^\s*(\{|\[)/);
-                        if (!arrayMatch) {
-                             const parent = pathStack.slice(0, indent -1).join('.');
-                             if(parent && !pathMap.has(parent)){
-                                // This is likely an array element
-                             }
-                        }
                     }
+                    
+                    const isArrayElement = !keyMatch && line.trim().length > 0 && !/\[|\]|\{|\}/.test(line.trim());
+                    if (isArrayElement) {
+                        pathStack.push('[]');
+                    }
+                    
                     pathPerLine.push('$.' + pathStack.join('.'));
                 }
 
-
                 return lines.map((line, index) => {
-                    // This is a simplified path detection and might not cover all edge cases.
-                    // For a truly robust solution, a full JSON parser would be needed.
-                    let lineClass = 'diff-line';
                     let lineContent = escapeHtml(line);
-
-                    for (const [path, type] of diffMap.entries()) {
-                        const pathKey = path.split('.').pop().replace(/\[\d+\]/,'');
-                        if (line.includes(`"${pathKey}"`)) {
-                             if (side === 'target' && type.includes('Added')) {
+                    const path = pathPerLine[index];
+                    const diffsForPath = diffMap.get(path.replace(/\[\d+\]/g, '[]')) || [];
+                    
+                    for (const diff of diffsForPath) {
+                        if (path === diff.path) {
+                            if (side === 'target' && diff.type.includes('Added')) {
                                 lineContent = `<span class="diff-added-text">${lineContent}</span>`;
                                 break;
                             }
-                            if (side === 'source' && type.includes('Removed')) {
+                            if (side === 'source' && diff.type.includes('Removed')) {
                                 lineContent = `<span class="diff-removed-text">${lineContent}</span>`;
                                 break;
                             }
-                            if (type.includes('ValueChanged')) {
+                            if (diff.type.includes('ValueChanged')) {
                                 lineContent = `<span class="diff-changed-text">${lineContent}</span>`;
                                 break;
                             }
                         }
                     }
-                    return `<span class="${lineClass}">${lineContent}</span>`;
+                    return `<span class="diff-line">${lineContent}</span>`;
                 }).join('\n');
             }
 
+
             function escapeHtml(text) {
                 return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            }
+
+            function setupSyncScroll() {
+                const sourceView = document.getElementById('sourceJsonView');
+                const targetView = document.getElementById('targetJsonView');
+                const syncCheckbox = document.getElementById('syncScroll');
+                if (!sourceView || !targetView || !syncCheckbox) return;
+
+                let isSyncing = false;
+                
+                const syncScroll = (from, to) => {
+                    if (!isSyncing && syncCheckbox.checked) {
+                        isSyncing = true;
+                        to.scrollTop = from.scrollTop;
+                        to.scrollLeft = from.scrollLeft;
+                        setTimeout(() => isSyncing = false, 50);
+                    }
+                };
+
+                sourceView.addEventListener('scroll', () => syncScroll(sourceView, targetView));
+                targetView.addEventListener('scroll', () => syncScroll(targetView, sourceView));
             }
             
             // --- Initial load ---
@@ -943,6 +967,23 @@
                     console.error('Gemini API Error:', error);
                 } finally {
                     geminiLoader.style.display = 'none';
+                }
+            });
+            
+            // Add listener for dynamically created elements
+            resultsContainer.addEventListener('click', (e) => {
+                if (e.target.closest('.collapsible-header')) {
+                    e.target.closest('.collapsible-section').classList.toggle('collapsed');
+                }
+            });
+            resultsContainer.addEventListener('change', (e) => {
+                if (e.target.id === 'syncScroll') {
+                    setupSyncScroll();
+                }
+            });
+            resultsContainer.addEventListener('input', (e) => {
+                if (e.target.id === 'searchInput' || e.target.classList.contains('filter-cb')) {
+                    // Handled by renderInteractiveTable's internal listeners
                 }
             });
         });
