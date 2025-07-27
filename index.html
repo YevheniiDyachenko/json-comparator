@@ -428,6 +428,69 @@
             color: var(--toast-error-color);
             border: 1px solid var(--red);
         }
+
+        /* JSON Tree View styles */
+        .json-tree-view {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: var(--main-color);
+            border: 1px solid var(--border-color);
+            overflow: auto;
+            max-height: 400px; /* Example max height for tree view */
+        }
+        body.dark-mode .json-tree-view {
+            background-color: #1e1e1e;
+        }
+
+        .json-tree {
+            list-style: none;
+            padding-left: 1em; /* Indent root */
+            margin: 0;
+        }
+        .json-tree ul {
+            list-style: none;
+            padding-left: 1.5em; /* Indent children */
+            margin: 0;
+            display: block;
+        }
+        .json-tree li {
+            position: relative;
+            padding-left: 0; /* Remove default padding */
+        }
+        .json-tree li.collapsed > ul {
+            display: none;
+        }
+        .json-tree .tree-toggle {
+            cursor: pointer;
+            display: inline-block;
+            width: 1.2em;
+            text-align: center;
+            user-select: none;
+            color: var(--text-color); /* Color of the toggle bracket */
+        }
+        .json-tree .tree-toggle:hover {
+            color: var(--accent-color);
+        }
+        .json-tree .json-key { color: var(--json-key); }
+        .json-tree .json-string { color: var(--json-string); }
+        .json-tree .json-number { color: var(--json-number); }
+        .json-tree .json-boolean { color: var(--json-boolean); }
+        .json-tree .json-null { color: var(--json-null); }
+        .json-tree .json-bracket { color: var(--json-bracket); }
+        .json-tree .json-comma { color: var(--json-comma); }
+        .json-tree .json-colon { color: var(--json-colon); }
+
+        /* Diff highlighting in tree view */
+        .json-tree .diff-added-text { background-color: rgba(40, 167, 69, 0.2); }
+        .json-tree .diff-removed-text { background-color: rgba(220, 53, 69, 0.2); }
+        .json-tree .diff-changed-text { background-color: rgba(0, 123, 255, 0.2); }
+
+        body.dark-mode .json-tree .diff-added-text { background-color: rgba(40, 167, 69, 0.3); }
+        body.dark-mode .json-tree .diff-removed-text { background-color: rgba(220, 53, 69, 0.3); }
+        body.dark-mode .json-tree .diff-changed-text { background-color: rgba(0, 123, 255, 0.3); }
     </style>
 </head>
 <body>
@@ -1007,7 +1070,7 @@
                     differences.push({ path, type: 'TypeChanged', reason: 'Різні типи', oldValue: typeof elem1, newValue: typeof elem2 });
                     return differences;
                 }
-                if (Array.isArray(elem1)) {
+                if (Array1.isArray(elem1)) {
                     if (settings.arrayCompareMode === 'key' && !tryCompareArraysByKey(elem1, elem2, keysOnly, path, differences, settings)) {
                         compareArraysByIndex(elem1, elem2, keysOnly, path, differences, settings);
                     } else if (settings.arrayCompareMode === 'index') {
@@ -1344,12 +1407,14 @@
             function jsonTraverseAndRender(obj, diffs, side, currentPath = '$', indentLevel = 0) {
                 const indentSpace = ' '.repeat(indentLevel * 2);
                 let html = '';
-                const diffMap = new Map(diffs.map(d => [d.path, d.type])); // For quick lookup
+                // Create a Map from diffs for quick lookup by path
+                const diffMap = new Map(diffs.map(d => [d.path, d.type]));
 
                 // Helper to apply JSON syntax highlighting to a primitive value string
                 const applySyntaxHighlighting = (value) => {
                     let formattedValue;
                     if (typeof value === 'string') {
+                        // Correctly format string for JSON display, including quotes
                         formattedValue = `<span class="json-string">${escapeHtml(JSON.stringify(value))}</span>`;
                     } else if (typeof value === 'number') {
                         formattedValue = `<span class="json-number">${value}</span>`;
@@ -1392,12 +1457,13 @@
                 if (typeof obj !== 'object' || obj === null) {
                     // Handle primitive values (string, number, boolean, null)
                     const lineClass = getLineClass(currentPath);
-                    return `<span class="diff-line ${lineClass}" data-path="${currentPath}">${applySyntaxHighlighting(obj)}</span>`;
+                    // Use a direct string literal for span class to avoid DOMTokenList.add errors with empty string
+                    return `<span class="diff-line${lineClass ? ' ' + lineClass : ''}" data-path="${currentPath}">${applySyntaxHighlighting(obj)}</span>`;
                 }
 
                 if (Array.isArray(obj)) {
                     // Opening bracket
-                    html += `<span class="diff-line ${getLineClass(currentPath)}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">[</span></span>\n`;
+                    html += `<span class="diff-line${getLineClass(currentPath) ? ' ' + getLineClass(currentPath) : ''}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">[</span></span>\n`;
                     
                     const potentialKeys = ['id', 'productId', 'variantId', 'reviewId', 'key', 'name'];
                     const bestKey = potentialKeys.find(key => obj.every(item => item && typeof item === 'object' && item[key] !== undefined));
@@ -1420,10 +1486,10 @@
                         html += `\n`; // Newline after each element
                     }
                     // Closing bracket
-                    html += `<span class="diff-line ${getLineClass(currentPath)}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">]</span></span>`;
+                    html += `<span class="diff-line${getLineClass(currentPath) ? ' ' + getLineClass(currentPath) : ''}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">]</span></span>`;
                 } else { // Object
                     // Opening brace
-                    html += `<span class="diff-line ${getLineClass(currentPath)}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">{</span></span>\n`;
+                    html += `<span class="diff-line${getLineClass(currentPath) ? ' ' + getLineClass(currentPath) : ''}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">{</span></span>\n`;
                     const keys = Object.keys(obj);
 
                     for (let i = 0; i < keys.length; i++) {
@@ -1438,14 +1504,14 @@
                         const keyLineContent = `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> ${valueHtml}`;
                         
                         // Apply diff highlighting to the entire line
-                        html += `<span class="diff-line ${getLineClass(propPath, true)}" data-path="${propPath}">${indentSpace}  ${keyLineContent}`;
+                        html += `<span class="diff-line${getLineClass(propPath, true) ? ' ' + getLineClass(propPath, true) : ''}" data-path="${propPath}">${indentSpace}  ${keyLineContent}`;
                         if (i < keys.length - 1) {
                             html += `<span class="json-comma">,</span>`; // Add comma after property
                         }
                         html += `</span>\n`; // Close span for the line and add newline
                     }
                     // Closing brace
-                    html += `<span class="diff-line ${getLineClass(currentPath)}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">}</span></span>`;
+                    html += `<span class="diff-line${getLineClass(currentPath) ? ' ' + getLineClass(currentPath) : ''}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">}</span></span>`;
                 }
                 return html;
             }
@@ -1456,190 +1522,6 @@
                 const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
                 return str.replace(/[&<>"']/g, m => map[m]);
             }
-
-            // --- JSON Tree View (New Feature) ---
-            function createJsonTree(data, containerElement, diffs, side) {
-                containerElement.innerHTML = ''; // Clear previous tree
-                const ul = document.createElement('ul');
-                ul.classList.add('json-tree');
-                let diffMap = new Map(diffs.map(d => [d.path, d.type]));
-
-                function buildTree(node, path, parentUl) {
-                    const li = document.createElement('li');
-                    li.dataset.path = path;
-
-                    let nodeClass = getLineClass(path, true, diffMap, side); // Re-use getLineClass logic
-                    if (nodeClass) {
-                        li.classList.add(nodeClass);
-                    }
-
-                    if (typeof node === 'object' && node !== null) {
-                        const isArray = Array.isArray(node);
-                        const toggleSpan = document.createElement('span');
-                        toggleSpan.classList.add('tree-toggle');
-                        toggleSpan.textContent = isArray ? '[ ]' : '{ }';
-                        toggleSpan.addEventListener('click', (e) => {
-                            e.stopPropagation(); // Prevent parent li click
-                            li.classList.toggle('collapsed');
-                            toggleSpan.textContent = li.classList.contains('collapsed') ? (isArray ? '[ ]' : '{ }') : (isArray ? '[ - ]' : '{ - }');
-                            synchronizeJsonViewHeights(); // Adjust height after collapse/expand
-                        });
-                        li.appendChild(toggleSpan);
-
-                        if (isArray) {
-                            li.classList.add('array-node', 'collapsed'); // Start arrays collapsed
-                            toggleSpan.textContent = '[ ]';
-                        } else {
-                            li.classList.add('object-node', 'collapsed'); // Start objects collapsed
-                            toggleSpan.textContent = '{ }';
-                        }
-
-                        const childUl = document.createElement('ul');
-                        childUl.classList.add('nested');
-
-                        if (isArray) {
-                            const potentialKeys = ['id', 'productId', 'variantId', 'reviewId', 'key', 'name'];
-                            const bestKey = potentialKeys.find(key => node.every(item => item && typeof item === 'object' && item[key] !== undefined));
-
-                            node.forEach((item, index) => {
-                                let itemPath = `${path}[${index}]`;
-                                if (bestKey && typeof item === 'object' && item !== null && item[bestKey] !== undefined) {
-                                    itemPath = `${path}[${bestKey}=${JSON.stringify(item[bestKey])}]`;
-                                }
-                                buildTree(item, itemPath, childUl);
-                            });
-                        } else {
-                            Object.keys(node).forEach(key => {
-                                const propPath = `${path}.${key}`;
-                                const keySpan = document.createElement('span');
-                                keySpan.classList.add('json-key');
-                                keySpan.textContent = `"${key}"`;
-                                const colonSpan = document.createElement('span');
-                                colonSpan.classList.add('json-colon');
-                                colonSpan.textContent = ': ';
-                                
-                                const valueNode = document.createElement('span');
-                                valueNode.appendChild(applySyntaxHighlightingTree(node[key]));
-                                
-                                const lineSpan = document.createElement('span');
-                                lineSpan.classList.add('tree-line');
-                                lineSpan.appendChild(keySpan);
-                                lineSpan.appendChild(colonSpan);
-                                lineSpan.appendChild(valueNode);
-
-                                const childLi = document.createElement('li');
-                                childLi.dataset.path = propPath;
-                                childLi.classList.add(getLineClass(propPath, true, diffMap, side));
-                                childLi.appendChild(lineSpan);
-                                
-                                buildTree(node[key], propPath, childUl); // Recursively build for the value
-                                
-                                if (typeof node[key] !== 'object' || node[key] === null) {
-                                     // If primitive, append directly to li and don't create nested ul
-                                    li.appendChild(lineSpan); 
-                                } else {
-                                    // If object/array, li will contain a toggle and a ul
-                                }
-                            });
-                        }
-                        li.appendChild(childUl); // Append childUl for non-primitive nodes
-                    } else {
-                        // Primitive value node (already handled in applySyntaxHighlightingTree in buildTree)
-                        const valueSpan = document.createElement('span');
-                        valueSpan.appendChild(applySyntaxHighlightingTree(node));
-                        li.appendChild(valueSpan);
-                    }
-                    parentUl.appendChild(li);
-                }
-
-                // Initial build for the root node
-                buildTree(data, '$', ul);
-                containerElement.appendChild(ul);
-                synchronizeJsonViewHeights(); // Adjust heights after tree is built
-            }
-
-            // Helper for tree view syntax highlighting (similar to previous applySyntaxHighlighting)
-            function applySyntaxHighlightingTree(value) {
-                const span = document.createElement('span');
-                if (typeof value === 'string') {
-                    span.classList.add('json-string');
-                    span.textContent = JSON.stringify(value);
-                } else if (typeof value === 'number') {
-                    span.classList.add('json-number');
-                    span.textContent = value;
-                } else if (typeof value === 'boolean') {
-                    span.classList.add('json-boolean');
-                    span.textContent = value;
-                } else if (value === null) {
-                    span.classList.add('json-null');
-                    span.textContent = 'null';
-                } else {
-                    span.textContent = String(value); // Fallback
-                }
-                return span;
-            }
-
-            // Helper for tree view diff highlighting
-            function getLineClass(path, isKeyLine, diffMap, side) {
-                let lineClass = '';
-                const type = diffMap.get(path);
-                if (type) {
-                    if (side === 'target' && type.includes('Added')) lineClass = 'diff-added-text';
-                    else if (side === 'source' && type.includes('Removed')) lineClass = 'diff-removed-text';
-                    else if (type.includes('Changed') || type.includes('Error')) lineClass = 'diff-changed-text';
-                } else if (isKeyLine) {
-                    for (const [diffPathFromMap, diffType] of diffMap.entries()) {
-                        const diffPathStr = String(diffPathFromMap);
-                        if (diffPathStr.startsWith(path + '.') || diffPathStr.startsWith(path + '[')) {
-                            if (side === 'target' && diffType.includes('Added')) { lineClass = 'diff-added-text'; break; }
-                            if (side === 'source' && diffType.includes('Removed')) { lineClass = 'diff-removed-text'; break; }
-                            if (diffType.includes('Changed') || diffType.includes('Error')) { lineClass = 'diff-changed-text'; break; }
-                        }
-                    }
-                }
-                return lineClass;
-            }
-
-            // --- JSON View Toggle Logic ---
-            function setupJsonViewToggle(sourceJson, targetJson, differences) {
-                const radioButtons = document.querySelectorAll('input[name="jsonViewMode"]');
-                const sourceCodeView = document.getElementById('sourceJsonViewCode');
-                const targetCodeView = document.getElementById('targetJsonViewCode');
-                const sourceTreeView = document.getElementById('sourceJsonViewTree');
-                const targetTreeView = document.getElementById('targetJsonViewTree');
-                const sourceWrapper = document.getElementById('sourceJsonWrapper');
-                const targetWrapper = document.getElementById('targetJsonWrapper');
-                
-                // Initialize tree views (they will be hidden by default)
-                if (sourceJson && sourceTreeView) {
-                    createJsonTree(sourceJson, sourceTreeView, differences, 'source');
-                }
-                if (targetJson && targetTreeView) {
-                    createJsonTree(targetJson, targetTreeView, differences, 'target');
-                }
-
-                radioButtons.forEach(radio => {
-                    radio.addEventListener('change', (event) => {
-                        if (event.target.value === 'code') {
-                            if (sourceCodeView) sourceCodeView.style.display = 'block';
-                            if (sourceTreeView) sourceTreeView.style.display = 'none';
-                            if (targetCodeView) targetCodeView.style.display = 'block';
-                            if (targetTreeView) targetTreeView.style.display = 'none';
-                        } else { // tree mode
-                            if (sourceCodeView) sourceCodeView.style.display = 'none';
-                            if (sourceTreeView) sourceTreeView.style.display = 'block';
-                            if (targetCodeView) targetCodeView.style.display = 'none';
-                            if (targetTreeView) targetTreeView.style.display = 'block';
-                        }
-                        synchronizeJsonViewHeights(); // Re-adjust heights after mode change
-                    });
-                });
-                // Ensure initial state is "code" and heights are synced
-                if (document.querySelector('input[name="jsonViewMode"][value="code"]').checked) {
-                     synchronizeJsonViewHeights();
-                }
-            }
-
 
             function synchronizeJsonViewHeights() {
                 const sourceView = document.getElementById('sourceJsonViewCode'); // Use code view for height sync
