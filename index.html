@@ -447,7 +447,7 @@
 
         .json-tree {
             list-style: none;
-            padding-left: 1em; /* Indent root */
+            padding-left: 0; /* No indent for root ul */
             margin: 0;
         }
         .json-tree ul {
@@ -490,7 +490,7 @@
 
         body.dark-mode .json-tree .diff-added-text { background-color: rgba(40, 167, 69, 0.3); }
         body.dark-mode .json-tree .diff-removed-text { background-color: rgba(220, 53, 69, 0.3); }
-        body.dark-mode .diff-changed-text { background-color: rgba(0, 123, 255, 0.3); }
+        body.dark-mode .json-tree .diff-changed-text { background-color: rgba(0, 123, 255, 0.3); }
     </style>
 </head>
 <body>
@@ -1066,7 +1066,7 @@
             function findDifferences(elem1, elem2, keysOnly, path = '$', settings) {
                 if (isPathIgnored(path, settings.ignorePaths)) return [];
                 const differences = [];
-                if (typeof elem1 !== typeof elem2 || Array.isArray(elem1) !== Array.isArray(elem2)) { // Fixed Array.isArray(elem1)
+                if (typeof elem1 !== typeof elem2 || Array.isArray(elem1) !== Array.isArray(elem2)) {
                     differences.push({ path, type: 'TypeChanged', reason: 'Різні типи', oldValue: typeof elem1, newValue: typeof elem2 });
                     return differences;
                 }
@@ -1414,8 +1414,8 @@
                 const applySyntaxHighlighting = (value) => {
                     let formattedValue;
                     if (typeof value === 'string') {
-                        // Correctly format string for JSON display, including quotes
-                        formattedValue = `<span class="json-string">${escapeHtml(JSON.stringify(value).slice(1, -1))}</span>`; // Remove outer quotes for display
+                        // Correctly format string for JSON display, including quotes (using JSON.stringify)
+                        formattedValue = `<span class="json-string">${escapeHtml(JSON.stringify(value))}</span>`; 
                     } else if (typeof value === 'number') {
                         formattedValue = `<span class="json-number">${value}</span>`;
                     } else if (typeof value === 'boolean') {
@@ -1457,12 +1457,11 @@
                 if (typeof obj !== 'object' || obj === null) {
                     // Handle primitive values (string, number, boolean, null)
                     const lineClass = getLineClass(currentPath);
-                    // Use a direct string literal for span class to avoid DOMTokenList.add errors with empty string
                     return `<span class="diff-line${lineClass ? ' ' + lineClass : ''}" data-path="${currentPath}">${applySyntaxHighlighting(obj)}</span>`;
                 }
 
                 if (Array.isArray(obj)) {
-                    // Opening bracket
+                    // Opening bracket line
                     html += `<span class="diff-line${getLineClass(currentPath) ? ' ' + getLineClass(currentPath) : ''}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">[</span></span>\n`;
                     
                     const potentialKeys = ['id', 'productId', 'variantId', 'reviewId', 'key', 'name'];
@@ -1485,10 +1484,10 @@
                         }
                         html += `\n`; // Newline after each element
                     }
-                    // Closing bracket
+                    // Closing bracket line
                     html += `<span class="diff-line${getLineClass(currentPath) ? ' ' + getLineClass(currentPath) : ''}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">]</span></span>`;
                 } else { // Object
-                    // Opening brace
+                    // Opening brace line
                     html += `<span class="diff-line${getLineClass(currentPath) ? ' ' + getLineClass(currentPath) : ''}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">{</span></span>\n`;
                     const keys = Object.keys(obj);
 
@@ -1510,7 +1509,7 @@
                         }
                         html += `</span>\n`; // Close span for the line and add newline
                     }
-                    // Closing brace
+                    // Closing brace line
                     html += `<span class="diff-line${getLineClass(currentPath) ? ' ' + getLineClass(currentPath) : ''}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">}</span></span>`;
                 }
                 return html;
@@ -1522,6 +1521,243 @@
                 const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
                 return str.replace(/[&<>"']/g, m => map[m]);
             }
+
+            function synchronizeJsonViewHeights() {
+                const sourceView = document.getElementById('sourceJsonViewCode'); // Use code view for height sync
+                const targetView = document.getElementById('targetJsonViewCode');
+                const sourceTreeView = document.getElementById('sourceJsonViewTree');
+                const targetTreeView = document.getElementById('targetJsonViewTree');
+
+                const isCodeMode = document.querySelector('input[name="jsonViewMode"][value="code"]').checked;
+
+                if (isCodeMode) {
+                    if (sourceView) sourceView.style.height = 'auto';
+                    if (targetView) targetView.style.height = 'auto';
+                    const maxHeight = Math.max(sourceView ? sourceView.scrollHeight : 0, targetView ? targetView.scrollHeight : 0);
+                    if (sourceView) sourceView.style.height = `${maxHeight}px`;
+                    if (targetView) targetView.style.height = `${maxHeight}px`;
+                } else { // Tree mode
+                    if (sourceTreeView) sourceTreeView.style.height = 'auto';
+                    if (targetTreeView) targetTreeView.style.height = 'auto';
+                    const maxHeight = Math.max(sourceTreeView ? sourceTreeView.scrollHeight : 0, targetTreeView ? targetTreeView.scrollHeight : 0);
+                    if (sourceTreeView) sourceTreeView.style.height = `${maxHeight}px`;
+                    if (targetTreeView) targetTreeView.style.height = `${maxHeight}px`;
+                }
+            }
+            
+            function setupCollapsibleSections() {
+                document.querySelectorAll('.collapsible-header').forEach(header => {
+                    header.removeEventListener('click', toggleCollapsible);
+                    header.addEventListener('click', toggleCollapsible);
+                });
+            }
+
+            function toggleCollapsible() {
+                this.closest('.collapsible-section').classList.toggle('collapsed');
+                setTimeout(synchronizeJsonViewHeights, 450); 
+            }
+
+            // --- JSON Tree View (New Feature) ---
+            function createJsonTree(data, containerElement, diffs, side) {
+                containerElement.innerHTML = ''; // Clear previous tree
+                const ul = document.createElement('ul');
+                ul.classList.add('json-tree');
+                let diffMap = new Map(diffs.map(d => [d.path, d.type]));
+
+                // Helper for tree view syntax highlighting (similar to applySyntaxHighlighting for code view)
+                const applySyntaxHighlightingTree = (value) => {
+                    const span = document.createElement('span');
+                    if (typeof value === 'string') {
+                        span.classList.add('json-string');
+                        // Use slice(1, -1) only if JSON.stringify adds quotes.
+                        // For pure string content, just escapeHtml is enough.
+                        // However, since we're displaying JSON *values*, they should be quoted if strings.
+                        // So, keep JSON.stringify and then escape.
+                        span.textContent = JSON.stringify(value); 
+                    } else if (typeof value === 'number') {
+                        span.classList.add('json-number');
+                        span.textContent = value;
+                    } else if (typeof value === 'boolean') {
+                        span.classList.add('json-boolean');
+                        span.textContent = value;
+                    } else if (value === null) {
+                        span.classList.add('json-null');
+                        span.textContent = 'null';
+                    } else if (typeof value === 'object') {
+                        // This case should ideally not happen if buildTree handles objects/arrays recursively
+                        span.textContent = JSON.stringify(value); // Fallback, not typically highlighted as primitive
+                    } else {
+                        span.textContent = String(value); // Fallback
+                    }
+                    return span;
+                };
+
+                // Helper for tree view diff highlighting (re-uses getLineClass)
+                const getTreeLineClass = (path, isKeyLine) => {
+                    return getLineClass(path, isKeyLine, diffMap, side); // Re-use the existing helper
+                };
+
+                function buildTree(node, path, parentUl) {
+                    const li = document.createElement('li');
+                    li.dataset.path = path;
+
+                    let nodeClass = getTreeLineClass(path, true); // Apply class to the li
+                    if (nodeClass) {
+                        li.classList.add(nodeClass);
+                    }
+
+                    if (typeof node === 'object' && node !== null) {
+                        const isArray = Array.isArray(node);
+                        const toggleSpan = document.createElement('span');
+                        toggleSpan.classList.add('tree-toggle');
+                        
+                        // Display the key for object properties, or just toggle for array items
+                        if (path !== '$' && path.includes('.')) { // It's an object property
+                            const key = path.substring(path.lastIndexOf('.') + 1);
+                            toggleSpan.innerHTML = `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> `;
+                        } else if (path !== '$' && path.includes('[')) { // It's an array item
+                            // Don't show key, just the toggle. Key/index is implicit
+                        }
+
+                        toggleSpan.innerHTML += isArray ? '<span class="json-bracket">[ ]</span>' : '<span class="json-bracket">{ }</span>';
+
+                        toggleSpan.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            li.classList.toggle('collapsed');
+                            const bracketText = li.classList.contains('collapsed') ? (isArray ? '[ ]' : '{ }') : (isArray ? '[ - ]' : '{ - }');
+                            // Update toggle span text, preserving the key if present
+                            if (path !== '$' && path.includes('.')) {
+                                const key = path.substring(path.lastIndexOf('.') + 1);
+                                toggleSpan.innerHTML = `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> <span class="json-bracket">${bracketText}</span>`;
+                            } else {
+                                toggleSpan.innerHTML = `<span class="json-bracket">${bracketText}</span>`;
+                            }
+                            synchronizeJsonViewHeights();
+                        });
+                        li.appendChild(toggleSpan);
+
+                        if (isArray) {
+                            li.classList.add('array-node', 'collapsed'); 
+                        } else {
+                            li.classList.add('object-node', 'collapsed'); 
+                        }
+
+                        const childUl = document.createElement('ul');
+                        childUl.classList.add('nested');
+
+                        if (isArray) {
+                            const innerPotentialKeys = ['id', 'productId', 'variantId', 'reviewId', 'key', 'name'];
+                            const innerBestKey = innerPotentialKeys.find(key => node.every(item => item && typeof item === 'object' && item[key] !== undefined));
+
+                            node.forEach((item, index) => {
+                                let itemPath = `${path}[${index}]`;
+                                if (innerBestKey && typeof item === 'object' && item !== null && item[innerBestKey] !== undefined) {
+                                    itemPath = `${path}[${innerBestKey}=${JSON.stringify(item[innerBestKey])}]`;
+                                }
+                                buildTree(item, itemPath, childUl);
+                            });
+                        } else {
+                            Object.keys(node).forEach(key => {
+                                const propPath = `${path}.${key}`;
+                                const value = node[key];
+                                const childLi = document.createElement('li');
+                                childLi.dataset.path = propPath;
+                                childLi.classList.add(getTreeLineClass(propPath, typeof value !== 'object' || value === null)); // Apply line class to actual line
+                                
+                                if (typeof value !== 'object' || value === null) {
+                                    // Primitive value directly in the list item
+                                    childLi.innerHTML = `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> ${applySyntaxHighlightingTree(value)}`;
+                                } else {
+                                    // For nested objects/arrays, buildTree will create a new li and append to its ul
+                                    // We just need to handle its toggle within the current li.
+                                    // This part is tricky as buildTree already creates a new li.
+                                    // Revisit structure: The toggle for an object/array should be on its own li.
+                                    // The value of a key-value pair should *not* be a new li if it's an object/array.
+                                    // It should be handled recursively within the current li's content.
+
+                                    // For nested object/array value, the li itself will be the container for the toggle.
+                                    // BuildTree will handle creating the new li for the nested object/array.
+                                    // So, we just need to add the key and colon before calling buildTree.
+                                    const nestedToggleSpan = document.createElement('span');
+                                    nestedToggleSpan.classList.add('tree-toggle');
+                                    nestedToggleSpan.innerHTML = `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> ${Array.isArray(value) ? '<span class="json-bracket">[ ]</span>' : '<span class="json-bracket">{ }</span>'}`;
+                                    
+                                    nestedToggleSpan.addEventListener('click', (e) => {
+                                        e.stopPropagation();
+                                        childLi.classList.toggle('collapsed');
+                                        const bracketText = childLi.classList.contains('collapsed') ? (Array.isArray(value) ? '[ ]' : '{ }') : (Array.isArray(value) ? '[ - ]' : '{ - }');
+                                        nestedToggleSpan.innerHTML = `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> <span class="json-bracket">${bracketText}</span>`;
+                                        synchronizeJsonViewHeights();
+                                    });
+                                    childLi.appendChild(nestedToggleSpan);
+
+                                    const innerUl = document.createElement('ul');
+                                    innerUl.classList.add('nested');
+                                    if (Array.isArray(value)) innerUl.classList.add('array-node'); else innerUl.classList.add('object-node');
+                                    innerUl.classList.add('collapsed');
+
+                                    buildTree(value, propPath, innerUl); // Recurse for the nested object/array
+
+                                    childLi.appendChild(innerUl);
+                                }
+                                childUl.appendChild(childLi);
+                            });
+                        }
+                        li.appendChild(childUl); // Append the child list to the current li
+                    } else {
+                        // Primitive value node (already handled by applySyntaxHighlightingTree)
+                        li.appendChild(applySyntaxHighlightingTree(node));
+                    }
+                    parentUl.appendChild(li);
+                }
+
+                // Initial build for the root node
+                buildTree(data, '$', ul);
+                containerElement.appendChild(ul);
+                synchronizeJsonViewHeights(); // Adjust heights after tree is built
+            }
+
+
+            // --- JSON View Toggle Logic ---
+            function setupJsonViewToggle(sourceJson, targetJson, differences) {
+                const radioButtons = document.querySelectorAll('input[name="jsonViewMode"]');
+                const sourceCodeView = document.getElementById('sourceJsonViewCode');
+                const targetCodeView = document.getElementById('targetJsonViewCode');
+                const sourceTreeView = document.getElementById('sourceJsonViewTree');
+                const targetTreeView = document.getElementById('targetJsonViewTree');
+                const sourceWrapper = document.getElementById('sourceJsonWrapper');
+                const targetWrapper = document.getElementById('targetJsonWrapper');
+                
+                // Initialize tree views (they will be hidden by default)
+                if (sourceJson && sourceTreeView) {
+                    createJsonTree(sourceJson, sourceTreeView, differences, 'source');
+                }
+                if (targetJson && targetTreeView) {
+                    createJsonTree(targetJson, targetTreeView, differences, 'target');
+                }
+
+                radioButtons.forEach(radio => {
+                    radio.addEventListener('change', (event) => {
+                        if (event.target.value === 'code') {
+                            if (sourceCodeView) sourceCodeView.style.display = 'block';
+                            if (sourceTreeView) sourceTreeView.style.display = 'none';
+                            if (targetCodeView) targetCodeView.style.display = 'block';
+                            if (targetTreeView) targetTreeView.style.display = 'none';
+                        } else { // tree mode
+                            if (sourceCodeView) sourceCodeView.style.display = 'none';
+                            if (sourceTreeView) sourceTreeView.style.display = 'block';
+                            if (targetCodeView) targetCodeView.style.display = 'none';
+                            if (targetTreeView) targetTreeView.style.display = 'block';
+                        }
+                        synchronizeJsonViewHeights(); // Re-adjust heights after mode change
+                    });
+                });
+                // Ensure initial state is "code" and heights are synced
+                if (document.querySelector('input[name="jsonViewMode"][value="code"]').checked) {
+                     synchronizeJsonViewHeights();
+                }
+            }
+
 
             function synchronizeJsonViewHeights() {
                 const sourceView = document.getElementById('sourceJsonViewCode'); // Use code view for height sync
