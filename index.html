@@ -3,14 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Інтерактивний JSON Comparator з Gemini AI</title>
-    <script>
-        // --- AJV Library v8.12.0 Embedded ---
-        // The code for the AJV validation library has been embedded directly
-        // into this file to ensure it works correctly on platforms like GitHub Pages,
-        // which may block external scripts for security reasons.
-        !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define(t):((e="undefined"!=typeof globalThis?globalThis:e||self).Ajv=t())}(this,(function(){"use strict";const e=/^[a-z_][-a-z0-9_]*$/i,t=/^(0|[1-9][0-9]*)$/,n=/^([0-9]+|[0-9]+[A-Za-z_]+|[A-Za-z_][0-9A-Za-z_]*)$/,r=/^(?:[a-z][a-z0-9+\-.]*:)(?:\/?\/(?:(?:[a-z0-9\-._~!$&'()*+,;=:]|%[0-9a-f]{2})*@)?(?:\[(?:(?:(?:(?:[0-9a-f]{1,4}:){6}|::(?:[0-9a-f]{1,4}:){5}|(?:[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){4}|(?:(?:[0-9a-f]{1,4}:){0,1}[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){3}|(?:(?:[0-9a-f]{1,4}:){0,2}[0-9a-f]{1,4})?::(?:[0-9a-f]{1,4}:){2}|(?:(?:[0-9a-f]{1,4}:){0,3}[0-9a-f]{1,4})?::[0-9a-f]{1,4}:|(?:(?:[0-9a-f]{1,4}:){0,4}[0-9a-f]{1,4})?::|[0-9a-f]{1,4}::)(?:[0-9a-f]{1,4}:[0-9a-f]{1,4}|(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?))|(?:(?:[0-9a-f]{1,4}:){0,5}[0-9a-f]{1,4})?::[0-9a-f]{1,4}|(?:(?:[0-9a-f]{1,4}:){0,6}[0-9a-f]{1,4})?::)|[Vv][0-9a-f]+\.[a-z0-9\-._~!$&'()*+,;=:]+)\]|(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)|(?:[a-z0-9\-._~!$&'()*+,;=]|%[0-9a-f]{2})*)(?::\d*)?(?:\/(?:[a-z0-9\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})*)*|\/(?:(?:[a-z0-9\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})+(?:\/(?:[a-z0-9\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})*)*)?|(?:[a-z0-9\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})+(?:\/(?:[a-z0-9\-._~!$&'()*+,;=:@]|%[0-9a-f]{2})*)*)?(?:\?(?:[a-z0-9\-._~!$&'()*+,;=:@\/?]|%[0-9a-f]{2})*)?(?:#(?:[a-z0-9\-._~!$&'()*+,;=:@\/?]|%[0-9a-f]{2})*)?$/i;class i extends Error{constructor(e){super("CodeGen: "+e),this.name="CodeGenError"}}function a(e){return"string"==typeof e?{if:(t,n,r)=>`if(${t}) { ${n} } ${r?"else { "+r+" }":""}`,elseIf:e=>`else if(${e})`,else:"else",endIf:"}",for:(e,t,n,r)=>`for(${e}; ${t}; ${n}) { ${r} }`,forLoop:(e,t,n,r)=>`for(let ${e}=0; ${e}<${t}; ${e}++) { ${n(e)} } ${r?"{ "+r+" }":""}`,forRange:(e,t,n,r,i)=>`for(let ${e}=${t}; ${e}<${n}; ${e}++) { ${r(e)} } ${i?"{ "+i+" }":""}`,forIn:(t,n,r,i)=>`for(const ${t} in ${n}) { ${r(t)} } ${i?"{ "+i+" }":""}`,forOf:(t,n,r,i)=>`for(const ${t} of ${n}) { ${r(t)} } ${i?"{ "+i+" }":""}`,break:e=>e?`break ${e};`:"break;",continue:e=>e?`continue ${e};`:"continue;",return:e=>`return ${e};`,try:(e,t,n)=>`try { ${e} } ${t?`catch(e) { ${t} }`:""} ${n?`finally { ${n} }`:""}`,block:(e,t)=>`{ ${e} } ${t?"{ "+t+" }":""}`,assign:(e,t,n)=>`${e} ${n?"= "+n:"="} ${t};`,addAssign:(e,t)=>`${e} += ${t};`,code:e=>e instanceof o?e:new o(e),const:(e,t,n)=>n?`const ${e} = ${t};`:`const ${e}`,let:(e,t,n)=>n?`let ${e} = ${t};`:`let ${e}`,var:(e,t,n)=>n?`var ${e} = ${t};`:`var ${e}`,name:e=>new s(e),prop:function(e,...t){let n=e instanceof s;const r=n?e.str:d(e);return t.length?new s(r+t.map(e=>"string"==typeof e?`.${e}`:e instanceof s?`.${e.str}`:`[${e}]`).join("")):new s(r)},this:new s("this"),nil:"undefined",string:d,str:p,strConcat:(...e)=>new o(e.map(e=>e instanceof o?e.code:p(e)).join(" + ")),import:e=>`require(${d(e)})`,toString:()=>e}(e):e}class o{constructor(e){this.code=e.toString()}get str(){return this.code}toString(){return this.code}}class s extends o{constructor(e){super(e)}get str(){return this.code}}function c(e){return e instanceof s?e.str:e instanceof o?e.code:e}function l(e){return e instanceof s?e:new s(e)}function d(e){return JSON.stringify(e)}function p(...e){return e.map(u).join("")}function u(e){return e instanceof o?e.code:d(e)}function f(e,t,n,r){const i=t.length;if(0===i)return"";let a,o=0;for(;o<i;){const s=t[o];if(a=o+1,o+n.length<i){let e=0;for(;e<n.length&&t[o+e]===n[e];)e++;if(e===n.length){s.endsWith(r)?e===n.length&&(s.length>n.length?a=o:o++):a=o+n.length;break}}o++}return e(t.slice(0,a).join(""),t.slice(a).join(""))}const m=a("  ");function h(e,t,n){const r=e.length;let i=0;for(;i<r;i++){const a=e[i];if(Array.isArray(a))h(a,t,n);else{const r=n?n(a):a;t.includes(r)||(t.push(r),e.includes(a)||e.push(a))}}}const g=a(""),y=g.nil,v=g.name,_=g.const,b=g.let,S=g.var,E=g.assign,w=g.addAssign,N=g.prop,C=g.str,k=g.strConcat,A=g.code,x=g.if,L=g.for,T=g.forLoop,O=g.forOf,P=g.forIn,j=g.forRange,R=g.return,M=g.break,U=g.continue,D=g.endIf,F=g.else,I=g.elseIf,q=g.try,z=g.block;function B(e,t,n){return e.scope.has(t)?void(n?n():(()=>{throw new Error(`CodeGen: name ${t} is already defined in this scope`)})()):(e.scope.add(t),n&&n())}function V(e,t){return e.scope.has(t)}function $(e,t,n,r){const i=e.scope;e.scope=new Set(i);let a;return n&&(a=e.names[t]=e.names[t]||{...n}),r(e),a&&(a.used=a.used||e.scope.has(t)),e.scope=i}function K(e,t){const n=e.names[t];if(n)return n.used}function J(e,t){return e.scope.has(t)?e.scope=new Set(e.scope):void 0,t}function G(e,t){const n=e.names[t];if(n)return n.used=void 0,n}function H(e,t){const n=e.names[t];if(n)return n.used=n.used||e.scope.has(t)}function W(e){return Array.from(e.scope).filter(t=>!e.names[t])}function Q(e,t){const n=e.names[t];if(n)return n.used=n.used||e.scope.has(t)}function X(e,t){return e.scope.has(t)?e.scope=new Set(e.scope):void 0,t}function Y(e,t){const n=e.names[t];if(n)return n.used=void 0,n}function Z(e,t,n){return e.scope.has(t)?e.scope=new Set(e.scope):void 0,n}function ee(e,t,n){const r=e.names[t];if(r)return r.used=r.used||e.scope.has(t)}function te(e,t){const n=e.names[t];if(n)return n.used=void 0,n}function ne(e){const t={...e};return t.scope=new Set(t.scope),t.names={...t.names},t}const re={};function ie(e,t,n,r){const i=a(e);return{...i,scope:new Set,names:{},_n:n||"",toString:()=>f(t,i.scope,i._n,r||"")}}const ae={...m,...re,scope:new Set,names:{},_n:"\n",toString:()=>f(h,ae.scope,ae._n,"")};function oe(e,t){return e.scope.has(t)}function se(e,t,n){const r=e.scope;e.scope=new Set(r),n(e),e.scope=r}function ce(e,t,n,r){const i=e.scope;e.scope=new Set(i);const a=e.names[t]=e.names[t]||{...n};r(e),a.used=e.scope.has(t),e.scope=i}function le(e,t){const n=e.names[t];if(n)return n.used}function de(e,t){const n=e.names[t];if(n)return n.used=e.scope.has(t)}function pe(e,t){const n=e.names[t];if(n)return n.used=void 0,n}function ue(e,t,n){return e.scope.has(t)?e.scope=new Set(e.scope):void 0,n}function fe(e){return Array.from(e.scope).filter(t=>!e.names[t])}function me(e,t){const n=e.names[t];if(n)return n.used=e.scope.has(t)}function he(e,t){const n=e.names[t];if(n)return n.used=void 0,n}function ge(e,t,n){return e.scope.has(t)?e.scope=new Set(e.scope):void 0,n}function ye(e){const t={...e};return t.scope=new Set(t.scope),t.names={...t.names},t}function ve(e,t,n,r){const i=a(e);return{...i,scope:new Set,names:{},_n:n||"",toString:()=>f(t,i.scope,i._n,r||"")}}const _e={...g,...re,scope:new Set,names:{},_n:"",toString:()=>f(c,_e.scope,_e._n,"")};class be extends Error{constructor(e){super(e.message),this.errors=e.errors,this.ajv=e.ajv}}class Se extends be{constructor(e){super({message:`validation failed`,errors:e,ajv:!0})}}class Ee extends be{constructor(e){super({message:`schema is invalid`,errors:e,ajv:!0})}}function we(e,t,n){return`date-time`===n?`((t,e)=>(t=new Date(t),!isNaN(t)&&(e?t.toISOString().slice(0,10)===e.slice(0,10):t.toISOString()===e)))(data,${e})`:t?`data.length<=${e}`:`data.length>=${e}`}function Ne(e,t,n){return`date-time`===n?`((t,e)=>(t=new Date(t),!isNaN(t)&&(e?t.toISOString().slice(0,10)===e.slice(0,10):t.toISOString()===e)))(data,${e})`:t?`data<=${e}`:`data>=${e}`}const Ce={...ae,scope:new Set,names:{},_n:"\n",toString:()=>f(p,Ce.scope,Ce._n,"")};function ke(e,t,n){const r=e.scope;e.scope=new Set(r);const i=e.names[t]=e.names[t]||{...n};n(e),i.used=e.scope.has(t),e.scope=r}function Ae(e,t){const n=e.names[t];if(n)return n.used}function xe(e,t){const n=e.names[t];if(n)return n.used=e.scope.has(t)}function Le(e,t){const n=e.names[t];if(n)return n.used=void 0,n}function Te(e,t,n){return e.scope.has(t)?e.scope=new Set(e.scope):void 0,n}function Oe(e){return Array.from(e.scope).filter(t=>!e.names[t])}function Pe(e,t){const n=e.names[t];if(n)return n.used=e.scope.has(t)}function je(e,t){const n=e.names[t];if(n)return n.used=void 0,n}function Re(e,t,n){return e.scope.has(t)?e.scope=new Set(e.scope):void 0,n}function Me(e){const t={...e};return t.scope=new Set(t.scope),t.names={...t.names},t}function Ue(e,t,n,r){const i=a(e);return{...i,scope:new Set,names:{},_n:n||"",toString:()=>f(t,i.scope,i._n,r||"")}}const De={...m,...re,scope:new Set,names:{},_n:"\n",toString:()=>f(u,De.scope,De._n,"")};function Fe(e,t,n,r){const i=a(e);return{...i,scope:new Set,names:{},_n:n||"",toString:()=>f(t,i.scope,i._n,r||"")}}const Ie={...g,...re,scope:new Set,names:{},_n:"",toString:()=>f(d,Ie.scope,Ie._n,"")};function qe(e,t,n){const r=e.scope;e.scope=new Set(r),n(e),e.scope=r}function ze(e,t){const n=e.names[t];if(n)return n.used}function Be(e,t){const n=e.names[t];if(n)return n.used=e.scope.has(t)}function Ve(e,t){const n=e.names[t];if(n)return n.used=void 0,n}function $e(e,t,n){return e.scope.has(t)?e.scope=new Set(e.scope):void 0,n}function Ke(e){return Array.from(e.scope).filter(t=>!e.names[t])}function Je(e,t){const n=e.names[t];if(n)return n.used=e.scope.has(t)}function Ge(e,t){const n=e.names[t];if(n)return n.used=void 0,n}function He(e,t,n){return e.scope.has(t)?e.scope=new Set(e.scope):void 0,n}function We(e){const t={...e};return t.scope=new Set(t.scope),t.names={...t.names},t}function Qe(e,t,n,r){const i=a(e);return{...i,scope:new Set,names:{},_n:n||"",toString:()=>f(t,i.scope,i._n,r||"")}}const Xe={...m,...re,scope:new Set,names:{},_n:"\n",toString:()=>f(l,Xe.scope,Xe._n,"")};function Ye(e,t,n,r){const i=a(e);return{...i,scope:new Set,names:{},_n:n||"",toString:()=>f(t,i.scope,i._n,r||"")}}const Ze={...g,...re,scope:new Set,names:{},_n:"",toString:()=>f(h,Ze.scope,Ze._n,"")};function et(e,t){return e.scope.has(t)}function tt(e,t,n){const r=e.scope;e.scope=new Set(r),n(e),e.scope=r}function nt(e,t,n,r){const i=e.scope;e.scope=new Set(i);const a=e.names[t]=e.names[t]||{...n};r(e),a.used=e.scope.has(t),e.scope=i}function rt(e,t){const n=e.names[t];if(n)return n.used}function it(e,t){const n=e.names[t];if(n)return n.used=e.scope.has(t)}function at(e,t){const n=e.names[t];if(n)return n.used=void 0,n}function ot(e,t,n){return e.scope.has(t)?e.scope=new Set(e.scope):void 0,n}function st(e){return Array.from(e.scope).filter(t=>!e.names[t])}function ct(e,t){const n=e.names[t];if(n)return n.used=e.scope.has(t)}function lt(e,t){const n=e.names[t];if(n)return n.used=void 0,n}function dt(e,t,n){return e.scope.has(t)?e.scope=new Set(e.scope):void 0,n}function pt(e){const t={...e};return t.scope=new Set(t.scope),t.names={...t.names},t}function ut(e,t,n,r){const i=a(e);return{...i,scope:new Set,names:{},_n:n||"",toString:()=>f(t,i.scope,i._n,r||"")}}const ft={...m,...re,scope:new Set,names:{},_n:"\n",toString:()=>f(g,ft.scope,ft._n,"")};function mt(e,t,n,r){const i=a(e);return{...i,scope:new Set,names:{},_n:n||"",toString:()=>f(t,i.scope,i._n,r||"")}}const ht={...g,...re,scope:new Set,names:{},_n:"",toString:()=>f(m,ht.scope,ht._n,"")};function gt(e,t,n){return e.scope.has(t)?void(n?n():(()=>{throw new i(`name ${t} is already defined`)}())):(e.scope.add(t),n&&n())}function yt(e,t){return e.scope.has(t)}function vt(e,t,n,r){const a=e.scope;e.scope=new Set(a);const o=e.names[t]=e.names[t]||{...n};r(e),o.used=o.used||e.scope.has(t),e.scope=a}function _t(e,t){const n=e.names[t];if(n)return n.used}function bt(e,t){return e.scope.has(t)?e.scope=new Set(e.scope):void 0,t}function St(e,t){const n=e.names[t];if(n)return n.used=n.used||e.scope.has(t)}function Et(e,t){const n=e.names[t];if(n)return n.used=void 0,n}function wt(e){return Array.from(e.scope).filter(t=>!e.names[t])}function Nt(e,t){const n=e.names[t];if(n)return n.used=n.used||e.scope.has(t)}function Ct(e,t){const n=e.names[t];if(n)return n.used=void 0,n}function kt(e,t,n){return e.scope.has(t)?e.scope=new Set(e.scope):void 0,n}function At(e){const t={...e};return t.scope=new Set(t.scope),t.names={...t.names},t}function xt(e,t,n,r){const i=a(e);return{...i,scope:new Set,names:{},_n:n||"",toString:()=>f(t,i.scope,i._n,r||"")}}const Lt={...m,...re,scope:new Set,names:{},_n:"\n",toString:()=>f(o,Lt.scope,Lt._n,"")};function Tt(e,t,n,r){const i=a(e);return{...i,scope:new Set,names:{},_n:n||"",toString:()=>f(t,i.scope,i._n,r||"")}}const Ot={...g,...re,scope:new Set,names:{},_n:"",toString:()=>f(s,Ot.scope,Ot._n,"")};function Pt(e,t,n){const r=e.scope;e.scope=new Set(r),n(e),e.scope=r}function jt(e,t){const n=e.names[t];if(n)return n.used}function Rt(e,t){const n=e.names[t];if(n)return n.used=e.scope.has(t)}function Mt(e,t){const n=e.names[t];if(n)return n.used=void 0,n}function Ut(e,t,n){return e.scope.has(t)?e.scope=new Set(e.scope):void 0,n}function Dt(e){return Array.from(e.scope).filter(t=>!e.names[t])}function Ft(e,t){const n=e.names[t];if(n)return n.used=e.scope.has(t)}function It(e,t){const n=e.names[t];if(n)return n.used=void 0,n}function qt(e,t,n){return e.scope.has(t)?e.scope=new Set(e.scope):void 0,n}function zt(e){const t={...e};return t.scope=new Set(t.scope),t.names={...t.names},t}function Bt(e,t,n,r){const i=a(e);return{...i,scope:new Set,names:{},_n:n||"",toString:()=>f(t,i.scope,i._n,r||"")}}const Vt={...m,...re,scope:new Set,names:{},_n:"\n",toString:()=>f(i,Vt.scope,Vt._n,"")};return class{constructor(e={}){this.opts={...e},this.dynamicAnchors={}}compile(e){const t=this._addSchema(e);return t.validate||this._compileSchema(t)}addSchema(e,t){if(Array.isArray(e))return void e.forEach(e=>this.addSchema(e));const n=this._addSchema(e);return t&&(n.validate=this.opts.code.optimize?this._compileSchema(n):this._compileSchema(n)),this}validate(e,t){let n=this.getSchema(e);return n||(n=this._addSchema(e)),n.validate||this._compileSchema(n),n.validate(t)}getSchema(e){return this.dynamicAnchors[e]||void 0}_addSchema(e){const t=e.$id;return t&&this.dynamicAnchors[t]&&delete this.dynamicAnchors[t],{schema:e,validate:void 0,refs:{}}}_compileSchema(e){const t=e.schema,n=e.refs;let r=``;const i=this.opts.code.optimize;return t.$ref&&this._compileRef(t.$ref,n),t.allOf&&t.allOf.forEach(e=>this._compileRef(e,n)),t.oneOf&&t.oneOf.forEach(e=>this._compileRef(e,n)),t.anyOf&&t.anyOf.forEach(e=>this._compileRef(e,n)),t.if&&this._compileRef(t.if,n),t.then&&this._compileRef(t.then,n),t.else&&this._compileRef(t.else,n),t.not&&this._compileRef(t.not,n),t.items&&this._compileRef(t.items,n),t.properties&&Object.values(t.properties).forEach(e=>this._compileRef(e,n)),t.patternProperties&&Object.values(t.patternProperties).forEach(e=>this._compileRef(e,n)),t.additionalProperties&&this._compileRef(t.additionalProperties,n),t.propertyNames&&this._compileRef(t.propertyNames,n),t.contains&&this._compileRef(t.contains,n),t.dependentSchemas&&Object.values(t.dependentSchemas).forEach(e=>this._compileRef(e,n)),t.$dynamicRef&&this._compileRef(t.$dynamicRef,n),r+=`\n    const root = validate;\n    validate.errors = [];\n    if (validate.errors.length) return false;\n  `,e.validate=new Function("data",r),e.validate}_compileRef(e,t){if("string"!=typeof e)return;const n=e.startsWith("#")?e.slice(1):e;this.dynamicAnchors[n]||(this.dynamicAnchors[n]={schema:e,validate:void 0,refs:{}}),t[n]=this.dynamicAnchors[n]}}}));
-    </script>
+    <title>Advanced JSON/YAML Comparator з Gemini AI</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ajv/8.12.0/ajv.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
     <style>
         :root {
             --bg-color: #f8f9fa;
@@ -24,8 +19,6 @@
             --green: #28a745;
             --red: #dc3545;
             --blue: #007bff;
-            --orange: #fd7e14;
-            --purple: #6f42c1;
             --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
@@ -52,162 +45,54 @@
              background-image: linear-gradient(135deg, #121212 0%, #2c2c2c 100%);
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 20px auto;
-            padding: 20px;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            position: relative;
-        }
-        .header h1 {
-            color: var(--header-color);
-            font-weight: 600;
-        }
+        .container { max-width: 1400px; margin: 20px auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; position: relative; }
+        .header h1 { color: var(--header-color); font-weight: 600; }
 
-        /* Dark Mode Toggle */
-        .theme-switch-wrapper {
-            position: absolute;
-            top: 10px;
-            right: 20px;
-            display: flex;
-            align-items: center;
-        }
-        .theme-switch {
-            display: inline-block;
-            height: 24px;
-            position: relative;
-            width: 50px;
-        }
+        .top-controls { position: absolute; top: 10px; right: 20px; display: flex; align-items: center; gap: 20px; }
+        .theme-switch-wrapper { display: flex; align-items: center; }
+        .theme-switch { display: inline-block; height: 24px; position: relative; width: 50px; }
         .theme-switch input { display: none; }
-        .slider {
-            background-color: #ccc;
-            bottom: 0;
-            cursor: pointer;
-            left: 0;
-            position: absolute;
-            right: 0;
-            top: 0;
-            transition: .4s;
-            border-radius: 24px;
-        }
-        .slider:before {
-            background-color: #fff;
-            bottom: 4px;
-            content: "";
-            height: 16px;
-            left: 4px;
-            position: absolute;
-            transition: .4s;
-            width: 16px;
-            border-radius: 50%;
-        }
-        input:checked + .slider {
-            background-color: var(--accent-color);
-        }
-        input:checked + .slider:before {
-            transform: translateX(26px);
-        }
+        .slider { background-color: #ccc; bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .4s; border-radius: 24px; }
+        .slider:before { background-color: #fff; bottom: 4px; content: ""; height: 16px; left: 4px; position: absolute; transition: .4s; width: 16px; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent-color); }
+        input:checked + .slider:before { transform: translateX(26px); }
 
-        .mode-selector {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-            background-color: var(--main-color);
-            padding: 8px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px var(--shadow-color);
-            border: 1px solid var(--border-color);
-        }
-        .mode-selector label {
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.2s, color 0.2s;
-            font-weight: 500;
-        }
+        #settingsBtn { background: none; border: none; cursor: pointer; font-size: 1.5em; color: var(--text-color); opacity: 0.7; transition: opacity 0.2s; }
+        #settingsBtn:hover { opacity: 1; }
+
+        .mode-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; background-color: var(--main-color); padding: 8px; border-radius: 12px; box-shadow: 0 2px 8px var(--shadow-color); border: 1px solid var(--border-color); }
+        .mode-selector label { padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: background-color 0.2s, color 0.2s; font-weight: 500; }
         .mode-selector input { display: none; }
-        .mode-selector input:checked + label {
-            background-color: var(--accent-color);
-            color: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .drop-zones {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
+        .mode-selector input:checked + label { background-color: var(--accent-color); color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        .drop-zones { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
         #dropZoneSchema { grid-column: span 2; }
-        .drop-zone {
-            border: 2px dashed var(--border-color);
-            border-radius: 12px;
-            background-color: var(--main-color);
-            transition: all 0.2s;
-            position: relative;
-            padding: 10px;
-            box-shadow: 0 4px 12px var(--shadow-color);
-        }
-        .drop-zone.invalid {
-            border-color: var(--red);
-        }
+        .drop-zone { border: 2px dashed var(--border-color); border-radius: 12px; background-color: var(--main-color); transition: all 0.2s; position: relative; padding: 10px; box-shadow: 0 4px 12px var(--shadow-color); }
+        .drop-zone.invalid { border-color: var(--red); }
         .drop-zone.hidden { display: none; }
-        .drop-zone.dragover {
-            background-color: #e9ecef;
-            border-color: var(--accent-color);
-            transform: scale(1.02);
-        }
+        .drop-zone.dragover { background-color: #e9ecef; border-color: var(--accent-color); transform: scale(1.02); }
         body.dark-mode .drop-zone.dragover { background-color: #2c2c2c; }
-        .drop-zone textarea {
-            width: 100%;
-            height: 150px;
-            border: none;
-            outline: none;
-            resize: none;
-            padding: 20px;
-            box-sizing: border-box;
-            background-color: transparent;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 1em;
-            color: var(--text-color);
-        }
+        .drop-zone textarea { width: 100%; height: 150px; border: none; outline: none; resize: none; padding: 20px; box-sizing: border-box; background-color: transparent; font-family: 'Courier New', Courier, monospace; font-size: 1em; color: var(--text-color); }
         .drop-zone .file-name { font-weight: 600; color: var(--accent-color); margin-top: 10px; display: block; text-align: center; padding-bottom: 10px;}
-        .error-message {
-            color: var(--red);
-            font-size: 0.9em;
-            padding: 0 15px 10px;
-            text-align: left;
-            display: none;
-        }
+        .error-message { color: var(--red); font-size: 0.9em; padding: 0 15px 10px; text-align: left; display: none; }
+        
         .controls { text-align: center; margin-bottom: 30px; }
-        .action-btn {
-            padding: 12px 30px;
-            font-size: 1.2em;
-            font-weight: 600;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin: 0 5px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
+        .action-btn { padding: 12px 30px; font-size: 1.2em; font-weight: 600; color: #fff; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s; margin: 0 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         #compareBtn { background-color: var(--accent-color); }
         #compareBtn:disabled { background-color: #6c757d; cursor: not-allowed; box-shadow: none; }
         #compareBtn:not(:disabled):hover { background-color: #0056b3; transform: translateY(-2px); }
-        #saveBtn { background-color: var(--green); display: none; }
-        #saveBtn:hover { background-color: #218838; transform: translateY(-2px); }
         
-        #results {
-            background-color: var(--main-color);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px var(--shadow-color);
-            display: none;
-        }
+        .export-container { position: relative; display: inline-block; }
+        #exportBtn { background-color: var(--green); display: none; }
+        #exportBtn:hover { background-color: #218838; transform: translateY(-2px); }
+        .export-dropdown { display: none; position: absolute; background-color: var(--main-color); min-width: 160px; box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2); z-index: 1; border-radius: 8px; border: 1px solid var(--border-color); }
+        .export-dropdown a { color: var(--text-color); padding: 12px 16px; text-decoration: none; display: block; }
+        .export-dropdown a:hover { background-color: #f1f3f5; }
+        body.dark-mode .export-dropdown a:hover { background-color: #2c2c2c; }
+        .export-container:hover .export-dropdown { display: block; }
+
+        #results { background-color: var(--main-color); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px var(--shadow-color); display: none; }
         h2 { color: var(--header-color); border-bottom: 2px solid var(--border-color); padding-bottom: 10px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); }
@@ -219,8 +104,6 @@
         .added { color: var(--green); }
         .removed { color: var(--red); }
         .changed { color: var(--blue); }
-        .type-changed { color: var(--orange); }
-        .length-changed { color: var(--purple); }
         .controls-table { margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
         .controls-table input, .controls-table button { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--main-color); color: var(--text-color); }
         .json-view { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
@@ -233,69 +116,17 @@
         body.dark-mode .diff-removed { background-color: rgba(220, 53, 69, 0.15); }
         body.dark-mode .diff-changed { background-color: rgba(0, 123, 255, 0.15); }
         
-        /* Loading Overlay */
-        #loader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .loader-spinner {
-            border: 8px solid #f3f3f3;
-            border-top: 8px solid var(--accent-color);
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            animation: spin 1s linear infinite;
-        }
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .loader-spinner { border: 8px solid #f3f3f3; border-top: 8px solid var(--accent-color); border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; }
         
-        /* Gemini Features Styles */
         .gemini-controls { text-align: center; margin: 20px 0; }
-        .gemini-btn {
-            background-color: var(--gemini-accent);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
+        .gemini-btn { background-color: var(--gemini-accent); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 1em; font-weight: 500; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .gemini-btn:hover { background-color: #732d91; transform: translateY(-2px); }
-        .gemini-summary {
-            background-color: #f3e5f5;
-            border-left: 4px solid var(--gemini-accent);
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 8px;
-        }
+        .gemini-summary { background-color: #f3e5f5; border-left: 4px solid var(--gemini-accent); padding: 15px; margin: 20px 0; border-radius: 8px; }
         body.dark-mode .gemini-summary { background-color: rgba(142, 68, 173, 0.15); }
-        .suggest-icon {
-            cursor: pointer;
-            font-size: 1.1em;
-            margin-left: 8px;
-            opacity: 0.7;
-            transition: opacity 0.2s;
-        }
+        .suggest-icon { cursor: pointer; font-size: 1.1em; margin-left: 8px; opacity: 0.7; transition: opacity 0.2s; }
         .suggest-icon:hover { opacity: 1; }
-        .loading-spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--gemini-accent);
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            margin-left: 10px;
-        }
+        .loading-spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--gemini-accent); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; margin-left: 10px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -306,13 +137,16 @@
 
     <div class="container">
         <div class="header">
-             <div class="theme-switch-wrapper">
-                <label class="theme-switch" for="checkbox">
-                    <input type="checkbox" id="checkbox" />
-                    <div class="slider round"></div>
-                </label>
+             <div class="top-controls">
+                <div class="theme-switch-wrapper">
+                    <label class="theme-switch" for="checkbox">
+                        <input type="checkbox" id="checkbox" />
+                        <div class="slider round"></div>
+                    </label>
+                </div>
+                <button id="settingsBtn" title="Налаштування API ключа">⚙️</button>
             </div>
-            <h1>Інтерактивний JSON Comparator з Gemini AI</h1>
+            <h1>Advanced JSON/YAML Comparator</h1>
             <p>Порівнюйте файли, перевіряйте схеми та аналізуйте зміни за допомогою ШІ</p>
         </div>
 
@@ -329,12 +163,12 @@
 
         <div class="drop-zones">
             <div id="dropZone1" class="drop-zone">
-                <textarea id="sourceText" placeholder="Перетягніть сюди Source файл або вставте JSON"></textarea>
+                <textarea id="sourceText" placeholder="Перетягніть сюди Source файл або вставте JSON/YAML"></textarea>
                 <div class="error-message" id="sourceError"></div>
                 <span class="file-name" id="fileName1"></span>
             </div>
             <div id="dropZone2" class="drop-zone">
-                <textarea id="targetText" placeholder="Перетягніть сюди Target файл або вставте JSON"></textarea>
+                <textarea id="targetText" placeholder="Перетягніть сюди Target файл або вставте JSON/YAML"></textarea>
                 <div class="error-message" id="targetError"></div>
                 <span class="file-name" id="fileName2"></span>
             </div>
@@ -347,7 +181,14 @@
 
         <div class="controls">
             <button id="compareBtn" class="action-btn" disabled>Порівняти</button>
-            <button id="saveBtn" class="action-btn">💾 Зберегти звіт</button>
+            <div class="export-container">
+                <button id="exportBtn" class="action-btn">💾 Експорт</button>
+                <div class="export-dropdown">
+                    <a href="#" id="exportTxt">Текстовий звіт (.txt)</a>
+                    <a href="#" id="exportJson">JSON звіт (.json)</a>
+                    <a href="#" id="exportCsv">CSV звіт (.csv)</a>
+                </div>
+            </div>
         </div>
 
         <div id="results">
@@ -357,20 +198,24 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
             const dropZone1 = document.getElementById('dropZone1');
             const dropZone2 = document.getElementById('dropZone2');
             const dropZoneSchema = document.getElementById('dropZoneSchema');
             const compareBtn = document.getElementById('compareBtn');
-            const saveBtn = document.getElementById('saveBtn');
+            const exportBtn = document.getElementById('exportBtn');
             const resultsContainer = document.getElementById('results');
             const modeSelector = document.querySelector('.mode-selector');
             const loader = document.getElementById('loader');
+            const settingsBtn = document.getElementById('settingsBtn');
 
+            // --- State ---
             let sourceFileContent = null;
             let targetFileContent = null;
             let schemaFileContent = null;
             let globalDifferences = [];
             let currentMode = 'direct';
+            let geminiApiKey = localStorage.getItem('geminiApiKey') || '';
 
             // --- UI/UX Enhancements ---
             const themeToggle = document.getElementById('checkbox');
@@ -387,22 +232,46 @@
             function showLoader() { loader.style.display = 'flex'; }
             function hideLoader() { loader.style.display = 'none'; }
 
-            function parseJson(text, dropZone, errorEl) {
+            settingsBtn.addEventListener('click', () => {
+                const newKey = prompt('Введіть ваш Gemini API ключ:', geminiApiKey);
+                if (newKey !== null) {
+                    geminiApiKey = newKey;
+                    localStorage.setItem('geminiApiKey', newKey);
+                    alert('API ключ збережено.');
+                }
+            });
+
+            function parseInput(text, dropZone, errorEl) {
                 try {
                     if (!text || text.trim() === '') {
                         errorEl.style.display = 'none';
                         dropZone.classList.remove('invalid');
                         return null;
                     }
+                    // Try parsing as JSON first
                     const parsed = JSON.parse(text);
                     errorEl.style.display = 'none';
                     dropZone.classList.remove('invalid');
                     return parsed;
-                } catch (e) {
-                    errorEl.textContent = `Помилка: ${e.message}`;
-                    errorEl.style.display = 'block';
-                    dropZone.classList.add('invalid');
-                    return null;
+                } catch (jsonError) {
+                    // If JSON fails, try parsing as YAML
+                    try {
+                        if (typeof jsyaml === 'undefined') {
+                             throw new Error("Бібліотеку js-yaml не завантажено.");
+                        }
+                        const parsedYaml = jsyaml.load(text);
+                        if (typeof parsedYaml === 'string' || typeof parsedYaml === 'number') {
+                            throw new Error("YAML повинен представляти об'єкт або масив.");
+                        }
+                        errorEl.style.display = 'none';
+                        dropZone.classList.remove('invalid');
+                        return parsedYaml;
+                    } catch (yamlError) {
+                        errorEl.textContent = `Помилка: Не є валідним JSON або YAML. (${yamlError.message})`;
+                        errorEl.style.display = 'block';
+                        dropZone.classList.add('invalid');
+                        return null;
+                    }
                 }
             }
 
@@ -410,7 +279,7 @@
                 textArea.addEventListener('input', () => {
                     const content = textArea.value;
                     fileContentCallback(content);
-                    parseJson(content, dropZone, errorEl);
+                    parseInput(content, dropZone, errorEl);
                     fileNameEl.textContent = '';
                     checkFilesReady();
                 });
@@ -421,19 +290,25 @@
                     e.preventDefault();
                     dropZone.classList.remove('dragover');
                     const file = e.dataTransfer.files[0];
-                    if (file && file.type === 'application/json') {
+
+                    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                        alert("Файл занадто великий. Максимальний розмір - 5MB");
+                        return;
+                    }
+
+                    if (file && (file.type === 'application/json' || file.name.endsWith('.yml') || file.name.endsWith('.yaml'))) {
                         fileNameEl.textContent = file.name;
                         const reader = new FileReader();
                         reader.onload = (event) => {
                             const content = event.target.result;
                             textArea.value = content;
                             fileContentCallback(content);
-                            parseJson(content, dropZone, errorEl);
+                            parseInput(content, dropZone, errorEl);
                             checkFilesReady();
                         };
                         reader.readAsText(file);
                     } else {
-                        alert('Будь ласка, перетягніть JSON файл.');
+                        alert('Будь ласка, перетягніть JSON або YAML файл.');
                         fileNameEl.textContent = '';
                         textArea.value = '';
                         fileContentCallback(null);
@@ -459,11 +334,11 @@
                 if (currentMode === 'schema') {
                     dropZoneSchema.classList.remove('hidden');
                     sourceTextArea.placeholder = 'Перетягніть сюди JSON Schema або вставте код';
-                    targetTextArea.placeholder = 'Перетягніть сюди JSON для валідації або вставте код';
+                    targetTextArea.placeholder = 'Перетягніть сюди JSON/YAML для валідації або вставте код';
                 } else {
                     dropZoneSchema.classList.add('hidden');
-                    sourceTextArea.placeholder = 'Перетягніть сюди Source файл або вставте JSON';
-                    targetTextArea.placeholder = 'Перетягніть сюди Target файл або вставте JSON';
+                    sourceTextArea.placeholder = 'Перетягніть сюди Source файл або вставте JSON/YAML';
+                    targetTextArea.placeholder = 'Перетягніть сюди Target файл або вставте JSON/YAML';
                 }
             }
 
@@ -480,23 +355,23 @@
             compareBtn.addEventListener('click', () => {
                 showLoader();
                 setTimeout(() => {
-                    let sourceJson = parseJson(sourceFileContent, dropZone1, document.getElementById('sourceError'));
-                    let targetJson = parseJson(targetFileContent, dropZone2, document.getElementById('targetError'));
-                    let schemaJson = (currentMode === 'schema') ? parseJson(schemaFileContent, dropZoneSchema, document.getElementById('schemaError')) : null;
-
-                    let canProceed = false;
-                     if (currentMode === 'schema') {
-                        canProceed = schemaJson && targetJson;
-                     } else {
-                        canProceed = sourceJson && targetJson;
-                     }
-
-                    if (!canProceed) {
-                        hideLoader();
-                        return;
-                    }
-
                     try {
+                        let sourceJson = parseInput(sourceFileContent, dropZone1, document.getElementById('sourceError'));
+                        let targetJson = parseInput(targetFileContent, dropZone2, document.getElementById('targetError'));
+                        let schemaJson = (currentMode === 'schema') ? parseInput(schemaFileContent, dropZoneSchema, document.getElementById('schemaError')) : null;
+
+                        let canProceed = false;
+                        if (currentMode === 'schema') {
+                            canProceed = schemaJson && targetJson;
+                        } else {
+                            canProceed = sourceJson && targetJson;
+                        }
+
+                        if (!canProceed) {
+                            hideLoader();
+                            return;
+                        }
+                        
                         switch (currentMode) {
                             case 'direct':
                                 globalDifferences = findDifferences(sourceJson, targetJson, false);
@@ -519,32 +394,57 @@
                 }, 50);
             });
 
-            saveBtn.addEventListener('click', () => {
-                let reportText = `Звіт порівняння JSON\n========================\n\n`;
-                if (globalDifferences.length === 0) {
-                    reportText += "Відмінностей не знайдено.";
-                } else {
-                    globalDifferences.forEach(diff => {
-                        reportText += `Тип: ${diff.type}\n`;
-                        reportText += `Шлях: ${diff.path}\n`;
-                        reportText += `Причина: ${diff.reason}\n`;
-                        if (diff.oldValue) reportText += `Старе значення: ${diff.oldValue}\n`;
-                        if (diff.newValue) reportText += `Нове значення: ${diff.newValue}\n`;
-                        reportText += `------------------------\n`;
-                    });
+            // --- Export Logic ---
+            document.getElementById('exportTxt').addEventListener('click', (e) => { e.preventDefault(); exportReport('txt'); });
+            document.getElementById('exportJson').addEventListener('click', (e) => { e.preventDefault(); exportReport('json'); });
+            document.getElementById('exportCsv').addEventListener('click', (e) => { e.preventDefault(); exportReport('csv'); });
+
+            function exportReport(format) {
+                let content = '';
+                let fileName = 'comparison_report';
+                let mimeType = 'text/plain';
+
+                if (format === 'txt') {
+                    content = `Звіт порівняння JSON\n========================\n\n`;
+                    if (globalDifferences.length === 0) {
+                        content += "Відмінностей не знайдено.";
+                    } else {
+                        globalDifferences.forEach(diff => {
+                            content += `Тип: ${diff.type}\nШлях: ${diff.path}\nПричина: ${diff.reason}\n`;
+                            if (diff.oldValue) content += `Старе значення: ${diff.oldValue}\n`;
+                            if (diff.newValue) content += `Нове значення: ${diff.newValue}\n`;
+                            content += `------------------------\n`;
+                        });
+                    }
+                    fileName += '.txt';
+                    mimeType = 'text/plain;charset=utf-8';
+                } else if (format === 'json') {
+                    content = JSON.stringify(globalDifferences, null, 2);
+                    fileName += '.json';
+                    mimeType = 'application/json;charset=utf-8';
+                } else if (format === 'csv') {
+                    const header = "Type,Path,Reason,OldValue,NewValue\n";
+                    const rows = globalDifferences.map(d => 
+                        `"${d.type}","${d.path}","${d.reason}","${(d.oldValue || '').replace(/"/g, '""')}","${(d.newValue || '').replace(/"/g, '""')}"`
+                    ).join('\n');
+                    content = header + rows;
+                    fileName += '.csv';
+                    mimeType = 'text/csv;charset=utf-8';
                 }
-                
-                const blob = new Blob([reportText], { type: 'text/plain;charset=utf-8' });
+
+                const blob = new Blob([content], { type: mimeType });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'comparison_report.txt';
+                a.download = fileName;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-            });
-
+            }
+            
+            // --- CORE COMPARISON, SCHEMA, GEMINI, REPORTING (unchanged from previous version) ---
+            // ... (The extensive logic for findDifferences, validateWithSchema, callGemini, renderReport, etc. remains here)
             // --- CORE COMPARISON LOGIC ---
             function findDifferences(elem1, elem2, keysOnly, path = '$') {
                 const differences = [];
@@ -609,8 +509,6 @@
                     differences.push(...findDifferences(arr1[i], arr2[i], keysOnly, `${path}[${i}]`));
                 }
             }
-
-            // --- JSON SCHEMA VALIDATION ---
             function validateWithSchema(data, schema) {
                 if (typeof Ajv === 'undefined') {
                     alert('Помилка: не вдалося завантажити бібліотеку для валідації (Ajv). Перевірте ваше інтернет-з\'єднання та спробуйте оновити сторінку.');
@@ -630,14 +528,14 @@
                     newValue: `Value: ${JSON.stringify(err.data)}`
                 }));
             }
-
-            // --- GEMINI API CALL ---
             async function callGemini(prompt) { 
+                if (!geminiApiKey) {
+                    return "Помилка: Gemini API ключ не встановлено. Натисніть на іконку ⚙️, щоб додати його.";
+                }
                 if (window.location.protocol === 'file:') {
                     return "Помилка: Функції AI не працюють при відкритті файлу локально (через file://). Будь ласка, розмістіть цей файл на веб-сервері (наприклад, за допомогою Netlify Drop).";
                 }
-                const apiKey = ""; // Provided by the environment
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`;
                 const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
                 try {
                     const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -655,8 +553,6 @@
                     return `Помилка запиту до AI: ${error.message}`;
                 }
             }
-
-            // --- GEMINI FEATURES ---
             async function analyzeChangesWithGemini() {
                 const summaryContainer = document.getElementById('geminiSummary');
                 const analyzeBtn = document.getElementById('analyzeBtn');
@@ -679,13 +575,10 @@
                 alert(`AI пропонує:\n\n${suggestion}`);
                 targetElement.innerHTML = '✨';
             }
-
-            // --- REPORT GENERATION ---
             function renderReport(differences, sourceJsonText, targetJsonText) {
                 const diffMap = new Map(differences.map(d => [d.path, d]));
                 const sourceHtml = sourceJsonText ? renderJsonToHtml(JSON.parse(sourceJsonText), diffMap, true) : 'N/A';
                 const targetHtml = targetJsonText ? renderJsonToHtml(JSON.parse(targetJsonText), diffMap, false) : 'N/A';
-
                 let reportHtml = ``;
                 if (differences.length === 0) {
                     reportHtml = `<h2>✅ ${currentMode === 'schema' ? 'JSON валідний' : 'Відмінностей не знайдено'}.</h2>`;
@@ -699,20 +592,17 @@
                                     return `<tr data-type='${cssClass}'><td class='icon ${cssClass.toLowerCase()}'>${icon}</td><td class='path'>${diff.path}</td><td class='${cssClass.toLowerCase()}'>${diff.reason}</td><td><pre>${escapeHtml(diff.oldValue || 'N/A')}</pre></td><td><pre>${escapeHtml(diff.newValue || 'N/A')}</pre>${suggestIcon}</td></tr>`;
                                 }).join('')}</tbody></table>`;
                 }
-
                 const sourceTitle = currentMode === 'schema' ? 'JSON Schema' : 'Source';
                 const targetTitle = currentMode === 'schema' ? 'JSON для валідації' : 'Target';
                 reportHtml += `<h2>JSON файли</h2><div class='json-view'>
                         ${sourceJsonText ? `<div><h3>${sourceTitle}</h3><pre>${sourceHtml}</pre></div>` : ''}
                         ${targetJsonText ? `<div style="grid-column: ${sourceJsonText ? 'auto' : 'span 2'}"><h3>${targetTitle}</h3><pre>${targetHtml}</pre></div>` : ''}</div>`;
-                
                 resultsContainer.innerHTML = reportHtml;
                 resultsContainer.style.display = 'block';
-                saveBtn.style.display = 'inline-block';
+                exportBtn.style.display = 'inline-block';
                 setupReportInteractivity();
                 resultsContainer.scrollIntoView({ behavior: 'smooth' });
             }
-
             function renderJsonToHtml(element, diffMap, isSourceView, path = '$', indentLevel = 0) {
                 const indent = ' '.repeat(indentLevel * 2);
                 if (Array.isArray(element)) {
@@ -767,7 +657,6 @@
                     return `<span class='${valueClass}'>${escapeHtml(JSON.stringify(element))}</span>`;
                 }
             }
-
             function setupReportInteractivity() {
                 const analyzeBtn = document.getElementById('analyzeBtn');
                 if(analyzeBtn) { analyzeBtn.addEventListener('click', analyzeChangesWithGemini); }
@@ -796,7 +685,6 @@
                     th.addEventListener('click', () => sortTable(th));
                 });
             }
-            
             const sortDirections = {};
             function sortTable(headerCell) {
                 const table = document.getElementById('diffTable');
