@@ -1099,10 +1099,8 @@
                 const sourceTitle = currentMode === 'schema' ? 'JSON Schema' : 'Source';
                 const targetTitle = currentMode === 'schema' ? 'JSON для валідації' : 'Target';
 
-                const displaySource = currentMode === 'schema' ? sourceJson : sourceJson;
-
-                const sourceHtmlContent = displaySource ? generateHighlightedJsonHtml(displaySource, differences, 'source') : '';
-                const targetHtmlContent = targetJson ? generateHighlightedJsonHtml(targetJson, differences, 'target') : '';
+                const sourceHtmlContent = sourceJson ? jsonTraverseAndRender(sourceJson, differences, 'source') : '';
+                const targetHtmlContent = targetJson ? jsonTraverseAndRender(targetJson, differences, 'target') : '';
 
                 reportHtml += `
                     <div class="collapsible-section collapsed">
@@ -1115,8 +1113,8 @@
                         <div class="collapsible-content">
                             <div>
                                 <div class="json-view">
-                                    ${displaySource ? `<div><h3>${sourceTitle}</h3><pre id="sourceJsonView">${sourceHtmlContent}</pre></div>` : ''}
-                                    <div style="grid-column: ${displaySource ? 'auto' : 'span 2'}"><h3>${targetTitle}</h3><pre id="targetJsonView">${targetHtmlContent}</pre></div>
+                                    ${sourceJson ? `<div><h3>${sourceTitle}</h3><pre id="sourceJsonView">${sourceHtmlContent}</pre></div>` : ''}
+                                    <div style="grid-column: ${sourceJson ? 'auto' : 'span 2'}"><h3>${targetTitle}</h3><pre id="targetJsonView">${targetHtmlContent}</pre></div>
                                 </div>
                             </div>
                         </div>
@@ -1163,7 +1161,7 @@
                                 if (valB === undefined || valB === null) return sortState.direction === 'asc' ? -1 : 1;
                             }
                             if (typeof valA === 'string' && typeof valB === 'string') {
-                                return (sortState.direction === 'asc' ? 1 : -1) * valA.localeCompare(bText, 'uk', { numeric: true });
+                                return (sortState.direction === 'asc' ? 1 : -1) * valA.localeCompare(valB, 'uk', { numeric: true });
                             }
                             if (valA < valB) return sortState.direction === 'asc' ? -1 : 1;
                             if (valA > valB) return sortState.direction === 'asc' ? 1 : -1;
@@ -1252,111 +1250,91 @@
                 applyFiltersAndSort();
             }
             
-            function generateHighlightedJsonHtml(obj, diffs, side) {
-                if (obj === null) return `<span class="json-null">null</span>`;
-                if (typeof obj !== 'object') {
-                    const diffType = diffs.find(d => d.path === '$')?.type;
+            // New function to traverse JSON and apply highlighting
+            function jsonTraverseAndRender(obj, diffs, side, currentPath = '$', indentLevel = 0) {
+                const indentSpace = ' '.repeat(indentLevel * 2);
+                let html = '';
+                const diffMap = new Map(diffs.map(d => [d.path, d.type])); // For quick lookup
+
+                // Helper to apply syntax highlighting and line class
+                const applyLineHighlighting = (lineText, path, isKeyLine = false) => {
                     let lineClass = '';
-                    if (diffType) {
-                        if (side === 'target' && diffType.includes('Added')) lineClass = 'diff-added-text';
-                        else if (side === 'source' && diffType.includes('Removed')) lineClass = 'diff-removed-text';
-                        else if (diffType.includes('ValueChanged') || diffType.includes('TypeChanged') || diffType.includes('LengthChanged') || diffType.includes('SchemaError')) lineClass = 'diff-changed-text';
-                    }
-                    let content;
-                    if (typeof obj === 'string') content = `<span class="json-string">${JSON.stringify(obj)}</span>`;
-                    else if (typeof obj === 'number') content = `<span class="json-number">${obj}</span>`;
-                    else if (typeof obj === 'boolean') content = `<span class="json-boolean">${obj}</span>`;
-                    else content = escapeHtml(String(obj));
-                    
-                    return `<span class="diff-line ${lineClass}">${content}</span>`;
-                }
+                    const type = diffMap.get(path);
 
-                const diffMap = new Map(diffs.map(d => [d.path, d.type]));
-                const jsonString = JSON.stringify(obj, null, 2);
-                const lines = jsonString.split('\n');
-                const pathPerLine = [];
-                let pathStack = [];
-                let arrayCounters = {};
-
-                for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i];
-                    const trimmedLine = line.trim();
-                    const indent = (line.match(/^\s*/) || [''])[0].length / 2;
-                    pathStack.length = indent;
-
-                    if (trimmedLine.endsWith('{')) {
-                        if (arrayCounters[indent - 1] !== undefined) { }
-                    } else if (trimmedLine.endsWith('[')) {
-                        arrayCounters[indent] = 0;
-                    } else if (trimmedLine.startsWith(']')) {
-                        delete arrayCounters[indent-1];
-                    } else if (trimmedLine.startsWith('}')) {
-                         if (arrayCounters[indent - 1] !== undefined) {
-                            arrayCounters[indent - 1]++;
-                         }
-                    }
-                    
-                    const keyMatch = trimmedLine.match(/"([^"]+)"\s*:/);
-                    if (keyMatch) {
-                        pathStack[indent] = keyMatch[1];
-                    } else if (arrayCounters[indent - 1] !== undefined) {
-                        if (!trimmedLine.endsWith('{') && !trimmedLine.startsWith('}') && !trimmedLine.endsWith('},')) {
-                             pathStack[indent] = `[${arrayCounters[indent - 1]}]`;
-                             if (!trimmedLine.endsWith(',') && !trimmedLine.endsWith(']')) {
-                                arrayCounters[indent - 1]++;
-                            }
-                        }
-                    }
-
-                    let currentPath = '$';
-                    if (pathStack.length > 0) {
-                        currentPath += '.' + pathStack.slice(1).join('.').replace(/\.\[/g, '[');
-                    }
-                    pathPerLine.push(currentPath);
-                }
-
-
-                return lines.map((line, index) => {
-                    let lineContent = escapeHtml(line);
-                    const path = pathPerLine[index];
-                    let diffType = diffMap.get(path);
-                    
-                    if (!diffType) {
-                        for (const [diffPath, type] of diffMap.entries()) {
+                    if (type) {
+                        if (side === 'target' && type.includes('Added')) lineClass = 'diff-added-text';
+                        else if (side === 'source' && type.includes('Removed')) lineClass = 'diff-removed-text';
+                        else if (type.includes('Changed') || type.includes('Error')) lineClass = 'diff-changed-text';
+                    } else if (isKeyLine) {
+                        // If it's a key line but no direct diff, check for child diffs
+                        for (const [diffPath, diffType] of diffs.entries()) {
                             if (diffPath.startsWith(path + '.') || diffPath.startsWith(path + '[')) {
-                                if (side === 'target' && type.includes('Added')) {
-                                    diffType = 'Added'; break;
-                                }
-                                if (side === 'source' && type.includes('Removed')) {
-                                    diffType = 'Removed'; break;
-                                }
-                                if (type.includes('ValueChanged') || type.includes('TypeChanged') || type.includes('LengthChanged') || type.includes('SchemaError')) {
-                                     if (!diffType || (!diffType.includes('Added') && !diffType.includes('Removed'))) {
-                                        diffType = 'Changed';
-                                        break;
-                                    }
-                                }
+                                if (side === 'target' && diffType.includes('Added')) { lineClass = 'diff-added-text'; break; }
+                                if (side === 'source' && diffType.includes('Removed')) { lineClass = 'diff-removed-text'; break; }
+                                if (diffType.includes('Changed') || diffType.includes('Error')) { lineClass = 'diff-changed-text'; break; }
                             }
                         }
                     }
 
-                    let lineClass = '';
-                    if (diffType) {
-                        if (side === 'target' && diffType.includes('Added')) lineClass = 'diff-added-text';
-                        else if (side === 'source' && diffType.includes('Removed')) lineClass = 'diff-removed-text';
-                        else if (diffType.includes('ValueChanged') || diffType.includes('TypeChanged') || diffType.includes('LengthChanged') || diffType.includes('SchemaError') || diffType.includes('SchemaParseError')) lineClass = 'diff-changed-text';
+                    let formattedLine = escapeHtml(lineText);
+                    // Apply syntax highlighting
+                    formattedLine = formattedLine.replace(/"([^"]+)"(\s*:\s*)/g, '<span class="json-key">"$1"</span><span class="json-colon">$2</span>');
+                    formattedLine = formattedLine.replace(/:\s*(".*?[^\\]")/g, ':<span class="json-string">$1</span>');
+                    formattedLine = formattedLine.replace(/:\s*(-?\d+(\.\d+)?([eE][+-]?\d+)?)/g, ':<span class="json-number">$1</span>');
+                    formattedLine = formattedLine.replace(/:\s*(true|false)/g, ':<span class="json-boolean">$1</span>');
+                    formattedLine = formattedLine.replace(/:\s*(null)/g, ':<span class="json-null">$1</span>');
+                    formattedLine = formattedLine.replace(/([\{\}\[\]])/g, '<span class="json-bracket">$1</span>');
+                    formattedLine = formattedLine.replace(/,(\s*)$/g, '<span class="json-comma">,</span>$1');
+
+                    return `<span class="diff-line ${lineClass}" data-path="${path}">${formattedLine}</span>`;
+                };
+
+                if (typeof obj !== 'object' || obj === null) {
+                    // Handle primitive values at any level
+                    return applyLineHighlighting(JSON.stringify(obj), currentPath);
+                }
+
+                if (Array.isArray(obj)) {
+                    html += applyLineHighlighting(indentSpace + '[', currentPath) + '\n';
+                    const potentialKeys = ['id', 'productId', 'variantId', 'reviewId', 'key', 'name'];
+                    const bestKey = potentialKeys.find(key => obj.every(item => item && typeof item === 'object' && key in item));
+
+                    for (let i = 0; i < obj.length; i++) {
+                        const item = obj[i];
+                        let itemPath = `${currentPath}[${i}]`; // Default for index-based paths
+
+                        if (bestKey && typeof item === 'object' && item !== null && item[bestKey] !== undefined) {
+                             itemPath = `${currentPath}[${bestKey}=${item[bestKey]}]`; // Use key-based path for lookup
+                        }
+                        
+                        html += jsonTraverseAndRender(item, diffs, side, itemPath, indentLevel + 1);
+                        if (i < obj.length - 1) {
+                            html += applyLineHighlighting(',', itemPath) + '\n'; // Comma on a new line
+                        } else {
+                            html += '\n';
+                        }
                     }
-
-                    lineContent = lineContent.replace(/"([^"]+)"(\s*:\s*)/g, '<span class="json-key">"$1"</span><span class="json-colon">$2</span>');
-                    lineContent = lineContent.replace(/:\s*(".*?[^\\]")/g, ':<span class="json-string">$1</span>');
-                    lineContent = lineContent.replace(/:\s*(-?\d+(\.\d+)?([eE][+-]?\d+)?)/g, ':<span class="json-number">$1</span>');
-                    lineContent = lineContent.replace(/:\s*(true|false)/g, ':<span class="json-boolean">$1</span>');
-                    lineContent = lineContent.replace(/:\s*(null)/g, ':<span class="json-null">$1</span>');
-                    lineContent = lineContent.replace(/([\{\}\[\]])/g, '<span class="json-bracket">$1</span>');
-                    lineContent = lineContent.replace(/,(\s*)$/g, '<span class="json-comma">,</span>$1');
-
-                    return `<span class="diff-line ${lineClass}">${lineContent}</span>`;
-                }).join('\n');
+                    html += applyLineHighlighting(indentSpace + ']', currentPath);
+                } else { // Object
+                    html += applyLineHighlighting(indentSpace + '{', currentPath) + '\n';
+                    const keys = Object.keys(obj);
+                    for (let i = 0; i < keys.length; i++) {
+                        const key = keys[i];
+                        const propPath = `${currentPath}.${key}`;
+                        
+                        const valueHtml = jsonTraverseAndRender(obj[key], diffs, side, propPath, indentLevel + 1);
+                        const keyLine = `${indentSpace}  "${key}": ${valueHtml}`;
+                        
+                        html += applyLineHighlighting(keyLine, propPath, true); // Mark as key line
+                        if (i < keys.length - 1) {
+                            html += applyLineHighlighting(',', propPath) + '\n'; // Comma on a new line
+                        } else {
+                            html += '\n';
+                        }
+                    }
+                    html += applyLineHighlighting(indentSpace + '}', currentPath);
+                }
+                return html;
             }
 
             function escapeHtml(text) {
