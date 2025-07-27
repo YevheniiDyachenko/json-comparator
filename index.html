@@ -220,6 +220,7 @@
         .icon-circle-added { background-color: var(--green); }
         .icon-circle-removed { background-color: var(--red); }
         .icon-circle-changed { background-color: var(--blue); } /* For 🔄, 🧱, 📏, ❗, ❌ */
+        .icon-circle-total { background-color: var(--orange); } /* New color for total */
         
         .results-controls { margin-bottom: 20px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; padding: 10px; background-color: var(--bg-color); border-radius: 8px;}
         .results-controls input[type="search"] { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--main-color); color: var(--text-color); min-width: 250px; }
@@ -1079,7 +1080,7 @@
                                         <span class="stat-item"><span class="icon-circle icon-circle-added">+</span> Додано: ${stats.added}</span>
                                         <span class="stat-item"><span class="icon-circle icon-circle-removed">-</span> Видалено: ${stats.removed}</span>
                                         <span class="stat-item"><span class="icon-circle icon-circle-changed">⇄</span> Змінено: ${stats.changed}</span>
-                                        <span class="stat-item">Всього: ${differences.length}</span>
+                                        <span class="stat-item"><span class="icon-circle icon-circle-total">Σ</span> Всього: ${differences.length}</span>
                                     </div>
                                     <div class="results-controls">
                                         <input type="search" id="searchInput" placeholder="Пошук у звіті...">
@@ -1267,9 +1268,9 @@
                         else if (type.includes('Changed') || type.includes('Error')) lineClass = 'diff-changed-text';
                     } else if (isKeyLine) {
                         // If it's a key line but no direct diff, check for child diffs
-                        for (const [diffPathFromMap, diffType] of diffMap.entries()) { // Fixed: use diffPathFromMap
+                        for (const [diffPathFromMap, diffType] of diffMap.entries()) {
                             // Ensure diffPathFromMap is a string before calling startsWith
-                            const diffPathStr = String(diffPathFromMap);
+                            const diffPathStr = String(diffPathFromMap); // FIXED: ensure string
                             if (diffPathStr.startsWith(path + '.') || diffPathStr.startsWith(path + '[')) {
                                 if (side === 'target' && diffType.includes('Added')) { lineClass = 'diff-added-text'; break; }
                                 if (side === 'source' && diffType.includes('Removed')) { lineClass = 'diff-removed-text'; break; }
@@ -1297,27 +1298,31 @@
                 }
 
                 if (Array.isArray(obj)) {
+                    // Apply line highlight to the opening bracket for array-level changes
                     html += applyLineHighlighting(indentSpace + '[', currentPath) + '\n';
                     const potentialKeys = ['id', 'productId', 'variantId', 'reviewId', 'key', 'name'];
-                    const bestKey = potentialKeys.find(key => obj.every(item => item && typeof item === 'object' && key in item));
+                    const bestKey = potentialKeys.find(key => obj.every(item => item && typeof item === 'object' && item[key] !== undefined));
 
                     for (let i = 0; i < obj.length; i++) {
                         const item = obj[i];
                         let itemPath = `${currentPath}[${i}]`; // Default for index-based paths
 
                         if (bestKey && typeof item === 'object' && item !== null && item[bestKey] !== undefined) {
-                             itemPath = `${currentPath}[${bestKey}=${item[bestKey]}]`; // Use key-based path for lookup
+                             // Use key-based path for lookup for objects within arrays
+                             // Ensure the key value is stringified for path consistency
+                             itemPath = `${currentPath}[${bestKey}=${JSON.stringify(item[bestKey])}]`;
                         }
                         
                         html += jsonTraverseAndRender(item, diffs, side, itemPath, indentLevel + 1);
                         if (i < obj.length - 1) {
-                            html += applyLineHighlighting(',', itemPath) + '\n'; // Comma on a new line
+                            html += applyLineHighlighting(indentSpace + '],', currentPath) + '\n'; // Comma and closing bracket
                         } else {
                             html += '\n';
                         }
                     }
                     html += applyLineHighlighting(indentSpace + ']', currentPath);
                 } else { // Object
+                    // Apply line highlight to the opening bracket for object-level changes
                     html += applyLineHighlighting(indentSpace + '{', currentPath) + '\n';
                     const keys = Object.keys(obj);
                     for (let i = 0; i < keys.length; i++) {
@@ -1325,11 +1330,11 @@
                         const propPath = `${currentPath}.${key}`;
                         
                         const valueHtml = jsonTraverseAndRender(obj[key], diffs, side, propPath, indentLevel + 1);
-                        const keyLine = `${indentSpace}  "${key}": ${valueHtml}`;
+                        const keyLineText = `"${key}": ${valueHtml}`;
                         
-                        html += applyLineHighlighting(keyLine, propPath, true); // Mark as key line
+                        html += applyLineHighlighting(indentSpace + '  ' + keyLineText, propPath, true); // Mark as key line
                         if (i < keys.length - 1) {
-                            html += applyLineHighlighting(',', propPath) + '\n'; // Comma on a new line
+                            html += applyLineHighlighting(',', propPath) + '\n'; // Comma on a new line for the property
                         } else {
                             html += '\n';
                         }
