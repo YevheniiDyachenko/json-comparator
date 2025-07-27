@@ -270,15 +270,10 @@
             </div>
         </div>
     </div>
+    <div id="error-container" style="text-align: center; margin-top: 50px;"></div>
 
     <script>
         function initializeApp() {
-            // --- Library Check ---
-            if (typeof Ajv === 'undefined' || typeof jsyaml === 'undefined') {
-                document.body.innerHTML = '<h2 style="text-align:center; margin-top: 50px; color: red;">Помилка завантаження ресурсів. Будь ласка, перевірте ваше інтернет-з\'єднання та спробуйте оновити сторінку.</h2>';
-                return;
-            }
-
             // --- DOM Elements ---
             const dropZone1 = document.getElementById('dropZone1');
             const dropZone2 = document.getElementById('dropZone2');
@@ -742,8 +737,29 @@
             updateUiForMode();
         }
 
-        // Use window.onload to ensure all external scripts are loaded before initialization
-        window.onload = initializeApp;
+        function runApplication() {
+            const maxWaitTime = 8000; // 8 seconds
+            const intervalTime = 100; // 100ms
+            let timeWaited = 0;
+
+            const libraryCheckInterval = setInterval(() => {
+                if (typeof Ajv !== 'undefined' && typeof jsyaml !== 'undefined') {
+                    clearInterval(libraryCheckInterval);
+                    initializeApp();
+                } else {
+                    timeWaited += intervalTime;
+                    if (timeWaited >= maxWaitTime) {
+                        clearInterval(libraryCheckInterval);
+                        const appContent = document.getElementById('app-content');
+                        const errorContainer = document.getElementById('error-container');
+                        if (appContent) appContent.style.display = 'none';
+                        if (errorContainer) errorContainer.innerHTML = '<h2 style="color: red;">Помилка завантаження ресурсів. Будь ласка, перевірте ваше інтернет-з\'єднання та спробуйте оновити сторінку.</h2>';
+                    }
+                }
+            }, intervalTime);
+        }
+
+        runApplication();
     </script>
 </body>
 </html>
