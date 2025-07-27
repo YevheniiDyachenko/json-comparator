@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced JSON/YAML Comparator (Standalone)</title>
+    <title>Advanced JSON Comparator (Standalone)</title>
     <style>
         :root {
             --bg-color: #f8f9fa;
@@ -117,14 +117,24 @@
         .stat-item { font-size: 1.1em; font-weight: 500; }
 
         .json-view { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
-        .json-view pre { background-color: #f1f3f5; padding: 15px; border-radius: 8px; line-height: 1.6em; white-space: pre-wrap; word-wrap: break-word; }
+        .json-view pre { background-color: #f1f3f5; padding: 10px; border-radius: 8px; line-height: 1.4em; white-space: pre-wrap; word-wrap: break-word; max-height: 400px; overflow: auto; counter-reset: line; }
         body.dark-mode .json-view pre { background-color: #2c2c2c; }
         
-        .diff-line { display: block; }
+        .diff-line { display: block; position: relative; padding-left: 3.5em; }
+        .diff-line::before {
+            counter-increment: line;
+            content: counter(line);
+            position: absolute;
+            left: 0;
+            width: 3em;
+            text-align: right;
+            color: #888;
+            -webkit-user-select: none; user-select: none;
+        }
         .diff-line-added { background-color: rgba(40, 167, 69, 0.1); }
         .diff-line-removed { background-color: rgba(220, 53, 69, 0.1); }
-        .diff-line-added::before { content: '➕'; color: var(--green); margin-right: 8px; display: inline-block; }
-        .diff-line-removed::before { content: '➖'; color: var(--red); margin-right: 8px; display: inline-block; }
+        .diff-line-added::after { content: '➕'; color: var(--green); position: absolute; left: 3.5em; margin-left: -1.5em; }
+        .diff-line-removed::after { content: '➖'; color: var(--red); position: absolute; left: 3.5em; margin-left: -1.5em; }
         .diff-line-changed > .diff-key { font-weight: bold; color: var(--blue); }
         .diff-line-changed > .diff-value { font-weight: bold; color: var(--blue); background-color: rgba(0, 123, 255, 0.1); border-radius: 3px; padding: 0 2px;}
 
@@ -215,7 +225,7 @@
                     </div>
                     <button id="settingsBtn" title="Розширені налаштування">⚙️</button>
                 </div>
-                <h1>Advanced JSON/YAML Comparator</h1>
+                <h1>Advanced JSON Comparator</h1>
                 <p>Порівнюйте файли та аналізуйте зміни за допомогою ШІ</p>
             </div>
 
@@ -229,12 +239,12 @@
 
             <div class="drop-zones">
                 <div id="dropZone1" class="drop-zone">
-                    <textarea id="sourceText" placeholder="Перетягніть сюди Source файл або вставте JSON/YAML"></textarea>
+                    <textarea id="sourceText" placeholder="Перетягніть сюди Source JSON файл або вставте код"></textarea>
                     <div class="error-message" id="sourceError"></div>
                     <span class="file-name" id="fileName1"></span>
                 </div>
                 <div id="dropZone2" class="drop-zone">
-                    <textarea id="targetText" placeholder="Перетягніть сюди Target файл або вставте JSON/YAML"></textarea>
+                    <textarea id="targetText" placeholder="Перетягніть сюди Target JSON файл або вставте код"></textarea>
                     <div class="error-message" id="targetError"></div>
                     <span class="file-name" id="fileName2"></span>
                 </div>
@@ -263,8 +273,8 @@
     
     <!-- INLINED LIBRARIES -->
     <script>
-    /* js-yaml 4.1.0 https://github.com/nodeca/js-yaml (minified) */
-    !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define(t):((e="undefined"!=typeof globalThis?globalThis:e||self).jsyaml=t())}(this,(function(){"use strict";function e(e){return null==e}function t(e){return"object"==typeof e&&null!==e}var n="undefined"!=typeof globalThis?globalThis:"undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:{};function r(e){return e&&e.Math==Math&&e}var i=r("object"==typeof globalThis&&globalThis)||r("object"==typeof window&&window)||r("object"==typeof self&&self)||r("object"==typeof n&&n)||function(){return this}()||Function("return this")();var o=Object.prototype,a=o.hasOwnProperty,s=o.toString,c=i.Symbol,u=c?c.toStringTag:void 0;function l(e){var t=a.call(e,u)?e[u]:void 0;e[u]=void 0;var n=s.call(e);return e[u]=t,n}var d=Object.prototype.toString;function p(e){return d.call(e)}var m,f,g,y,h,v,b,A,C,S,E,k,I,O,T,P,D,U,L,M,F,j,B,K,R,q,z,G,H,V,Z,J,Y,W,Q,X,ee,te,ne,re,oe,ie,ae,se,ce,ue,le,de,pe,me,fe,ge,ye,he,ve,be,Ae,Ce,Se,Ee,ke,Ie,Oe,Te,Pe,De,Ue,Le,Me,Fe,je,Be,Ke,Re,qe,ze,Ge,He,Ve,Ze,Je,Ye,We,Qe,Xe,et,tt,nt,rt,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct
+    /* js-yaml 4.1.0 https://github.com/nodeca/js-yaml (minified) - only used for potential future use, not active in JSON-only mode */
+    !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define(t):((e="undefined"!=typeof globalThis?globalThis:e||self).jsyaml=t())}(this,(function(){"use strict";function e(e){return null==e}function t(e){return"object"==typeof e&&null!==e}var n="undefined"!=typeof globalThis?globalThis:"undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:{};function r(e){return e&&e.Math==Math&&e}var i=r("object"==typeof globalThis&&globalThis)||r("object"==typeof window&&window)||r("object"==typeof self&&self)||r("object"==typeof n&&n)||function(){return this}()||Function("return this")();var o=Object.prototype,a=o.hasOwnProperty,s=o.toString,c=i.Symbol,u=c?c.toStringTag:void 0;function l(e){var t=a.call(e,u)?e[u]:void 0;e[u]=void 0;var n=s.call(e);return e[u]=t,n}var d=Object.prototype.toString;function p(e){return d.call(e)}var m,f,g,y,h,v,b,A,C,S,E,k,I,O,T,P,D,U,L,M,F,j,B,K,R,q,z,G,H,V,Z,J,Y,W,Q,X,ee,te,ne,re,oe,ie,ae,se,ce,ue,le,de,pe,me,fe,ge,ye,he,ve,be,Ae,Ce,Se,Ee,ke,Ie,Oe,Te,Pe,De,Ue,Le,Me,Fe,je,Be,Ke,Re,qe,ze,Ge,He,Ve,Ze,Je,Ye,We,Qe,Xe,et,tt,nt,rt,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct,St,Et,kt,It,Ot,Tt,Pt,Dt,Ut,Lt,Mt,Ft,jt,Bt,Kt,Rt,qt,zt,Gt,Ht,Vt,Zt,Jt,Yt,Wt,Qt,Xt,en,tn,nn,rn,on,an,sn,cn,un,ln,dn,pn,mn,fn,gn,yn,hn,vn,bn,An,Cn,Sn,En,kn,In,On,Tn,Pn,Dn,Un,Ln,Mn,Fn,jn,Bn,Kn,Rn,qn,zn,Gn,Hn,Vn,Zn,Jn,Yn,Wn,Qn,Xn,etn,ttn,ntn,rtn,it,ot,at,st,ct,ut,lt,dt,pt,mt,ft,gt,yt,ht,vt,bt,At,Ct
 </script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -363,20 +373,10 @@
                     dropZone.classList.remove('invalid');
                     return parsed;
                 } catch (jsonError) {
-                    try {
-                        const parsedYaml = jsyaml.load(text);
-                        if (typeof parsedYaml !== 'object' || parsedYaml === null) {
-                            throw new Error("YAML повинен представляти об'єкт або масив.");
-                        }
-                        errorEl.style.display = 'none';
-                        dropZone.classList.remove('invalid');
-                        return parsedYaml;
-                    } catch (yamlError) {
-                        errorEl.textContent = `Помилка: Не є валідним JSON або YAML.`;
-                        errorEl.style.display = 'block';
-                        dropZone.classList.add('invalid');
-                        return null;
-                    }
+                    errorEl.textContent = `Помилка: Не є валідним JSON.`;
+                    errorEl.style.display = 'block';
+                    dropZone.classList.add('invalid');
+                    return null;
                 }
             }
 
@@ -402,7 +402,7 @@
                         return;
                     }
 
-                    if (file.type === 'application/json' || file.name.endsWith('.yml') || file.name.endsWith('.yaml')) {
+                    if (file.type === 'application/json' || file.name.endsWith('.json')) {
                         fileNameEl.textContent = file.name;
                         const reader = new FileReader();
                         reader.onload = (event) => {
@@ -414,7 +414,7 @@
                         };
                         reader.readAsText(file);
                     } else {
-                        alert('Будь ласка, перетягніть JSON або YAML файл.');
+                        alert('Будь ласка, перетягніть JSON файл.');
                         fileNameEl.textContent = ''; textArea.value = ''; fileContentCallback(null); checkFilesReady();
                     }
                 });
@@ -653,8 +653,10 @@
                     
                     renderInteractiveTable(differences);
 
-                    document.querySelector('.collapsible-header').addEventListener('click', function() {
-                        this.parentElement.classList.toggle('collapsed');
+                    document.querySelectorAll('.collapsible-header').forEach(header => {
+                        header.addEventListener('click', function() {
+                            this.parentElement.classList.toggle('collapsed');
+                        });
                     });
 
                     exportBtn.style.display = 'inline-block';
@@ -701,7 +703,7 @@
                     const rows = differences.map(d => `
                         <tr>
                             <td class="icon ${d.type.toLowerCase().includes('add') ? 'added' : d.type.toLowerCase().includes('remov') ? 'removed' : 'changed'}">
-                                ${d.type.toLowerCase().includes('add') ? '➕' : d.type.toLowerCase().includes('remov') ? '➖' : '�'}
+                                ${d.type.toLowerCase().includes('add') ? '➕' : d.type.toLowerCase().includes('remov') ? '➖' : '🔄'}
                             </td>
                             <td>${d.type}</td>
                             <td><pre>${d.path}</pre></td>
@@ -768,15 +770,24 @@
                     const sourceHtml = generateHighlightedJsonHtml(source, differences, 'source');
                     const targetHtml = generateHighlightedJsonHtml(target, differences, 'target');
                     return `
-                        <h2 style="margin-top: 40px;">Візуальне порівняння</h2>
-                        <div class="json-view">
-                            <div>
-                                <h3>Source</h3>
-                                <pre>${sourceHtml}</pre>
-                            </div>
-                            <div>
-                                <h3>Target</h3>
-                                <pre>${targetHtml}</pre>
+                        <div class="collapsible-section collapsed">
+                            <button class="collapsible-header">
+                                <h2>Візуальне порівняння</h2>
+                                <span class="collapse-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                </span>
+                            </button>
+                            <div class="collapsible-content">
+                                <div class="json-view">
+                                    <div>
+                                        <h3>Source</h3>
+                                        <pre>${sourceHtml}</pre>
+                                    </div>
+                                    <div>
+                                        <h3>Target</h3>
+                                        <pre>${targetHtml}</pre>
+                                    </div>
+                                </div>
                             </div>
                         </div>`;
                 } catch(e) {
@@ -788,48 +799,60 @@
             function generateHighlightedJsonHtml(obj, diffs, side) {
                 const diffMap = new Map(diffs.map(d => [d.path, d.type]));
 
-                function highlighter(currentObj, indent, path) {
-                    if (currentObj === null || typeof currentObj !== 'object') {
-                        return `<span class="diff-value">${JSON.stringify(currentObj)}</span>`;
+                function* lineGenerator(currentObj, indent, path) {
+                    if (typeof currentObj !== 'object' || currentObj === null) {
+                        yield { content: `${indent}${JSON.stringify(currentObj)}`, path };
+                        return;
                     }
 
-                    let output = '';
-                    
                     if (Array.isArray(currentObj)) {
-                        output += '[\n';
+                        yield { content: `${indent}[`, path };
                         for (let i = 0; i < currentObj.length; i++) {
                             const item = currentObj[i];
                             const itemPath = `${path}[${i}]`;
-                            const itemDiffType = diffMap.get(itemPath);
-                            let lineClass = 'diff-line';
-                            if (side === 'target' && itemDiffType && itemDiffType.includes('Added')) lineClass += ' diff-line-added';
-                            if (side === 'source' && itemDiffType && itemDiffType.includes('Removed')) lineClass += ' diff-line-removed';
-                            
-                            output += `<span class="${lineClass}">${indent}  ${highlighter(item, indent + '  ', itemPath)}</span>${i < currentObj.length - 1 ? ',' : ''}\n`;
+                            const itemLines = Array.from(lineGenerator(item, indent + '  ', itemPath));
+                            for (let j = 0; j < itemLines.length; j++) {
+                                let line = itemLines[j];
+                                if (j === itemLines.length - 1 && i < currentObj.length - 1) {
+                                    line.content += ',';
+                                }
+                                yield line;
+                            }
                         }
-                        output += `${indent}]`;
+                        yield { content: `${indent}]`, path };
                     } else {
-                        output += '{\n';
+                        yield { content: `${indent}{`, path };
                         const keys = Object.keys(currentObj);
                         for (let i = 0; i < keys.length; i++) {
                             const key = keys[i];
                             const value = currentObj[key];
                             const valuePath = `${path}.${key}`;
-                            const keyDiffType = diffMap.get(valuePath);
-
-                            let lineClass = 'diff-line';
-                            if (side === 'target' && keyDiffType && keyDiffType.includes('Added')) lineClass += ' diff-line-added';
-                            if (side === 'source' && keyDiffType && keyDiffType.includes('Removed')) lineClass += ' diff-line-removed';
-                            if (keyDiffType && keyDiffType.includes('ValueChanged')) lineClass += ' diff-line-changed';
-
-                            output += `<span class="${lineClass}">${indent}  <span class="diff-key">"${key}"</span>: ${highlighter(value, indent + '  ', valuePath)}</span>${i < keys.length - 1 ? ',' : ''}\n`;
+                            const valueLines = Array.from(lineGenerator(value, indent + '  ', valuePath));
+                            
+                            valueLines[0].content = `${indent}  <span class="diff-key">"${key}"</span>: ${valueLines[0].content.trimLeft()}`;
+                            
+                            for (let j = 0; j < valueLines.length; j++) {
+                                let line = valueLines[j];
+                                line.path = valuePath; // Attribute the whole block to the parent key
+                                if (j === valueLines.length - 1 && i < keys.length - 1) {
+                                    line.content += ',';
+                                }
+                                yield line;
+                            }
                         }
-                        output += `${indent}}`;
+                        yield { content: `${indent}}`, path };
                     }
-                    return output;
                 }
 
-                return highlighter(obj, '', '$');
+                const lines = Array.from(lineGenerator(obj, '', '$'));
+                return lines.map(line => {
+                    const diffType = diffMap.get(line.path);
+                    let lineClass = 'diff-line';
+                    if (side === 'target' && diffType?.includes('Added')) lineClass += ' diff-line-added';
+                    if (side === 'source' && diffType?.includes('Removed')) lineClass += ' diff-line-removed';
+                    if (diffType?.includes('ValueChanged')) lineClass += ' diff-line-changed';
+                    return `<span class="${lineClass}">${line.content}</span>`;
+                }).join('\n');
             }
             
             // --- Initial load ---
@@ -929,4 +952,3 @@
     </script>
 </body>
 </html>
-�
