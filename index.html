@@ -1255,7 +1255,8 @@
             function jsonTraverseAndRender(obj, diffs, side, currentPath = '$', indentLevel = 0) {
                 const indentSpace = ' '.repeat(indentLevel * 2);
                 let html = '';
-                const diffMap = new Map(diffs.map(d => [d.path, d.type])); // For quick lookup
+                // Create a Map from diffs for quick lookup by path
+                const diffMap = new Map(diffs.map(d => [d.path, d.type]));
 
                 // Helper to apply syntax highlighting and line class
                 const applyLineHighlighting = (lineText, path, isKeyLine = false) => {
@@ -1270,7 +1271,7 @@
                         // If it's a key line but no direct diff, check for child diffs
                         for (const [diffPathFromMap, diffType] of diffMap.entries()) {
                             // Ensure diffPathFromMap is a string before calling startsWith
-                            const diffPathStr = String(diffPathFromMap); // FIXED: ensure string
+                            const diffPathStr = String(diffPathFromMap);
                             if (diffPathStr.startsWith(path + '.') || diffPathStr.startsWith(path + '[')) {
                                 if (side === 'target' && diffType.includes('Added')) { lineClass = 'diff-added-text'; break; }
                                 if (side === 'source' && diffType.includes('Removed')) { lineClass = 'diff-removed-text'; break; }
@@ -1279,8 +1280,8 @@
                         }
                     }
 
+                    // Apply JSON syntax highlighting
                     let formattedLine = escapeHtml(lineText);
-                    // Apply syntax highlighting
                     formattedLine = formattedLine.replace(/"([^"]+)"(\s*:\s*)/g, '<span class="json-key">"$1"</span><span class="json-colon">$2</span>');
                     formattedLine = formattedLine.replace(/:\s*(".*?[^\\]")/g, ':<span class="json-string">$1</span>');
                     formattedLine = formattedLine.replace(/:\s*(-?\d+(\.\d+)?([eE][+-]?\d+)?)/g, ':<span class="json-number">$1</span>');
@@ -1298,7 +1299,6 @@
                 }
 
                 if (Array.isArray(obj)) {
-                    // Apply line highlight to the opening bracket for array-level changes
                     html += applyLineHighlighting(indentSpace + '[', currentPath) + '\n';
                     const potentialKeys = ['id', 'productId', 'variantId', 'reviewId', 'key', 'name'];
                     const bestKey = potentialKeys.find(key => obj.every(item => item && typeof item === 'object' && item[key] !== undefined));
@@ -1315,14 +1315,13 @@
                         
                         html += jsonTraverseAndRender(item, diffs, side, itemPath, indentLevel + 1);
                         if (i < obj.length - 1) {
-                            html += applyLineHighlighting(indentSpace + '],', currentPath) + '\n'; // Comma and closing bracket
+                            html += applyLineHighlighting(indentSpace + '],', itemPath) + '\n'; // Add comma for non-last elements
                         } else {
                             html += '\n';
                         }
                     }
                     html += applyLineHighlighting(indentSpace + ']', currentPath);
                 } else { // Object
-                    // Apply line highlight to the opening bracket for object-level changes
                     html += applyLineHighlighting(indentSpace + '{', currentPath) + '\n';
                     const keys = Object.keys(obj);
                     for (let i = 0; i < keys.length; i++) {
@@ -1330,11 +1329,12 @@
                         const propPath = `${currentPath}.${key}`;
                         
                         const valueHtml = jsonTraverseAndRender(obj[key], diffs, side, propPath, indentLevel + 1);
-                        const keyLineText = `"${key}": ${valueHtml}`;
+                        // Only stringify the key, not the whole line, as valueHtml is already HTML
+                        const keyLineContent = `"${key}": ${valueHtml}`; 
                         
-                        html += applyLineHighlighting(indentSpace + '  ' + keyLineText, propPath, true); // Mark as key line
+                        html += applyLineHighlighting(indentSpace + '  ' + keyLineContent, propPath, true); // Mark as key line
                         if (i < keys.length - 1) {
-                            html += applyLineHighlighting(',', propPath) + '\n'; // Comma on a new line for the property
+                            html += applyLineHighlighting(',', propPath) + '\n'; // Add comma for non-last elements
                         } else {
                             html += '\n';
                         }
