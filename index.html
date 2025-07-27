@@ -33,21 +33,16 @@
             font-family: var(--font-family);
             margin: 0;
             background-color: var(--bg-color);
-            background-image: linear-gradient(135deg, var(--bg-color) 0%, #e9ecef 100%);
             color: var(--text-color);
             line-height: 1.6;
             transition: background-color 0.3s;
         }
         
-        body.dark-mode {
-             background-image: linear-gradient(135deg, #121212 0%, #2c2c2c 100%);
-        }
-
         .container { max-width: 1400px; margin: 20px auto; padding: 20px; }
         .header { text-align: center; margin-bottom: 30px; position: relative; }
         .header h1 { color: var(--header-color); font-weight: 600; }
 
-        .top-controls { position: absolute; top: 10px; right: 20px; display: flex; align-items: center; gap: 20px; }
+        .top-controls { position: absolute; top: 10px; right: 20px; display: flex; align-items: center; gap: 15px; }
         .theme-switch-wrapper { display: flex; align-items: center; }
         .theme-switch { display: inline-block; height: 24px; position: relative; width: 50px; }
         .theme-switch input { display: none; }
@@ -56,10 +51,9 @@
         input:checked + .slider { background-color: var(--accent-color); }
         input:checked + .slider:before { transform: translateX(26px); }
 
-        #settingsBtn, #fullscreenBtn { background: none; border: none; cursor: pointer; font-size: 1.5em; color: var(--text-color); opacity: 0.7; transition: opacity 0.2s, transform 0.2s; padding: 0; }
+        #settingsBtn, #fullscreenBtn { background: none; border: none; cursor: pointer; font-size: 1.4em; color: var(--text-color); opacity: 0.7; transition: opacity 0.2s, transform 0.2s; padding: 0; display: flex; align-items: center; justify-content: center; }
         #settingsBtn:hover, #fullscreenBtn:hover { opacity: 1; transform: scale(1.1); }
-        #settingsBtn:hover { transform: rotate(45deg); }
-
+        #fullscreenBtn svg { width: 22px; height: 22px; }
 
         .mode-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; background-color: var(--main-color); padding: 8px; border-radius: 12px; box-shadow: 0 2px 8px var(--shadow-color); border: 1px solid var(--border-color); }
         .mode-selector label { padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: background-color 0.2s, color 0.2s; font-weight: 500; }
@@ -119,20 +113,9 @@
         .stat-item { font-size: 1.1em; font-weight: 500; }
 
         .json-view { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
-        .json-view pre { background-color: #f1f3f5; padding: 10px; border-radius: 8px; line-height: 1.3em; font-size: 0.9em; white-space: pre; word-wrap: break-word; max-height: 400px; overflow: auto; counter-reset: line; }
+        .json-view pre { background-color: #f1f3f5; padding: 10px; border-radius: 8px; line-height: 1.3em; font-size: 0.9em; white-space: pre; word-wrap: break-word; overflow: visible; }
         body.dark-mode .json-view pre { background-color: #2c2c2c; }
         
-        .diff-line { display: block; position: relative; padding-left: 3.5em; }
-        .diff-line::before {
-            counter-increment: line;
-            content: counter(line);
-            position: absolute;
-            left: 0;
-            width: 3em;
-            text-align: right;
-            color: #888;
-            -webkit-user-select: none; user-select: none;
-        }
         .diff-added-text { background-color: rgba(40, 167, 69, 0.2); }
         .diff-removed-text { background-color: rgba(220, 53, 69, 0.2); }
         .diff-changed-text { background-color: rgba(0, 123, 255, 0.2); }
@@ -141,8 +124,9 @@
         .collapsible-header { width: 100%; background: transparent; border: none; padding: 0; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         .collapsible-header h2 { border: none; }
         .collapse-icon { transition: transform 0.3s ease; color: var(--text-color); }
-        .collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out; }
-        .collapsible-section:not(.collapsed) .collapsible-content { max-height: 5000px; /* Large enough value */ }
+        .collapsible-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.4s ease-out; }
+        .collapsible-content > div { overflow: hidden; }
+        .collapsible-section:not(.collapsed) .collapsible-content { grid-template-rows: 1fr; }
         .collapsible-section.collapsed .collapse-icon { transform: rotate(-90deg); }
 
         #loader, .gemini-loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1001; }
@@ -178,7 +162,6 @@
         <div id="loader"><div class="loader-spinner"></div></div>
         <div id="gemini-loader" class="gemini-loader"><div class="loader-spinner"></div></div>
 
-        <!-- Settings Modal -->
         <div id="settingsModal" class="modal-overlay">
             <div class="modal-content">
                 <div class="modal-header">
@@ -219,6 +202,10 @@
         <div class="container">
             <div class="header">
                  <div class="top-controls">
+                    <button id="fullscreenBtn" title="Повноекранний режим">
+                        <svg id="fullscreen-enter-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                        <svg id="fullscreen-exit-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 0-2-2h-3M3 16h3a2 2 0 0 0 2-2v-3"/></svg>
+                    </button>
                     <div class="theme-switch-wrapper">
                         <label class="theme-switch" for="checkbox" title="Перемкнути тему">
                             <input type="checkbox" id="checkbox" />
@@ -268,8 +255,7 @@
             </div>
 
             <div id="results">
-                <!-- Результати будуть вставлені сюди -->
-            </div>
+                </div>
         </div>
     </div>
     
@@ -291,6 +277,9 @@
             const clearAllBtn = document.getElementById('clearAllBtn');
             const copyResultsBtn = document.getElementById('copyResultsBtn');
             const geminiBtn = document.getElementById('geminiBtn');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const fsEnterIcon = document.getElementById('fullscreen-enter-icon');
+            const fsExitIcon = document.getElementById('fullscreen-exit-icon');
             
             // --- State ---
             let sourceFileContent = null;
@@ -652,6 +641,7 @@
                     
                     renderInteractiveTable(differences);
                     setupSyncScroll();
+                    synchronizeJsonViewHeights();
 
                     document.querySelectorAll('.collapsible-header').forEach(header => {
                         header.addEventListener('click', function() {
@@ -839,15 +829,14 @@
                     const path = pathPerLine[index];
                     let diffType = diffMap.get(path);
                     
-                    // If no direct match, check if a child path has a diff (for highlighting parent objects/arrays)
                     if (!diffType) {
                         for (const [diffPath, type] of diffMap.entries()) {
                             if (diffPath.startsWith(path + '.') || diffPath.startsWith(path + '[')) {
                                 if (side === 'target' && type.includes('Added')) {
-                                    diffType = 'Added'; // Mark parent as containing additions
+                                    diffType = 'Added';
                                 }
                                 if (side === 'source' && type.includes('Removed')) {
-                                    diffType = 'Removed'; // Mark parent as containing removals
+                                    diffType = 'Removed';
                                 }
                             }
                         }
@@ -888,6 +877,18 @@
 
                 sourceView.addEventListener('scroll', () => syncScroll(sourceView, targetView));
                 targetView.addEventListener('scroll', () => syncScroll(targetView, sourceView));
+            }
+
+            function synchronizeJsonViewHeights() {
+                const sourceView = document.getElementById('sourceJsonView');
+                const targetView = document.getElementById('targetJsonView');
+                if (sourceView && targetView) {
+                    sourceView.style.height = 'auto';
+                    targetView.style.height = 'auto';
+                    const maxHeight = Math.max(sourceView.scrollHeight, targetView.scrollHeight);
+                    sourceView.style.height = `${maxHeight}px`;
+                    targetView.style.height = `${maxHeight}px`;
+                }
             }
             
             // --- Initial load ---
@@ -984,6 +985,23 @@
                 }
             });
             
+            // --- Fullscreen Logic ---
+            fullscreenBtn.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    }
+                }
+            });
+
+            document.addEventListener('fullscreenchange', () => {
+                const isFullscreen = !!document.fullscreenElement;
+                fsEnterIcon.style.display = isFullscreen ? 'none' : 'block';
+                fsExitIcon.style.display = isFullscreen ? 'block' : 'none';
+            });
+
             // Add listener for dynamically created elements
             resultsContainer.addEventListener('click', (e) => {
                 if (e.target.closest('.collapsible-header')) {
@@ -993,11 +1011,6 @@
             resultsContainer.addEventListener('change', (e) => {
                 if (e.target.id === 'syncScroll') {
                     setupSyncScroll();
-                }
-            });
-            resultsContainer.addEventListener('input', (e) => {
-                if (e.target.id === 'searchInput' || e.target.classList.contains('filter-cb')) {
-                    // Handled by renderInteractiveTable's internal listeners
                 }
             });
         });
