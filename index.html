@@ -61,6 +61,42 @@
             font-weight: 600;
         }
 
+        /* Додайте ці стилі до вашого існуючого CSS */
+.diff-added {
+    background-color: rgba(40, 167, 69, 0.15);
+    display: inline-block;
+    border-left: 3px solid var(--green);
+    padding-left: 5px;
+    margin-left: -8px;
+}
+
+.diff-removed {
+    background-color: rgba(220, 53, 69, 0.15);
+    display: inline-block;
+    border-left: 3px solid var(--red);
+    padding-left: 5px;
+    margin-left: -8px;
+}
+
+.diff-changed {
+    background-color: rgba(0, 123, 255, 0.15);
+    font-weight: bold;
+    border-radius: 3px;
+    padding: 0 2px;
+}
+
+body.dark-mode .diff-added {
+    background-color: rgba(40, 167, 69, 0.25);
+}
+
+body.dark-mode .diff-removed {
+    background-color: rgba(220, 53, 69, 0.25);
+}
+
+body.dark-mode .diff-changed {
+    background-color: rgba(0, 123, 255, 0.25);
+}
+
         /* Dark Mode Toggle */
         .theme-switch-wrapper {
             position: absolute;
@@ -731,27 +767,11 @@
                 resultsContainer.scrollIntoView({ behavior: 'smooth' });
             }
 
-           function renderJsonToHtml(element, diffMap, isSourceView, path = '$', indentLevel = 0) {
+function renderJsonToHtml(element, diffMap, isSourceView, path = '$', indentLevel = 0) {
     const indent = ' '.repeat(indentLevel * 2);
     
-    // Стилі для різних типів даних
-    const typeStyles = {
-        'key': 'color: #9c27b0;',          // Фіолетовий для ключів
-        'string': 'color: #4caf50;',       // Зелений для рядків
-        'number': 'color: #2196f3;',       // Синій для чисел
-        'boolean': 'color: #ff9800;',      // Помаранчевий для булевих значень
-        'null': 'color: #f44336;',         // Червоний для null
-        'bracket': 'color: #795548;',      // Коричневий для дужок
-        'comma': 'color: #795548;',        // Коричневий для ком
-        'colon': 'color: #795548;'        // Коричневий для двокрапок
-    };
-
-    function style(type, content) {
-        return `<span style="${typeStyles[type]}">${content}</span>`;
-    }
-
     if (Array.isArray(element)) {
-        let html = style('bracket', '[\n');
+        let html = '<span class="json-bracket">[</span>\n';
         const potentialKeys = ['id', 'productId', 'variantId', 'reviewId', 'key', 'name'];
         const bestKey = potentialKeys.find(key => element.length > 0 && element.every(item => item && typeof item === 'object' && key in item));
         
@@ -773,15 +793,15 @@
             
             const itemHtml = renderJsonToHtml(item, diffMap, isSourceView, itemPathForRecursion, indentLevel + 1);
             html += `<span class="${lineClass}">${indent}  ${itemHtml}`;
-            if (i < element.length - 1) html += style('comma', ',');
+            if (i < element.length - 1) html += '<span class="json-comma">,</span>';
             html += `</span>\n`;
         }
         
-        html += `${indent}${style('bracket', ']')}`;
+        html += `${indent}<span class="json-bracket">]</span>`;
         return html;
     } 
     else if (typeof element === 'object' && element !== null) {
-        let html = style('bracket', '{\n');
+        let html = '<span class="json-bracket">{</span>\n';
         const keys = Object.keys(element);
         
         for (let i = 0; i < keys.length; i++) {
@@ -795,12 +815,12 @@
                 if (diff.type === 'Removed' && isSourceView) lineClass = 'diff-removed';
             }
             
-            html += `<span class='${lineClass}'>${indent}  ${style('key', `"${key}"`)}${style('colon', ': ')}${renderJsonToHtml(element[key], diffMap, isSourceView, propPath, indentLevel + 1)}`;
-            if (i < keys.length - 1) html += style('comma', ',');
+            html += `<span class='${lineClass}'>${indent}  <span class="json-key">"${key}"</span><span class="json-colon">: </span>${renderJsonToHtml(element[key], diffMap, isSourceView, propPath, indentLevel + 1)}`;
+            if (i < keys.length - 1) html += '<span class="json-comma">,</span>';
             html += `</span>\n`;
         }
         
-        html += `${indent}${style('bracket', '}')}`;
+        html += `${indent}<span class="json-bracket">}</span>`;
         return html;
     } 
     else {
@@ -813,22 +833,22 @@
         
         let content;
         if (typeof element === 'string') {
-            content = style('string', JSON.stringify(element));
+            content = `<span class="json-string ${valueClass}">${JSON.stringify(element)}</span>`;
         } 
         else if (typeof element === 'number') {
-            content = style('number', element);
+            content = `<span class="json-number ${valueClass}">${element}</span>`;
         } 
         else if (typeof element === 'boolean') {
-            content = style('boolean', element);
+            content = `<span class="json-boolean ${valueClass}">${element}</span>`;
         } 
         else if (element === null) {
-            content = style('null', 'null');
+            content = `<span class="json-null ${valueClass}">null</span>`;
         } 
         else {
-            content = escapeHtml(JSON.stringify(element));
+            content = `<span class="${valueClass}">${escapeHtml(JSON.stringify(element))}</span>`;
         }
         
-        return `<span class='${valueClass}'>${content}</span>`;
+        return content;
     }
 }
 
