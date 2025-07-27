@@ -20,21 +20,6 @@
             --orange: #fd7e14;
             --purple: #6f42c1;
             --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            --toast-success-bg: #d4edda;
-            --toast-success-color: #155724;
-            --toast-error-bg: #f8d7da;
-            --toast-error-color: #721c24;
-            --toast-border-radius: 8px;
-
-            /* JSON Syntax Highlighting CSS Variables (needed for tree view) */
-            --json-key: #9c27b0;
-            --json-string: #4caf50;
-            --json-number: #2196f3;
-            --json-boolean: #ff9800;
-            --json-null: #f44336;
-            --json-bracket: #4b4b4b;
-            --json-comma: #4b4b4b;
-            --json-colon: #4b4b4b;
         }
 
         body.dark-mode {
@@ -44,20 +29,6 @@
             --shadow-color: rgba(0, 0, 0, 0.2);
             --text-color: #e0e0e0;
             --header-color: #ffffff;
-            --toast-success-bg: #1f4a2d;
-            --toast-success-color: #a7d9b5;
-            --toast-error-bg: #5f2b2c;
-            --toast-error-color: #f5c6cb;
-
-            /* Dark mode JSON Syntax Highlighting */
-            --json-key: #ba68c8;
-            --json-string: #81c784;
-            --json-number: #64b5f6;
-            --json-boolean: #ffb74d;
-            --json-null: #e57373;
-            --json-bracket: #b0b0b0;
-            --json-comma: #b0b0b0;
-            --json-colon: #b0b0b0;
         }
 
         body {
@@ -161,6 +132,7 @@
         .drop-zone.invalid {
             border-color: var(--red);
         }
+        .drop-zone.hidden { display: none; }
         .drop-zone.dragover {
             background-color: #e9ecef;
             border-color: var(--accent-color);
@@ -277,15 +249,24 @@
             color: #e0e0e0;
         }
 
-        /* JSON Syntax Highlightings */
-        .json-key { color: var(--json-key); }
-        .json-string { color: var(--json-string); }
-        .json-number { color: var(--json-number); }
-        .json-boolean { color: var(--json-boolean); }
-        .json-null { color: var(--json-null); }
-        .json-bracket { color: var(--json-bracket); }
-        .json-comma { color: var(--json-comma); }
-        .json-colon { color: var(--json-colon); }
+        /* JSON Syntax Highlighting */
+        .json-key { color: #9c27b0; }          /* Фіолетовий для ключів */
+        .json-string { color: #4caf50; }       /* Зелений для рядків */
+        .json-number { color: #2196f3; }       /* Синій для чисел */
+        .json-boolean { color: #ff9800; }      /* Помаранчевий для булевих значень */
+        .json-null { color: #f44336; }         /* Червоний для null */
+        .json-bracket { color: #795548; }      /* Коричневий для дужок */
+        .json-comma { color: #795548; }        /* Коричневий для ком */
+        .json-colon { color: #795548; }        /* Коричневий для двокрапок */
+
+        body.dark-mode .json-key { color: #ba68c8; }
+        body.dark-mode .json-string { color: #81c784; }
+        body.dark-mode .json-number { color: #64b5f6; }
+        body.dark-mode .json-boolean { color: #ffb74d; }
+        body.dark-mode .json-null { color: #e57373; }
+        body.dark-mode .json-bracket,
+        body.dark-mode .json-comma,
+        body.dark-mode .json-colon { color: #a1887f; }
         
         /* Collapsible Sections */
         .collapsible-header { width: 100%; background: transparent; border: none; padding: 0; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
@@ -400,108 +381,6 @@
         body.dark-mode .tooltip.top::after {
             border-color: transparent transparent #555 transparent;
         }
-
-        /* Toast notifications */
-        #toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1002; /* Above modals and tooltips */
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-items: flex-end;
-        }
-        .toast {
-            padding: 10px 15px;
-            border-radius: var(--toast-border-radius);
-            font-size: 0.9em;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            opacity: 0;
-            transform: translateY(-20px);
-            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-            min-width: 200px;
-            max-width: 300px;
-            text-align: center;
-        }
-        .toast.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .toast.success {
-            background-color: var(--toast-success-bg);
-            color: var(--toast-success-color);
-            border: 1px solid var(--green);
-        }
-        .toast.error {
-            background-color: var(--toast-error-bg);
-            color: var(--toast-error-color);
-            border: 1px solid var(--red);
-        }
-
-        /* JSON Tree View styles */
-        .json-tree-view {
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 1.5;
-            padding: 15px;
-            border-radius: 8px;
-            background-color: var(--main-color);
-            border: 1px solid var(--border-color);
-            overflow: auto;
-            max-height: 400px; /* Example max height for tree view */
-        }
-        body.dark-mode .json-tree-view {
-            background-color: #1e1e1e;
-        }
-
-        .json-tree {
-            list-style: none;
-            padding-left: 0; /* No indent for root ul */
-            margin: 0;
-        }
-        .json-tree ul {
-            list-style: none;
-            padding-left: 1.5em; /* Indent children */
-            margin: 0;
-            display: block;
-        }
-        .json-tree li {
-            position: relative;
-            padding-left: 0; /* Remove default padding */
-        }
-        .json-tree li.collapsed > ul {
-            display: none;
-        }
-        .json-tree .tree-toggle {
-            cursor: pointer;
-            display: inline-block;
-            width: 1.2em;
-            text-align: center;
-            user-select: none;
-            /* Using CSS variables for color */
-            color: var(--text-color); 
-        }
-        .json-tree .tree-toggle:hover {
-            color: var(--accent-color);
-        }
-        .json-tree .json-key { color: var(--json-key); }
-        .json-tree .json-string { color: var(--json-string); }
-        .json-tree .json-number { color: var(--json-number); }
-        .json-tree .json-boolean { color: var(--json-boolean); }
-        .json-tree .json-null { color: var(--json-null); }
-        .json-tree .json-bracket { color: var(--json-bracket); }
-        .json-tree .json-comma { color: var(--json-comma); }
-        .json-tree .json-colon { color: var(--json-colon); }
-
-        /* Diff highlighting in tree view */
-        .json-tree .diff-added-text { background-color: rgba(40, 167, 69, 0.2); }
-        .json-tree .diff-removed-text { background-color: rgba(220, 53, 69, 0.2); }
-        .json-tree .diff-changed-text { background-color: rgba(0, 123, 255, 0.2); }
-
-        body.dark-mode .json-tree .diff-added-text { background-color: rgba(40, 167, 69, 0.3); }
-        body.dark-mode .json-tree .diff-removed-text { background-color: rgba(220, 53, 69, 0.3); }
-        body.dark-mode .json-tree .diff-changed-text { background-color: rgba(0, 123, 255, 0.3); }
     </style>
 </head>
 <body>
@@ -642,354 +521,11 @@
                 </div>
         </div>
     </div>
-
-    <div id="toast-container"></div>
     
     <script>
-        // --- Global Helper Functions (moved outside DOMContentLoaded for wider scope) ---
-
-        // Toast Notifications
-        const toastContainer = document.createElement('div');
-        toastContainer.id = 'toast-container';
-        document.body.appendChild(toastContainer); // Append toast container early
-        function showToast(message, type = 'info', duration = 3000) {
-            const toast = document.createElement('div');
-            toast.classList.add('toast', type);
-            toast.textContent = message;
-            toastContainer.appendChild(toast);
-
-            void toast.offsetWidth; // Force reflow
-            toast.classList.add('show');
-
-            setTimeout(() => {
-                toast.classList.remove('show');
-                toast.addEventListener('transitionend', () => toast.remove());
-            }, duration);
-        }
-
-        // Helper to safely escape HTML entities from a string
-        function escapeHtml(text) {
-            const str = String(text); 
-            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-            return str.replace(/[&<>"']/g, m => map[m]);
-        }
-
-        // Helper for JSON syntax highlighting (used in both code and tree views)
-        function applySyntaxHighlighting(value) {
-            let formattedValue;
-            if (typeof value === 'string') {
-                formattedValue = `<span class="json-string">${escapeHtml(JSON.stringify(value))}</span>`; // Keep quotes, escape HTML
-            } else if (typeof value === 'number') {
-                formattedValue = `<span class="json-number">${value}</span>`;
-            } else if (typeof value === 'boolean') {
-                formattedValue = `<span class="json-boolean">${value}</span>`;
-            } else if (value === null) {
-                formattedValue = `<span class="json-null">null</span>`;
-            } else {
-                formattedValue = escapeHtml(String(value)); // Fallback, should not typically happen for primitives
-            }
-            return formattedValue;
-        }
-
-        // Helper to determine the diff class for a given path (used by both code and tree views)
-        function getLineClass(path, isKeyLine, diffMap, side) {
-            let lineClass = '';
-            const type = diffMap.get(path);
-
-            if (type) {
-                if (side === 'target' && type.includes('Added')) lineClass = 'diff-added-text';
-                else if (side === 'source' && type.includes('Removed')) lineClass = 'diff-removed-text';
-                else if (type.includes('Changed') || type.includes('Error')) lineClass = 'diff-changed-text';
-            } else if (isKeyLine) {
-                // If it's a key line (parent of a value), check for child diffs for broader highlighting
-                for (const [diffPathFromMap, diffType] of diffMap.entries()) {
-                    const diffPathStr = String(diffPathFromMap); // Ensure it's a string
-                    if (diffPathStr.startsWith(path + '.') || diffPathStr.startsWith(path + '[')) {
-                        if (side === 'target' && diffType.includes('Added')) { lineClass = 'diff-added-text'; break; }
-                        if (side === 'source' && diffType.includes('Removed')) { lineClass = 'diff-removed-text'; break; }
-                        if (diffType.includes('Changed') || diffType.includes('Error')) { lineClass = 'diff-changed-text'; break; }
-                    }
-                }
-            }
-            return lineClass;
-        }
-
-        // --- JSON Traverse and Render (for code view) ---
-        function jsonTraverseAndRender(obj, diffs, side, currentPath = '$', indentLevel = 0) {
-            const indentSpace = ' '.repeat(indentLevel * 2);
-            let html = '';
-            const diffMap = new Map(diffs.map(d => [d.path, d.type]));
-
-            const formatAndHighlightLine = (contentHtml, path, isKeyLine = false) => {
-                const lineClass = getLineClass(path, isKeyLine, diffMap, side);
-                return `<span class="diff-line${lineClass ? ' ' + lineClass : ''}" data-path="${path}">${contentHtml}</span>`;
-            };
-
-            if (typeof obj !== 'object' || obj === null) {
-                return formatAndHighlightLine(applySyntaxHighlighting(obj), currentPath);
-            }
-
-            if (Array.isArray(obj)) {
-                html += formatAndHighlightLine(indentSpace + '<span class="json-bracket">[</span>', currentPath) + '\n';
-                
-                const potentialKeys = ['id', 'productId', 'variantId', 'reviewId', 'key', 'name'];
-                const bestKey = potentialKeys.find(key => obj.every(item => item && typeof item === 'object' && item[key] !== undefined));
-
-                for (let i = 0; i < obj.length; i++) {
-                    const item = obj[i];
-                    let itemPath = `${currentPath}[${i}]`;
-
-                    if (bestKey && typeof item === 'object' && item !== null && item[bestKey] !== undefined) {
-                        itemPath = `${currentPath}[${bestKey}=${JSON.stringify(item[bestKey])}]`;
-                    }
-                    
-                    html += jsonTraverseAndRender(item, diffs, side, itemPath, indentLevel + 1);
-                    
-                    if (i < obj.length - 1) {
-                        html += `<span class="json-comma">,</span>`;
-                    }
-                    html += `\n`;
-                }
-                html += formatAndHighlightLine(indentSpace + '<span class="json-bracket">]</span>', currentPath);
-            } else { // Object
-                html += formatAndHighlightLine(indentSpace + '<span class="json-bracket">{</span>', currentPath) + '\n';
-                const keys = Object.keys(obj);
-
-                for (let i = 0; i < keys.length; i++) {
-                    const key = keys[i];
-                    const propPath = `${currentPath}.${key}`;
-                    const value = obj[key];
-                    
-                    const valueHtml = jsonTraverseAndRender(value, diffs, side, propPath, indentLevel + 1);
-                    
-                    const keyLineContent = `${indentSpace}  <span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> ${valueHtml}`;
-                    
-                    html += formatAndHighlightLine(keyLineContent, propPath, true);
-                    if (i < keys.length - 1) {
-                        html += `<span class="json-comma">,</span>`;
-                    }
-                    html += `</span>\n`; // Close span for the line and add newline
-                }
-                html += formatAndHighlightLine(indentSpace + '<span class="json-bracket">}</span>', currentPath);
-            }
-            return html;
-        }
-
-        // --- JSON Tree View Functions ---
-        function createJsonTree(data, containerElement, diffs, side) {
-            containerElement.innerHTML = ''; // Clear previous tree
-            const ul = document.createElement('ul');
-            ul.classList.add('json-tree');
-            let diffMap = new Map(diffs.map(d => [d.path, d.type]));
-
-            function buildTree(node, path, parentUl) {
-                const li = document.createElement('li');
-                li.dataset.path = path;
-
-                let nodeClass = getLineClass(path, true, diffMap, side);
-                if (nodeClass) {
-                    li.classList.add(nodeClass);
-                }
-
-                if (typeof node === 'object' && node !== null) {
-                    const isArray = Array.isArray(node);
-                    const toggleSpan = document.createElement('span');
-                    toggleSpan.classList.add('tree-toggle');
-                    
-                    if (path !== '$' && path.includes('.')) { // Object property
-                        const key = path.substring(path.lastIndexOf('.') + 1);
-                        toggleSpan.innerHTML = `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> `;
-                    } else if (path !== '$' && path.includes('[')) { // Array item (no key to show here, just toggle)
-                        // No key content, only bracket toggle
-                    }
-
-                    // Initial state of brackets for toggle
-                    toggleSpan.innerHTML += isArray ? '<span class="json-bracket">[ ]</span>' : '<span class="json-bracket">{ }</span>';
-
-                    toggleSpan.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        li.classList.toggle('collapsed');
-                        const bracketText = li.classList.contains('collapsed') ? (isArray ? '[ ]' : '{ }') : (isArray ? '[ - ]' : '{ - }');
-                        
-                        let currentKeyHtml = '';
-                        if (path !== '$' && path.includes('.')) {
-                           const key = path.substring(path.lastIndexOf('.') + 1);
-                           currentKeyHtml = `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> `;
-                        }
-                        toggleSpan.innerHTML = `${currentKeyHtml}<span class="json-bracket">${bracketText}</span>`;
-                        synchronizeJsonViewHeights();
-                    });
-                    li.appendChild(toggleSpan);
-
-                    if (isArray) {
-                        li.classList.add('array-node', 'collapsed'); 
-                    } else {
-                        li.classList.add('object-node', 'collapsed'); 
-                    }
-
-                    const childUl = document.createElement('ul');
-                    childUl.classList.add('nested');
-
-                    if (isArray) {
-                        const innerPotentialKeys = ['id', 'productId', 'variantId', 'reviewId', 'key', 'name'];
-                        const innerBestKey = innerPotentialKeys.find(key => node.every(item => item && typeof item === 'object' && item[key] !== undefined));
-
-                        node.forEach((item, index) => {
-                            let itemPath = `${path}[${index}]`;
-                            if (innerBestKey && typeof item === 'object' && item !== null && item[innerBestKey] !== undefined) {
-                                itemPath = `${path}[${innerBestKey}=${JSON.stringify(item[innerBestKey])}]`;
-                            }
-                            buildTree(item, itemPath, childUl);
-                        });
-                    } else { // Object
-                        Object.keys(node).forEach(key => {
-                            const propPath = `${path}.${key}`;
-                            const value = node[key];
-                            const childLi = document.createElement('li');
-                            childLi.dataset.path = propPath;
-                            childLi.classList.add(getLineClass(propPath, true, diffMap, side)); // Apply line class to this specific item line
-                            
-                            if (typeof value !== 'object' || value === null) {
-                                // Primitive value: display key-value directly in this <li>
-                                childLi.innerHTML = `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> ${applySyntaxHighlighting(value)}`;
-                            } else {
-                                // Nested object/array: this <li> will have a toggle and a nested <ul>
-                                const nestedToggleSpan = document.createElement('span');
-                                nestedToggleSpan.classList.add('tree-toggle');
-                                nestedToggleSpan.innerHTML = `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> ${Array.isArray(value) ? '<span class="json-bracket">[ ]</span>' : '<span class="json-bracket">{ }</span>'}`;
-                                
-                                nestedToggleSpan.addEventListener('click', (e) => {
-                                    e.stopPropagation();
-                                    childLi.classList.toggle('collapsed');
-                                    const bracketText = childLi.classList.contains('collapsed') ? (Array.isArray(value) ? '[ ]' : '{ }') : (Array.isArray(value) ? '[ - ]' : '{ - }');
-                                    nestedToggleSpan.innerHTML = `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> <span class="json-bracket">${bracketText}</span>`;
-                                    synchronizeJsonViewHeights();
-                                });
-                                childLi.appendChild(nestedToggleSpan);
-
-                                const innerUl = document.createElement('ul');
-                                innerUl.classList.add('nested');
-                                if (Array.isArray(value)) innerUl.classList.add('array-node'); else innerUl.classList.add('object-node');
-                                innerUl.classList.add('collapsed');
-
-                                buildTree(value, propPath, innerUl); // Recurse for the nested object/array
-                                childLi.appendChild(innerUl);
-                            }
-                            childUl.appendChild(childLi);
-                        });
-                    }
-                    li.appendChild(childUl); // Append the child list to the current li
-                } else {
-                    // Primitive value node
-                    li.appendChild(applySyntaxHighlighting(node));
-                }
-                parentUl.appendChild(li);
-            }
-
-            // Initial build for the root node
-            buildTree(data, '$', ul);
-            containerElement.appendChild(ul);
-            synchronizeJsonViewHeights(); // Adjust heights after tree is built
-        }
-
-        // --- JSON View Toggle Logic ---
-        function setupJsonViewToggle(sourceJson, targetJson, differences) {
-            const radioButtons = document.querySelectorAll('input[name="jsonViewMode"]');
-            const sourceCodeView = document.getElementById('sourceJsonViewCode');
-            const targetCodeView = document.getElementById('targetJsonViewCode');
-            const sourceTreeView = document.getElementById('sourceJsonViewTree');
-            const targetTreeView = document.getElementById('targetJsonViewTree');
-            
-            // Re-create tree views every time to ensure they reflect current diffs/settings
-            if (sourceJson) {
-                createJsonTree(sourceJson, sourceTreeView, differences, 'source');
-            } else {
-                sourceTreeView.innerHTML = ''; // Clear if no source JSON
-            }
-            if (targetJson) {
-                createJsonTree(targetJson, targetTreeView, differences, 'target');
-            } else {
-                targetTreeView.innerHTML = ''; // Clear if no target JSON
-            }
-
-            radioButtons.forEach(radio => {
-                radio.removeEventListener('change', handleJsonViewChange); // Remove old listeners
-                radio.addEventListener('change', handleJsonViewChange);
-            });
-
-            function handleJsonViewChange(event) {
-                if (event.target.value === 'code') {
-                    if (sourceCodeView) sourceCodeView.style.display = 'block';
-                    if (sourceTreeView) sourceTreeView.style.display = 'none';
-                    if (targetCodeView) targetCodeView.style.display = 'block';
-                    if (targetTreeView) targetTreeView.style.display = 'none';
-                } else { // tree mode
-                    if (sourceCodeView) sourceCodeView.style.display = 'none';
-                    if (sourceTreeView) sourceTreeView.style.display = 'block';
-                    if (targetCodeView) targetCodeView.style.display = 'none';
-                    if (targetTreeView) targetTreeView.style.display = 'block';
-                }
-                synchronizeJsonViewHeights(); // Re-adjust heights after mode change
-            }
-
-            // Ensure initial state is "code" and heights are synced
-            if (document.querySelector('input[name="jsonViewMode"][value="code"]').checked) {
-                 synchronizeJsonViewHeights();
-            } else {
-                 // If tree mode was checked, ensure tree views are displayed
-                if (sourceCodeView) sourceCodeView.style.display = 'none';
-                if (sourceTreeView) sourceTreeView.style.display = 'block';
-                if (targetCodeView) targetCodeView.style.display = 'none';
-                if (targetTreeView) targetTreeView.style.display = 'block';
-                synchronizeJsonViewHeights();
-            }
-        }
-
-
-        function synchronizeJsonViewHeights() {
-            const sourceViewCode = document.getElementById('sourceJsonViewCode'); 
-            const targetViewCode = document.getElementById('targetJsonViewCode');
-            const sourceViewTree = document.getElementById('sourceJsonViewTree');
-            const targetViewTree = document.getElementById('targetJsonViewTree');
-
-            const isCodeMode = document.querySelector('input[name="jsonViewMode"][value="code"]').checked;
-
-            let currentSourceView = isCodeMode ? sourceViewCode : sourceViewTree;
-            let currentTargetView = isCodeMode ? targetViewCode : targetViewTree;
-
-            // Reset heights
-            if (sourceViewCode) sourceViewCode.style.height = 'auto';
-            if (targetViewCode) targetViewCode.style.height = 'auto';
-            if (sourceViewTree) sourceViewTree.style.height = 'auto';
-            if (targetViewTree) targetViewTree.style.height = 'auto';
-
-            // Set max height for visible views
-            if (currentSourceView && currentTargetView) {
-                const maxHeight = Math.max(currentSourceView.scrollHeight, currentTargetView.scrollHeight);
-                currentSourceView.style.height = `${maxHeight}px`;
-                currentTargetView.style.height = `${maxHeight}px`;
-            } else if (currentSourceView) { 
-                currentSourceView.style.height = `${currentSourceView.scrollHeight}px`;
-            } else if (currentTargetView) { 
-                currentTargetView.style.height = `${currentTargetView.scrollHeight}px`;
-            }
-        }
-        
-        function setupCollapsibleSections() {
-            document.querySelectorAll('.collapsible-header').forEach(header => {
-                header.removeEventListener('click', toggleCollapsible);
-                header.addEventListener('click', toggleCollapsible);
-            });
-        }
-
-        function toggleCollapsible() {
-            this.closest('.collapsible-section').classList.toggle('collapsed');
-            setTimeout(synchronizeJsonViewHeights, 450); 
-        }
-
-        // --- DOMContentLoaded finishes initialization ---
         document.addEventListener('DOMContentLoaded', () => {
-            // --- DOM Elements (local references for event handlers) ---
+            // --- DOM Elements ---
+            const mainContainer = document.getElementById('main-container');
             const dropZone1 = document.getElementById('dropZone1');
             const dropZone2 = document.getElementById('dropZone2');
             const dropZoneSchema = document.getElementById('dropZoneSchema');
@@ -1021,13 +557,114 @@
                 caseSensitive: true,
             };
 
-            // --- Initial calls for setup ---
-            loadSettings();
-            updateUiForMode();
-            initializeTooltips();
+            // --- Tooltip Initialization ---
+            function initializeTooltips() {
+                document.querySelectorAll('.tooltip-container').forEach(container => {
+                    // Перевіряємо, чи tooltip вже ініціалізовано для цього контейнера, щоб уникнути дублювання обробників
+                    if (container.dataset.tooltipInitialized === 'true') {
+                        return;
+                    }
 
-            // --- Event Listeners ---
-            settingsBtn.addEventListener('click', () => { settingsModal.style.display = 'flex'; initializeTooltips(); });
+                    const targetElement = container.children[0]; // Елемент, до якого прив'язана підказка (button, label, etc.)
+                    const tooltipElement = container.querySelector('.tooltip');
+
+                    if (!targetElement || !tooltipElement) return;
+
+                    let currentTimeout; // Для затримки появи/зникнення
+
+                    const handleMouseEnter = () => {
+                        clearTimeout(currentTimeout); // Очистити попередній таймаут, якщо він є
+                        currentTimeout = setTimeout(() => {
+                            positionTooltip(targetElement, tooltipElement);
+                            tooltipElement.style.visibility = 'visible';
+                            tooltipElement.style.opacity = '1';
+                            tooltipElement.style.transform = 'translateY(0)'; // Прибираємо початкову трансформацію для анімації
+                        }, 300); // 300ms затримка
+                    };
+
+                    const handleMouseLeave = () => {
+                        clearTimeout(currentTimeout);
+                        tooltipElement.style.opacity = '0';
+                        tooltipElement.style.visibility = 'hidden';
+                        // Скидаємо трансформацію для плавного зникнення
+                        tooltipElement.style.transform = tooltipElement.classList.contains('top') ? 'translateY(10px)' : 'translateY(-10px)';
+                    };
+                    
+                    targetElement.addEventListener('mouseenter', handleMouseEnter);
+                    targetElement.addEventListener('mouseleave', handleMouseLeave);
+                    
+                    container.dataset.tooltipInitialized = 'true'; // Позначаємо, що підказка ініціалізована
+                });
+            }
+
+            function positionTooltip(target, tooltip) {
+                const targetRect = target.getBoundingClientRect();
+                const tooltipRect = tooltip.getBoundingClientRect();
+                const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+                const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+
+                let top, left;
+                let className = 'bottom'; // Default position
+
+                // Attempt to position above first
+                // 10px buffer from edge of screen and target element
+                if (targetRect.top - tooltipRect.height - 10 > 0) {
+                    top = targetRect.top - tooltipRect.height - 10;
+                    className = 'top';
+                } else { // Position below if not enough space above
+                    top = targetRect.bottom + 10;
+                    className = 'bottom';
+                }
+
+                // Center horizontally relative to the target, but adjust if it goes off screen
+                left = targetRect.left + (targetRect.width / 2) - (tooltipRect.width / 2);
+
+                // Adjust if tooltip goes off left edge
+                if (left < 5) {
+                    left = 5;
+                } 
+                // Adjust if tooltip goes off right edge
+                else if (left + tooltipRect.width > viewportWidth - 5) {
+                    left = viewportWidth - tooltipRect.width - 5;
+                }
+
+                // Apply position
+                tooltip.style.top = `${top + window.scrollY}px`; // Add scrollY for absolute positioning
+                tooltip.style.left = `${left + window.scrollX}px`; // Add scrollX for absolute positioning
+
+                // Update class for arrow direction and initial animation state
+                tooltip.classList.remove('top', 'bottom');
+                tooltip.classList.add(className);
+            }
+
+            // --- Settings Modal Logic ---
+            function loadSettings() {
+                try {
+                    const savedSettings = localStorage.getItem('comparatorSettings');
+                    if (savedSettings) {
+                        settings = { ...settings, ...JSON.parse(savedSettings) };
+                    }
+                } catch(e) {
+                    console.error("Не вдалося завантажити налаштування:", e);
+                    localStorage.removeItem('comparatorSettings');
+                }
+                document.getElementById('ignorePaths').value = settings.ignorePaths.join('\n');
+                document.querySelector(`input[name="arrayCompareMode"][value="${settings.arrayCompareMode}"]`).checked = true;
+                document.getElementById('caseSensitive').checked = settings.caseSensitive;
+            }
+
+            function saveSettings() {
+                settings.ignorePaths = document.getElementById('ignorePaths').value.split('\n').map(p => p.trim()).filter(p => p);
+                settings.arrayCompareMode = document.querySelector('input[name="arrayCompareMode"]:checked').value;
+                settings.caseSensitive = document.getElementById('caseSensitive').checked;
+                localStorage.setItem('comparatorSettings', JSON.stringify(settings));
+                alert('Налаштування збережено.');
+                settingsModal.style.display = 'none';
+                // Re-initialize tooltips if settings modal contains tooltip-containers
+                initializeTooltips();
+            }
+
+            settingsBtn.addEventListener('click', () => { settingsModal.style.display = 'flex'; initializeTooltips(); /* Init tooltips for modal content */ });
             closeSettingsModalBtn.addEventListener('click', () => { settingsModal.style.display = 'none'; });
             saveSettingsBtn.addEventListener('click', saveSettings);
             window.addEventListener('click', (event) => {
@@ -1036,21 +673,21 @@
                 }
             });
             
+            // --- UI/UX Enhancements ---
+            const themeToggle = document.getElementById('checkbox');
             themeToggle.addEventListener('change', () => {
                 document.body.classList.toggle('dark-mode');
                 localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
             });
 
-            // Re-apply theme on load
             if (localStorage.getItem('theme') === 'dark') {
                 document.body.classList.add('dark-mode');
                 themeToggle.checked = true;
             }
 
-            // Moved parseJson, setupDropZone, checkFilesReady outside DOMContentLoaded
-            // to ensure they are accessible globally if needed, and to avoid re-declarations.
+            function showLoader() { loader.style.display = 'flex'; }
+            function hideLoader() { loader.style.display = 'none'; }
 
-            // Function to parse JSON content from textarea
             function parseJson(text, dropZone, errorEl) {
                 try {
                     if (!text || text.trim() === '') {
@@ -1073,15 +710,11 @@
                 }
             }
 
-            // Function to setup drag-and-drop functionality for a drop zone
             function setupDropZone(dropZone, textArea, fileNameEl, errorEl, fileContentCallback) {
                 textArea.addEventListener('input', () => {
                     const content = textArea.value;
                     fileContentCallback(content);
-                    const parsed = parseJson(content, dropZone, errorEl);
-                    if (!parsed && content.trim() !== '') {
-                        showToast(`Помилка у файлі: ${fileNameEl.textContent || dropZone.querySelector('textarea').placeholder.split(' ')[2]}. ${errorEl.textContent}`, 'error');
-                    }
+                    parseJson(content, dropZone, errorEl);
                     fileNameEl.textContent = '';
                     checkFilesReady();
                 });
@@ -1095,7 +728,7 @@
                     if (!file) return;
 
                     if (file.size > 5 * 1024 * 1024) {
-                        showToast("Файл занадто великий. Максимальний розмір - 5MB.", 'error');
+                        alert("Файл занадто великий. Максимальний розмір - 5MB.");
                         return;
                     }
 
@@ -1106,44 +739,73 @@
                             const content = event.target.result;
                             textArea.value = content;
                             fileContentCallback(content);
-                            const parsed = parseJson(content, dropZone, errorEl);
-                            if (!parsed) {
-                                showToast(`Помилка у файлі '${file.name}'. ${errorEl.textContent}`, 'error');
-                            } else {
-                                showToast(`Файл '${file.name}' завантажено.`, 'success');
-                            }
+                            parseJson(content, dropZone, errorEl);
                             checkFilesReady();
                         };
                         reader.readAsText(file);
                     } else {
-                        showToast('Будь ласка, перетягніть JSON файл.', 'error');
+                        alert('Будь ласка, перетягніть JSON файл.');
                         fileNameEl.textContent = ''; textArea.value = ''; fileContentCallback(null); checkFilesReady();
                     }
                 });
             }
 
-            // Function to check if files are ready for comparison
-            function checkFilesReady() {
-                let isReady = false;
-                const sourceValid = (!document.getElementById('sourceError').style.display || document.getElementById('sourceError').style.display === 'none') && (sourceFileContent !== null && sourceFileContent.trim() !== '');
-                const targetValid = (!document.getElementById('targetError').style.display || document.getElementById('targetError').style.display === 'none') && (targetFileContent !== null && targetFileContent.trim() !== '');
-                const schemaValid = (!document.getElementById('schemaError').style.display || document.getElementById('schemaError').style.display === 'none') && (schemaFileContent !== null && schemaFileContent.trim() !== '');
-
-
-                if (currentMode === 'schema') {
-                    isReady = schemaValid && targetValid;
-                } else {
-                    isReady = sourceValid && targetValid;
-                }
-                compareBtn.disabled = !isReady;
-            }
-
-            // Initial setup for drop zones (needs to be inside DOMContentLoaded as it accesses DOM elements)
             setupDropZone(dropZone1, document.getElementById('sourceText'), document.getElementById('fileName1'), document.getElementById('sourceError'), content => sourceFileContent = content);
             setupDropZone(dropZone2, document.getElementById('targetText'), document.getElementById('fileName2'), document.getElementById('targetError'), content => targetFileContent = content);
             setupDropZone(dropZoneSchema, document.getElementById('schemaText'), document.getElementById('fileNameSchema'), document.getElementById('schemaError'), content => schemaFileContent = content);
 
-            // Event listener for compare button
+            modeSelector.addEventListener('change', e => {
+                currentMode = e.target.value;
+                updateUiForMode();
+                checkFilesReady();
+            });
+
+            function updateUiForMode() {
+                const sourceTextArea = document.getElementById('sourceText');
+                const targetTextArea = document.getElementById('targetText');
+                const sourceFileNameEl = document.getElementById('fileName1');
+                const targetFileNameEl = document.getElementById('fileName2');
+                const schemaFileNameEl = document.getElementById('fileNameSchema');
+
+                if (currentMode === 'schema') {
+                    dropZoneSchema.classList.remove('hidden');
+                    sourceTextArea.placeholder = 'Перетягніть сюди JSON Schema або вставте код';
+                    targetTextArea.placeholder = 'Перетягніть сюди JSON для валідації або вставте код';
+                    if (sourceFileContent) {
+                         try { JSON.parse(sourceFileContent); }
+                         catch { sourceFileNameEl.textContent = ''; sourceFileContent = null; sourceTextArea.value = ''; }
+                    }
+                } else {
+                    dropZoneSchema.classList.add('hidden');
+                    sourceTextArea.placeholder = 'Перетягніть сюди Source файл або вставте JSON';
+                    targetTextArea.placeholder = 'Перетягніть сюди Target файл або вставте JSON';
+                    schemaFileNameEl.textContent = '';
+                    schemaFileContent = null;
+                    document.getElementById('schemaText').value = '';
+                }
+                document.getElementById('sourceError').style.display = 'none';
+                document.getElementById('targetError').style.display = 'none';
+                document.getElementById('schemaError').style.display = 'none';
+                dropZone1.classList.remove('invalid');
+                dropZone2.classList.remove('invalid');
+                dropZoneSchema.classList.remove('invalid');
+            }
+
+
+            function checkFilesReady() {
+                let isReady = false;
+                const sourceValid = !document.getElementById('sourceError').style.display || document.getElementById('sourceError').style.display === 'none';
+                const targetValid = !document.getElementById('targetError').style.display || document.getElementById('targetError').style.display === 'none';
+                const schemaValid = !document.getElementById('schemaError').style.display || document.getElementById('schemaError').style.display === 'none';
+
+                if (currentMode === 'schema') {
+                    isReady = schemaFileContent && targetFileContent && schemaValid && targetValid;
+                } else {
+                    isReady = sourceFileContent && targetFileContent && sourceValid && targetValid;
+                }
+                compareBtn.disabled = !isReady;
+            }
+
             compareBtn.addEventListener('click', () => {
                 showLoader();
                 setTimeout(() => {
@@ -1160,15 +822,15 @@
                     }
 
                     let canProceed = false;
-                    if (currentMode === 'schema') {
+                     if (currentMode === 'schema') {
                         canProceed = schemaJson && targetJson;
-                    } else {
+                     } else {
                         canProceed = sourceJson && targetJson;
-                    }
+                     }
 
                     if (!canProceed) {
                         hideLoader();
-                        showToast("Будь ласка, перевірте вхідні дані. Один або декілька файлів не є валідними JSON.", 'error');
+                        alert("Будь ласка, перевірте вхідні дані. Один або декілька файлів не є валідними JSON.");
                         return;
                     }
 
@@ -1184,10 +846,9 @@
                             globalDifferences = validateWithSchema(targetJson, schemaJson);
                             renderReport(globalDifferences, schemaJson, targetJson); // Pass schema as "source" for display purposes
                         }
-                        showToast(`Порівняння завершено. Знайдено ${globalDifferences.length} відмінностей.`, 'success');
                     } catch (e) {
                         console.error("Помилка аналізу/валідації:", e);
-                        showToast(`Сталася непередбачена помилка: ${e.message}`, 'error');
+                        alert(`Сталася непередбачена помилка: ${e.message}`);
                         resultsContainer.innerHTML = `<p style="color: var(--red);">Помилка: ${e.message}</p>`;
                         resultsContainer.style.display = 'block';
                     } finally {
@@ -1246,7 +907,6 @@
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                showToast(`Звіт експортовано у ${format.toUpperCase()} формат.`, 'success');
             }
             
             function isPathIgnored(path, ignorePatterns) {
@@ -1453,20 +1113,10 @@
                             </span>
                         </button>
                         <div class="collapsible-content">
-                            <div class="json-view-controls" style="text-align: right; margin-bottom: 10px;">
-                                <label><input type="radio" name="jsonViewMode" value="code" checked> Код</label>
-                                <label><input type="radio" name="jsonViewMode" value="tree"> Дерево</label>
-                            </div>
-                            <div class="json-view">
-                                <div id="sourceJsonWrapper" style="${sourceJson ? '' : 'display: none;'}">
-                                    <h3>${sourceTitle}</h3>
-                                    <pre id="sourceJsonViewCode">${sourceHtmlContent}</pre>
-                                    <div id="sourceJsonViewTree" class="json-tree-view" style="display: none;"></div>
-                                </div>
-                                <div id="targetJsonWrapper" style="grid-column: ${sourceJson ? 'auto' : 'span 2'};">
-                                    <h3>${targetTitle}</h3>
-                                    <pre id="targetJsonViewCode">${targetHtmlContent}</pre>
-                                    <div id="targetJsonViewTree" class="json-tree-view" style="display: none;"></div>
+                            <div>
+                                <div class="json-view">
+                                    ${sourceJson ? `<div><h3>${sourceTitle}</h3><pre id="sourceJsonView">${sourceHtmlContent}</pre></div>` : ''}
+                                    <div style="grid-column: ${sourceJson ? 'auto' : 'span 2'}"><h3>${targetTitle}</h3><pre id="targetJsonView">${targetHtmlContent}</pre></div>
                                 </div>
                             </div>
                         </div>
@@ -1480,7 +1130,6 @@
                 renderInteractiveTable(differences);
                 synchronizeJsonViewHeights();
                 setupCollapsibleSections();
-                setupJsonViewToggle(sourceJson, targetJson, differences); // Setup tree view
                 resultsContainer.scrollIntoView({ behavior: 'smooth' });
                 initializeTooltips(); // Re-initialize tooltips for new dynamic content
             }
@@ -1541,12 +1190,12 @@
                         
                         return `
                             <tr>
-                                <td><span class="${iconClass}">${iconSymbol}</span></td>
+                                <td class="icon"><span class="${iconClass}">${iconSymbol}</span></td>
                                 <td data-sort-value="${d.type}">${d.type}</td>
                                 <td data-sort-value="${d.path}"><pre>${escapeHtml(d.path)}</pre></td>
                                 <td data-sort-value="${d.reason}">${escapeHtml(d.reason)}</td>
-                                <td><pre>${escapeHtml(d.oldValue || '')}</pre></td>
-                                <td><pre>${escapeHtml(d.newValue || '')}</pre></td>
+                                <td data-sort-value="${d.oldValue || ''}"><pre>${escapeHtml(d.oldValue || '')}</pre></td>
+                                <td data-sort-value="${d.newValue || ''}"><pre>${escapeHtml(d.newValue || '')}</pre></td>
                             </tr>`;
                     }).join('');
                     
@@ -1586,7 +1235,7 @@
                     });
                 });
 
-                document.getElementById('table-container').addEventListener('click', (e) => { // Use table-container for event delegation
+                tableContainer.addEventListener('click', (e) => {
                     const header = e.target.closest('th.sortable');
                     if (header) {
                         const key = header.dataset.key;
@@ -1603,33 +1252,120 @@
                 applyFiltersAndSort();
             }
             
-            // Function to synchronize heights between code view and tree view, called after content changes.
+            // Fixed function to traverse JSON and apply highlighting
+            function jsonTraverseAndRender(obj, diffs, side, currentPath = '$', indentLevel = 0) {
+                const indentSpace = ' '.repeat(indentLevel * 2);
+                let html = '';
+                // Create a Map from diffs for quick lookup by path
+                const diffMap = new Map(diffs.map(d => [d.path, d.type]));
+
+                // Helper to apply syntax highlighting and line class
+                const applySyntaxHighlighting = (value) => {
+                    let formattedValue;
+                    if (typeof value === 'string') {
+                        formattedValue = `<span class="json-string">${escapeHtml(JSON.stringify(value))}</span>`;
+                    } else if (typeof value === 'number') {
+                        formattedValue = `<span class="json-number">${value}</span>`;
+                    } else if (typeof value === 'boolean') {
+                        formattedValue = `<span class="json-boolean">${value}</span>`;
+                    } else if (value === null) {
+                        formattedValue = `<span class="json-null">null</span>`;
+                    } else {
+                        // Fallback for other types, should not usually happen with valid JSON primitives
+                        formattedValue = escapeHtml(String(value));
+                    }
+                    return formattedValue;
+                };
+
+
+                const getLineClass = (path, isKeyLine = false) => {
+                    let lineClass = '';
+                    const type = diffMap.get(path);
+
+                    if (type) {
+                        if (side === 'target' && type.includes('Added')) lineClass = 'diff-added-text';
+                        else if (side === 'source' && type.includes('Removed')) lineClass = 'diff-removed-text';
+                        else if (type.includes('Changed') || type.includes('Error')) lineClass = 'diff-changed-text';
+                    } else if (isKeyLine) {
+                        // Check for child diffs if no direct diff on this line (for object/array parent lines)
+                        for (const [diffPathFromMap, diffType] of diffMap.entries()) {
+                            const diffPathStr = String(diffPathFromMap); // Ensure it's a string
+                            if (diffPathStr.startsWith(path + '.') || diffPathStr.startsWith(path + '[')) {
+                                if (side === 'target' && diffType.includes('Added')) { lineClass = 'diff-added-text'; break; }
+                                if (side === 'source' && diffType.includes('Removed')) { lineClass = 'diff-removed-text'; break; }
+                                if (diffType.includes('Changed') || diffType.includes('Error')) { lineClass = 'diff-changed-text'; break; }
+                            }
+                        }
+                    }
+                    return lineClass;
+                };
+
+                if (typeof obj !== 'object' || obj === null) {
+                    // Handle primitive values at any level
+                    const lineClass = getLineClass(currentPath);
+                    return `<span class="diff-line ${lineClass}" data-path="${currentPath}">${applySyntaxHighlighting(obj)}</span>`;
+                }
+
+                if (Array.isArray(obj)) {
+                    html += `<span class="diff-line ${getLineClass(currentPath)}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">[</span></span>\n`;
+                    const potentialKeys = ['id', 'productId', 'variantId', 'reviewId', 'key', 'name'];
+                    const bestKey = potentialKeys.find(key => obj.every(item => item && typeof item === 'object' && item[key] !== undefined));
+
+                    for (let i = 0; i < obj.length; i++) {
+                        const item = obj[i];
+                        let itemPath = `${currentPath}[${i}]`; // Default for index-based paths
+
+                        if (bestKey && typeof item === 'object' && item !== null && item[bestKey] !== undefined) {
+                            itemPath = `${currentPath}[${bestKey}=${JSON.stringify(item[bestKey])}]`;
+                        }
+                        
+                        html += jsonTraverseAndRender(item, diffs, side, itemPath, indentLevel + 1);
+                        if (i < obj.length - 1) {
+                            html += `<span class="json-comma">,</span>`; // Comma after element
+                        }
+                        html += `\n`;
+                    }
+                    html += `<span class="diff-line ${getLineClass(currentPath)}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">]</span></span>`;
+                } else { // Object
+                    html += `<span class="diff-line ${getLineClass(currentPath)}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">{</span></span>\n`;
+                    const keys = Object.keys(obj);
+                    for (let i = 0; i < keys.length; i++) {
+                        const key = keys[i];
+                        const propPath = `${currentPath}.${key}`;
+                        
+                        // Render value recursively
+                        const valueHtml = jsonTraverseAndRender(obj[key], diffs, side, propPath, indentLevel + 1);
+                        
+                        // Construct the line for the key-value pair
+                        const keyLineContent = `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> ${valueHtml}`;
+                        
+                        html += `<span class="diff-line ${getLineClass(propPath, true)}" data-path="${propPath}">${indentSpace}  ${keyLineContent}`;
+                        if (i < keys.length - 1) {
+                            html += `<span class="json-comma">,</span>`; // Comma after property
+                        }
+                        html += `</span>\n`; // Close span for the line and add newline
+                    }
+                    html += `<span class="diff-line ${getLineClass(currentPath)}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">}</span></span>`;
+                }
+                return html;
+            }
+
+            // Corrected escapeHtml function: only escapes HTML entities, not JSON strings
+            function escapeHtml(text) {
+                const str = String(text); 
+                const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+                return str.replace(/[&<>"']/g, m => map[m]);
+            }
+
             function synchronizeJsonViewHeights() {
-                const sourceViewCode = document.getElementById('sourceJsonViewCode'); 
-                const targetViewCode = document.getElementById('targetJsonViewCode');
-                const sourceViewTree = document.getElementById('sourceJsonViewTree');
-                const targetViewTree = document.getElementById('targetJsonViewTree');
-
-                const isCodeMode = document.querySelector('input[name="jsonViewMode"][value="code"]').checked;
-
-                let currentSourceView = isCodeMode ? sourceViewCode : sourceViewTree;
-                let currentTargetView = isCodeMode ? targetViewCode : targetViewTree;
-
-                // Reset heights
-                if (sourceViewCode) sourceViewCode.style.height = 'auto';
-                if (targetViewCode) targetViewCode.style.height = 'auto';
-                if (sourceViewTree) sourceViewTree.style.height = 'auto';
-                if (targetViewTree) targetViewTree.style.height = 'auto';
-
-                // Set max height for visible views
-                if (currentSourceView && currentTargetView) {
-                    const maxHeight = Math.max(currentSourceView.scrollHeight, currentTargetView.scrollHeight);
-                    currentSourceView.style.height = `${maxHeight}px`;
-                    currentTargetView.style.height = `${maxHeight}px`;
-                } else if (currentSourceView) { 
-                    currentSourceView.style.height = `${currentSourceView.scrollHeight}px`;
-                } else if (currentTargetView) { 
-                    currentTargetView.style.height = `${currentTargetView.scrollHeight}px`;
+                const sourceView = document.getElementById('sourceJsonView');
+                const targetView = document.getElementById('targetJsonView');
+                if (sourceView && targetView) {
+                    sourceView.style.height = 'auto';
+                    targetView.style.height = 'auto';
+                    const maxHeight = Math.max(sourceView.scrollHeight, targetView.scrollHeight);
+                    sourceView.style.height = `${maxHeight}px`;
+                    targetView.style.height = `${maxHeight}px`;
                 }
             }
             
@@ -1672,15 +1408,11 @@
                 schemaFileContent = null;
                 globalDifferences = [];
                 checkFilesReady();
-                showToast('Всі поля очищено!', 'info');
             });
 
             copyResultsBtn.addEventListener('click', () => {
                 const table = resultsContainer.querySelector('table');
-                if (!table) {
-                    showToast('Немає звіту для копіювання!', 'info');
-                    return;
-                }
+                if (!table) return;
 
                 const headerCells = Array.from(table.querySelectorAll('thead th'));
                 const header = headerCells.map(th => {
@@ -1699,16 +1431,16 @@
                 const csvContent = [header, ...rows].join('\n');
                 
                 navigator.clipboard.writeText(csvContent).then(() => {
-                    showToast('Звіт скопійовано до буфера обміну!', 'success');
+                    copyResultsBtn.textContent = 'Скопійовано!';
+                    setTimeout(() => { copyResultsBtn.textContent = 'Копіювати'; }, 1500);
                 }).catch(err => {
                     console.error('Failed to copy: ', err);
-                    showToast('Не вдалося скопіювати. Перевірте дозволи у вашому браузері.', 'error');
+                    alert('Не вдалося скопіювати. Перевірте дозволи у вашому браузері.');
                 });
             });
             
             // --- Fullscreen Logic ---
             widthToggleBtn.addEventListener('click', () => {
-                const mainContainer = document.getElementById('main-container'); // Need local reference here
                 mainContainer.classList.toggle('full-width');
                 const isFullWidth = mainContainer.classList.contains('full-width');
                 widthEnterIcon.style.display = isFullWidth ? 'none' : 'block';
