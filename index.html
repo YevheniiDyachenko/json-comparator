@@ -4,11 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced JSON/YAML Comparator з Gemini AI</title>
-    <!-- 
-      Примітка: Бібліотеки завантажуються з CDN для оптимальної продуктивності.
-      Вбудовування повного коду бібліотек (тисячі рядків) значно збільшило б розмір файлу 
-      та час його початкового завантаження. CDN є надійним та стандартним рішенням.
-    -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ajv/8.12.0/ajv.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
     <style>
@@ -87,7 +82,9 @@
         #compareBtn { background-color: var(--accent-color); }
         #compareBtn:disabled { background-color: #6c757d; cursor: not-allowed; box-shadow: none; }
         #compareBtn:not(:disabled):hover { background-color: #0056b3; transform: translateY(-2px); }
-        
+        body.dark-mode .action-btn { background-color: #0056b3; }
+        body.dark-mode .action-btn:hover { background-color: #004494; }
+
         .export-container { position: relative; display: inline-block; }
         #exportBtn { background-color: var(--green); display: none; }
         #exportBtn:hover { background-color: #218838; transform: translateY(-2px); }
@@ -127,6 +124,9 @@
         .gemini-controls { text-align: center; margin: 20px 0; }
         .gemini-btn { background-color: var(--gemini-accent); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 1em; font-weight: 500; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .gemini-btn:hover { background-color: #732d91; transform: translateY(-2px); }
+        body.dark-mode .gemini-btn { background-color: #732d91; }
+        body.dark-mode .gemini-btn:hover { background-color: #5a2d8a; }
+
         .gemini-summary { background-color: #f3e5f5; border-left: 4px solid var(--gemini-accent); padding: 15px; margin: 20px 0; border-radius: 8px; }
         body.dark-mode .gemini-summary { background-color: rgba(142, 68, 173, 0.15); }
         .suggest-icon { cursor: pointer; font-size: 1.1em; margin-left: 8px; opacity: 0.7; transition: opacity 0.2s; }
@@ -156,127 +156,135 @@
     </style>
 </head>
 <body>
-    <div id="loader"><div class="loader-spinner"></div></div>
+    <div id="app-content">
+        <div id="loader"><div class="loader-spinner"></div></div>
 
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>⚙️ Налаштування порівняння</h2>
-                <button class="modal-close" id="closeSettingsModal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="ignorePaths">
-                        Поля для ігнорування
-                        <span class="tooltip">❓<span class="tooltiptext">Вкажіть шляхи до полів, які потрібно ігнорувати. Кожен шлях з нового рядка. Наприклад: $.updatedAt або $.items[*].timestamp</span></span>
-                    </label>
-                    <textarea id="ignorePaths" placeholder="$.timestamp&#10;$.user.lastLogin"></textarea>
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>⚙️ Налаштування порівняння</h2>
+                    <button class="modal-close" id="closeSettingsModal">&times;</button>
                 </div>
-                <div class="form-group">
-                    <label>
-                        Режим порівняння масивів
-                        <span class="tooltip">❓<span class="tooltiptext">"Розумний" намагається знайти об'єкти за ключем (id, key). "Простий" порівнює елементи за їх позицією (індексом).</span></span>
-                    </label>
-                    <div class="radio-group">
-                        <input type="radio" id="arrayModeKey" name="arrayCompareMode" value="key" checked>
-                        <label for="arrayModeKey">Розумний (за ключем)</label>
-                        <input type="radio" id="arrayModeIndex" name="arrayCompareMode" value="index">
-                        <label for="arrayModeIndex">Простий (за індексом)</label>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="ignorePaths">
+                            Поля для ігнорування
+                            <span class="tooltip">❓<span class="tooltiptext">Вкажіть шляхи до полів, які потрібно ігнорувати. Кожен шлях з нового рядка. Наприклад: $.updatedAt або $.items[*].timestamp</span></span>
+                        </label>
+                        <textarea id="ignorePaths" placeholder="$.timestamp&#10;$.user.lastLogin"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            Режим порівняння масивів
+                            <span class="tooltip">❓<span class="tooltiptext">"Розумний" намагається знайти об'єкти за ключем (id, key). "Простий" порівнює елементи за їх позицією (індексом).</span></span>
+                        </label>
+                        <div class="radio-group">
+                            <input type="radio" id="arrayModeKey" name="arrayCompareMode" value="key" checked>
+                            <label for="arrayModeKey">Розумний (за ключем)</label>
+                            <input type="radio" id="arrayModeIndex" name="arrayCompareMode" value="index">
+                            <label for="arrayModeIndex">Простий (за індексом)</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="caseSensitive">
+                            <label for="caseSensitive">
+                                Враховувати регістр символів
+                                 <span class="tooltip">❓<span class="tooltiptext">Якщо вимкнено, "Text" та "text" будуть вважатися однаковими.</span></span>
+                            </label>
+                        </div>
+                    </div>
+                     <div class="form-group">
+                        <label for="geminiApiKey">
+                            Gemini API Ключ
+                            <span class="tooltip">❓<span class="tooltiptext">Ваш ключ для доступу до функцій Gemini AI. Зберігається локально у вашому браузері.</span></span>
+                        </label>
+                        <input type="text" id="geminiApiKey" placeholder="Введіть ваш API ключ">
                     </div>
                 </div>
-                <div class="form-group">
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="caseSensitive">
-                        <label for="caseSensitive">
-                            Враховувати регістр символів
-                             <span class="tooltip">❓<span class="tooltiptext">Якщо вимкнено, "Text" та "text" будуть вважатися однаковими.</span></span>
+                <div class="modal-footer">
+                    <button id="saveSettingsBtn" class="action-btn">Зберегти</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="header">
+                 <div class="top-controls">
+                    <div class="theme-switch-wrapper">
+                        <label class="theme-switch" for="checkbox">
+                            <input type="checkbox" id="checkbox" />
+                            <div class="slider round"></div>
                         </label>
                     </div>
+                    <button id="settingsBtn" title="Розширені налаштування">⚙️</button>
                 </div>
-                 <div class="form-group">
-                    <label for="geminiApiKey">
-                        Gemini API Ключ
-                        <span class="tooltip">❓<span class="tooltiptext">Ваш ключ для доступу до функцій Gemini AI. Зберігається локально у вашому браузері.</span></span>
-                    </label>
-                    <input type="text" id="geminiApiKey" placeholder="Введіть ваш API ключ">
+                <h1>Advanced JSON/YAML Comparator</h1>
+                <p>Порівнюйте файли, перевіряйте схеми та аналізуйте зміни за допомогою ШІ</p>
+            </div>
+
+            <div class="mode-selector">
+                <input type="radio" id="modeDirect" name="compareMode" value="direct" checked>
+                <label for="modeDirect">Пряме порівняння</label>
+                
+                <input type="radio" id="modeKeys" name="compareMode" value="keys">
+                <label for="modeKeys">Лише ключі</label>
+
+                <input type="radio" id="modeSchema" name="compareMode" value="schema">
+                <label for="modeSchema">Валідація схеми</label>
+            </div>
+
+            <div class="drop-zones">
+                <div id="dropZone1" class="drop-zone">
+                    <textarea id="sourceText" placeholder="Перетягніть сюди Source файл або вставте JSON/YAML"></textarea>
+                    <div class="error-message" id="sourceError"></div>
+                    <span class="file-name" id="fileName1"></span>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button id="saveSettingsBtn" class="action-btn">Зберегти</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="container">
-        <div class="header">
-             <div class="top-controls">
-                <div class="theme-switch-wrapper">
-                    <label class="theme-switch" for="checkbox">
-                        <input type="checkbox" id="checkbox" />
-                        <div class="slider round"></div>
-                    </label>
+                <div id="dropZone2" class="drop-zone">
+                    <textarea id="targetText" placeholder="Перетягніть сюди Target файл або вставте JSON/YAML"></textarea>
+                    <div class="error-message" id="targetError"></div>
+                    <span class="file-name" id="fileName2"></span>
                 </div>
-                <button id="settingsBtn" title="Розширені налаштування">⚙️</button>
-            </div>
-            <h1>Advanced JSON/YAML Comparator</h1>
-            <p>Порівнюйте файли, перевіряйте схеми та аналізуйте зміни за допомогою ШІ</p>
-        </div>
-
-        <div class="mode-selector">
-            <input type="radio" id="modeDirect" name="compareMode" value="direct" checked>
-            <label for="modeDirect">Пряме порівняння</label>
-            
-            <input type="radio" id="modeKeys" name="compareMode" value="keys">
-            <label for="modeKeys">Лише ключі</label>
-
-            <input type="radio" id="modeSchema" name="compareMode" value="schema">
-            <label for="modeSchema">Валідація схеми</label>
-        </div>
-
-        <div class="drop-zones">
-            <div id="dropZone1" class="drop-zone">
-                <textarea id="sourceText" placeholder="Перетягніть сюди Source файл або вставте JSON/YAML"></textarea>
-                <div class="error-message" id="sourceError"></div>
-                <span class="file-name" id="fileName1"></span>
-            </div>
-            <div id="dropZone2" class="drop-zone">
-                <textarea id="targetText" placeholder="Перетягніть сюди Target файл або вставте JSON/YAML"></textarea>
-                <div class="error-message" id="targetError"></div>
-                <span class="file-name" id="fileName2"></span>
-            </div>
-            <div id="dropZoneSchema" class="drop-zone hidden">
-                <textarea id="schemaText" placeholder="Перетягніть сюди JSON Schema файл або вставте схему"></textarea>
-                <div class="error-message" id="schemaError"></div>
-                <span class="file-name" id="fileNameSchema"></span>
-            </div>
-        </div>
-
-        <div class="controls">
-            <button id="compareBtn" class="action-btn" disabled>Порівняти</button>
-            <div class="export-container">
-                <button id="exportBtn" class="action-btn">💾 Експорт</button>
-                <div class="export-dropdown">
-                    <a href="#" id="exportTxt">Текстовий звіт (.txt)</a>
-                    <a href="#" id="exportJson">JSON звіт (.json)</a>
-                    <a href="#" id="exportCsv">CSV звіт (.csv)</a>
+                <div id="dropZoneSchema" class="drop-zone hidden">
+                    <textarea id="schemaText" placeholder="Перетягніть сюди JSON Schema файл або вставте схему"></textarea>
+                    <div class="error-message" id="schemaError"></div>
+                    <span class="file-name" id="fileNameSchema"></span>
                 </div>
             </div>
-        </div>
 
-        <div id="results">
-            <!-- Результати будуть вставлені сюди -->
+            <div class="controls">
+                <button id="compareBtn" class="action-btn" disabled>Порівняти</button>
+                <div class="export-container">
+                    <button id="exportBtn" class="action-btn">💾 Експорт</button>
+                    <div class="export-dropdown">
+                        <a href="#" id="exportTxt">Текстовий звіт (.txt)</a>
+                        <a href="#" id="exportJson">JSON звіт (.json)</a>
+                        <a href="#" id="exportCsv">CSV звіт (.csv)</a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="results">
+                <!-- Результати будуть вставлені сюди -->
+            </div>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        function initializeApp() {
+            // --- Library Check ---
+            if (typeof Ajv === 'undefined' || typeof jsyaml === 'undefined') {
+                document.body.innerHTML = '<h2 style="text-align:center; margin-top: 50px; color: red;">Помилка завантаження ресурсів. Будь ласка, перевірте ваше інтернет-з\'єднання та спробуйте оновити сторінку.</h2>';
+                return;
+            }
+
             // --- DOM Elements ---
             const dropZone1 = document.getElementById('dropZone1');
             const dropZone2 = document.getElementById('dropZone2');
             const dropZoneSchema = document.getElementById('dropZoneSchema');
             const compareBtn = document.getElementById('compareBtn');
-            const exportBtnContainer = document.querySelector('.export-container');
+            const exportBtn = document.getElementById('exportBtn');
             const resultsContainer = document.getElementById('results');
             const modeSelector = document.querySelector('.mode-selector');
             const loader = document.getElementById('loader');
@@ -300,9 +308,14 @@
 
             // --- Settings Modal Logic ---
             function loadSettings() {
-                const savedSettings = localStorage.getItem('comparatorSettings');
-                if (savedSettings) {
-                    settings = { ...settings, ...JSON.parse(savedSettings) };
+                try {
+                    const savedSettings = localStorage.getItem('comparatorSettings');
+                    if (savedSettings) {
+                        settings = { ...settings, ...JSON.parse(savedSettings) };
+                    }
+                } catch(e) {
+                    console.error("Не вдалося завантажити налаштування:", e);
+                    localStorage.removeItem('comparatorSettings'); // Clear corrupted settings
                 }
                 // Populate modal fields
                 document.getElementById('ignorePaths').value = settings.ignorePaths.join('\n');
@@ -353,19 +366,23 @@
                         return null;
                     }
                     const parsed = JSON.parse(text);
+                    if (typeof parsed !== 'object' || parsed === null) {
+                         throw new Error("Вхідні дані повинні бути JSON-об'єктом або масивом.");
+                    }
                     errorEl.style.display = 'none';
                     dropZone.classList.remove('invalid');
                     return parsed;
                 } catch (jsonError) {
                     try {
-                        if (typeof jsyaml === 'undefined') throw new Error("Бібліотеку js-yaml не завантажено.");
                         const parsedYaml = jsyaml.load(text);
-                        if (typeof parsedYaml === 'string' || typeof parsedYaml === 'number') throw new Error("YAML повинен представляти об'єкт або масив.");
+                        if (typeof parsedYaml !== 'object' || parsedYaml === null) {
+                            throw new Error("YAML повинен представляти об'єкт або масив.");
+                        }
                         errorEl.style.display = 'none';
                         dropZone.classList.remove('invalid');
                         return parsedYaml;
                     } catch (yamlError) {
-                        errorEl.textContent = `Помилка: Не є валідним JSON або YAML. (${yamlError.message})`;
+                        errorEl.textContent = `Помилка: Не є валідним JSON або YAML.`;
                         errorEl.style.display = 'block';
                         dropZone.classList.add('invalid');
                         return null;
@@ -388,8 +405,15 @@
                     e.preventDefault();
                     dropZone.classList.remove('dragover');
                     const file = e.dataTransfer.files[0];
-                    if (file.size > 5 * 1024 * 1024) { alert("Файл занадто великий. Максимальний розмір - 5MB"); return; }
-                    if (file && (file.type === 'application/json' || file.name.endsWith('.yml') || file.name.endsWith('.yaml'))) {
+                    if (!file) return;
+
+                    // --- File Size Limit ---
+                    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                        alert("Файл занадто великий. Максимальний розмір - 5MB.");
+                        return;
+                    }
+
+                    if (file.type === 'application/json' || file.name.endsWith('.yml') || file.name.endsWith('.yaml')) {
                         fileNameEl.textContent = file.name;
                         const reader = new FileReader();
                         reader.onload = (event) => {
@@ -432,60 +456,79 @@
 
             function checkFilesReady() {
                 let isReady = false;
+                const sourceValid = !document.getElementById('sourceError').style.display || document.getElementById('sourceError').style.display === 'none';
+                const targetValid = !document.getElementById('targetError').style.display || document.getElementById('targetError').style.display === 'none';
+                const schemaValid = !document.getElementById('schemaError').style.display || document.getElementById('schemaError').style.display === 'none';
+
                 if (currentMode === 'schema') {
-                    isReady = schemaFileContent && targetFileContent;
+                    isReady = schemaFileContent && targetFileContent && schemaValid && targetValid;
                 } else {
-                    isReady = sourceFileContent && targetFileContent;
+                    isReady = sourceFileContent && targetFileContent && sourceValid && targetValid;
                 }
                 compareBtn.disabled = !isReady;
             }
 
             compareBtn.addEventListener('click', () => {
                 showLoader();
-                setTimeout(() => {
+                setTimeout(() => { // Allow UI to update
                     try {
                         let sourceJson = (currentMode !== 'schema') ? parseInput(sourceFileContent, dropZone1, document.getElementById('sourceError')) : null;
                         let targetJson = parseInput(targetFileContent, dropZone2, document.getElementById('targetError'));
                         let schemaJson = (currentMode === 'schema') ? parseInput(schemaFileContent, dropZoneSchema, document.getElementById('schemaError')) : null;
 
                         let canProceed = (currentMode === 'schema') ? (schemaJson && targetJson) : (sourceJson && targetJson);
-                        if (!canProceed) { hideLoader(); return; }
+                        if (!canProceed) { 
+                            hideLoader(); 
+                            alert("Будь ласка, перевірте вхідні дані. Один або декілька файлів не є валідними.");
+                            return; 
+                        }
                         
+                        globalDifferences = [];
                         switch (currentMode) {
                             case 'direct':
                                 globalDifferences = findDifferences(sourceJson, targetJson, false, '$', settings);
-                                renderReport(globalDifferences, sourceFileContent, targetFileContent);
+                                renderReport(globalDifferences, sourceJson, targetJson);
                                 break;
                             case 'keys':
                                 globalDifferences = findDifferences(sourceJson, targetJson, true, '$', settings);
-                                renderReport(globalDifferences, sourceFileContent, targetFileContent);
+                                renderReport(globalDifferences, sourceJson, targetJson);
                                 break;
                             case 'schema':
                                 globalDifferences = validateWithSchema(targetJson, schemaJson);
-                                renderReport(globalDifferences, schemaFileContent, targetFileContent);
+                                renderReport(globalDifferences, schemaJson, targetJson);
                                 break;
                         }
                     } catch (e) {
-                        alert('Помилка аналізу: ' + e.message);
+                        console.error("Помилка порівняння:", e);
+                        alert(`Сталася непередбачена помилка: ${e.message}`);
+                        resultsContainer.innerHTML = `<p style="color: var(--red);">Помилка: ${e.message}</p>`;
+                        resultsContainer.style.display = 'block';
                     } finally {
                         hideLoader();
                     }
                 }, 50);
             });
 
-            // --- Export Logic (Improved) ---
+            // --- Export Logic ---
             document.getElementById('exportTxt').addEventListener('click', (e) => { e.preventDefault(); exportReport('txt'); });
             document.getElementById('exportJson').addEventListener('click', (e) => { e.preventDefault(); exportReport('json'); });
             document.getElementById('exportCsv').addEventListener('click', (e) => { e.preventDefault(); exportReport('csv'); });
 
             function exportReport(format) {
                 let content = '';
-                let fileName = 'comparison_report';
-                let mimeType = 'text/plain';
+                let fileName = `comparison_report_${new Date().toISOString().slice(0,10)}`;
+                let mimeType = 'text/plain;charset=utf-8';
 
-                if (format === 'txt') { /* ... */ } 
-                else if (format === 'json') { /* ... */ } 
-                else if (format === 'csv') {
+                if (globalDifferences.length === 0) {
+                    content = "Відмінностей не знайдено.";
+                } else if (format === 'txt') {
+                    content = globalDifferences.map(d => `Тип: ${d.type}\nШлях: ${d.path}\nПричина: ${d.reason}\nСтаре значення: ${d.oldValue || 'N/A'}\nНове значення: ${d.newValue || 'N/A'}\n---`).join('\n');
+                    fileName += '.txt';
+                } else if (format === 'json') {
+                    content = JSON.stringify(globalDifferences, null, 2);
+                    fileName += '.json';
+                    mimeType = 'application/json;charset=utf-8';
+                } else if (format === 'csv') {
                     const header = "Type,Path,Reason,OldValue,NewValue\n";
                     const rows = globalDifferences.map(d => {
                         const escapeCsv = (val) => {
@@ -502,7 +545,7 @@
                     fileName += '.csv';
                     mimeType = 'text/csv;charset=utf-8';
                 }
-                // ... (rest of export logic is the same)
+                
                 const blob = new Blob([content], { type: mimeType });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -514,7 +557,26 @@
                 URL.revokeObjectURL(url);
             }
             
-            // --- CORE COMPARISON LOGIC (UPDATED) ---
+            // --- CORE LOGIC ---
+            function validateWithSchema(data, schema) {
+                try {
+                    const ajv = new Ajv({ allErrors: true });
+                    const validate = ajv.compile(schema);
+                    const valid = validate(data);
+                    if (valid) return [];
+                    return validate.errors.map(error => ({
+                        path: error.instancePath || '$',
+                        type: 'ValidationError',
+                        reason: `${error.keyword}: ${error.message}`,
+                        oldValue: JSON.stringify(error.params),
+                        newValue: ''
+                    }));
+                } catch (e) {
+                    console.error("Помилка компіляції схеми:", e);
+                    return [{ path: '$', type: 'SchemaError', reason: `Помилка компіляції схеми: ${e.message}` }];
+                }
+            }
+
             function isPathIgnored(path, ignorePatterns) {
                 return ignorePatterns.some(pattern => {
                     const regex = new RegExp('^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '[^.]+'));
@@ -530,9 +592,9 @@
                     return differences;
                 }
                 if (Array.isArray(elem1)) {
-                    if (settings.arrayCompareMode === 'key' && !tryCompareArraysByKey(elem1, elem2, keysOnly, path, differences, settings)) {
+                     if (settings.arrayCompareMode === 'key' && !tryCompareArraysByKey(elem1, elem2, keysOnly, path, differences, settings)) {
                         compareArraysByIndex(elem1, elem2, keysOnly, path, differences, settings);
-                    } else {
+                    } else if (settings.arrayCompareMode === 'index') {
                         compareArraysByIndex(elem1, elem2, keysOnly, path, differences, settings);
                     }
                 } else if (typeof elem1 === 'object' && elem1 !== null) {
@@ -580,20 +642,19 @@
                         differences.push({ path: currentPath, type: 'Removed', reason: 'Об\'єкт видалено', oldValue: JSON.stringify(value, null, 2) });
                     } else {
                         differences.push(...findDifferences(value, dict2.get(key), keysOnly, currentPath, settings));
+                        dict2.delete(key); // Mark as checked
                     }
                 });
                 dict2.forEach((value, key) => {
                     const currentPath = `${path}[${bestKey}=${key}]`;
                     if (isPathIgnored(currentPath, settings.ignorePaths)) return;
-                    if (!dict1.has(key)) {
-                        differences.push({ path: currentPath, type: 'Added', reason: 'Об\'єкт додано', newValue: JSON.stringify(value, null, 2) });
-                    }
+                    differences.push({ path: currentPath, type: 'Added', reason: 'Об\'єкт додано', newValue: JSON.stringify(value, null, 2) });
                 });
                 return true;
             }
 
             function compareArraysByIndex(arr1, arr2, keysOnly, path, differences, settings) {
-                if (arr1.length !== arr2.length) {
+                if (arr1.length !== arr2.length && !keysOnly) {
                     differences.push({ path, type: 'LengthChanged', reason: 'Різна кількість елементів', oldValue: arr1.length, newValue: arr2.length });
                 }
                 const len = Math.min(arr1.length, arr2.length);
@@ -602,18 +663,87 @@
                     if (isPathIgnored(currentPath, settings.ignorePaths)) continue;
                     differences.push(...findDifferences(arr1[i], arr2[i], keysOnly, currentPath, settings));
                 }
+                 for (let i = len; i < arr1.length; i++) {
+                    differences.push({ path: `${path}[${i}]`, type: 'Removed', reason: 'Елемент видалено', oldValue: JSON.stringify(arr1[i]) });
+                }
+                for (let i = len; i < arr2.length; i++) {
+                    differences.push({ path: `${path}[${i}]`, type: 'Added', reason: 'Елемент додано', newValue: JSON.stringify(arr2[i]) });
+                }
+            }
+
+            // --- RENDER LOGIC ---
+            function renderReport(differences, source, target) {
+                if (differences.length === 0) {
+                    resultsContainer.innerHTML = '<h2>✅ Відмінностей не знайдено</h2>';
+                    exportBtn.style.display = 'none';
+                } else {
+                    const summary = `<h2>Звіт про відмінності (${differences.length})</h2>`;
+                    const table = createDiffTable(differences);
+                    const gemini = createGeminiSection(differences, source, target);
+                    const diffView = createDiffView(source, target, differences);
+                    resultsContainer.innerHTML = summary + table + gemini + diffView;
+                    exportBtn.style.display = 'inline-block';
+                }
+                resultsContainer.style.display = 'block';
+                resultsContainer.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            function createDiffTable(differences) {
+                const rows = differences.map(d => `
+                    <tr>
+                        <td class="icon ${d.type.toLowerCase().includes('add') ? 'added' : d.type.toLowerCase().includes('remov') ? 'removed' : 'changed'}">
+                            ${d.type.toLowerCase().includes('add') ? '➕' : d.type.toLowerCase().includes('remov') ? '➖' : '🔄'}
+                        </td>
+                        <td>${d.type}</td>
+                        <td><pre>${d.path}</pre></td>
+                        <td>${d.reason}</td>
+                        <td><pre>${d.oldValue || ''}</pre></td>
+                        <td><pre>${d.newValue || ''}</pre></td>
+                    </tr>`).join('');
+                return `
+                    <table>
+                        <thead>
+                            <tr><th></th><th>Тип</th><th>Шлях</th><th>Причина</th><th>Старе значення</th><th>Нове значення</th></tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>`;
+            }
+
+            function createGeminiSection(differences, source, target) {
+                // Gemini logic can be added here
+                return ''; // Placeholder for now
             }
             
-            // --- Other functions (validateWithSchema, callGemini, renderReport, etc.) remain largely the same ---
-            // ... (The extensive logic for validateWithSchema, callGemini, renderReport, etc. remains here)
-            // But they will now be called with the new settings object where needed.
+            function createDiffView(source, target, differences) {
+                // This is a simplified diff view. A real line-by-line diff is complex.
+                // It highlights the full text for now.
+                try {
+                    const sourceStr = typeof source === 'string' ? source : JSON.stringify(source, null, 2);
+                    const targetStr = typeof target === 'string' ? target : JSON.stringify(target, null, 2);
+                    return `
+                        <h2 style="margin-top: 40px;">Візуальне порівняння</h2>
+                        <div class="json-view">
+                            <div>
+                                <h3>Source / Schema</h3>
+                                <pre>${sourceStr}</pre>
+                            </div>
+                            <div>
+                                <h3>Target</h3>
+                                <pre>${targetStr}</pre>
+                            </div>
+                        </div>`;
+                } catch(e) {
+                    return '<p>Не вдалося згенерувати візуальне порівняння.</p>';
+                }
+            }
             
-            // Initial load
+            // --- Initial load ---
             loadSettings();
             updateUiForMode();
-        });
-        // The rest of the script (renderReport, Gemini calls, etc.) is omitted for brevity but is assumed to be present and correct.
-        // The previously provided functions like renderReport, callGemini, etc. will work with the new structure.
+        }
+
+        // Use window.onload to ensure all external scripts are loaded before initialization
+        window.onload = initializeApp;
     </script>
 </body>
 </html>
