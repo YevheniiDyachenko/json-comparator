@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Інтерактивний JSON Comparator з Gemini AI</title>
+    <title>Інтерактивний JSON Comparator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ajv/8.12.0/ajv.min.js"></script>
     <style>
         :root {
@@ -14,7 +14,7 @@
             --text-color: #212529;
             --header-color: #343a40;
             --accent-color: #007bff;
-            --gemini-accent: #8e44ad;
+            --gemini-accent: #8e44ad; /* Still exists for other potential uses, though main button removed */
             --green: #28a745;
             --red: #dc3545;
             --blue: #007bff;
@@ -189,8 +189,7 @@
         .export-container:hover .export-dropdown { display: block; }
         #clearAllBtn, #copyResultsBtn { background-color: #6c757d; }
         #clearAllBtn:hover, #copyResultsBtn:hover { background-color: #5a6268; }
-        #geminiBtn { background-color: var(--gemini-accent); }
-        #geminiBtn:hover { background-color: #732d91; }
+        /* #geminiBtn is removed */
         
         #results {
             background-color: var(--main-color);
@@ -208,9 +207,10 @@
         th.sort-desc::after { content: '▼'; opacity: 1; }
         pre { margin: 0; white-space: pre-wrap; word-break: break-all; font-family: 'Courier New', Courier, monospace; }
         .icon { font-size: 1.2em; text-align: center; width: 40px; }
-        .added { color: var(--green); }
-        .removed { color: var(--red); }
-        .changed { color: var(--blue); } /* Used for ValueChanged, TypeChanged, LengthChanged, SchemaError */
+        /* Updated colors for icons */
+        .added-icon { color: var(--green); }
+        .removed-icon { color: var(--red); }
+        .changed-icon { color: var(--blue); } /* For 🔄 */
         
 
         .results-controls { margin-bottom: 20px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; padding: 10px; background-color: var(--bg-color); border-radius: 8px;}
@@ -268,7 +268,7 @@
         .collapsible-section.collapsed .collapse-icon { transform: rotate(-90deg); }
 
         /* Loading Overlay */
-        #loader, .gemini-loader {
+        #loader {
             position: fixed;
             top: 0;
             left: 0;
@@ -288,21 +288,12 @@
             height: 60px;
             animation: spin 1s linear infinite;
         }
-        .gemini-loader .loader-spinner { border-top-color: var(--gemini-accent); }
+        /* .gemini-loader is removed */
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* Gemini Features Styles */
-        #gemini-summary-container { margin-top: 20px; padding: 15px; border: 1px solid var(--gemini-accent); border-radius: 8px; background-color: rgba(142, 68, 173, 0.05); }
-        body.dark-mode #gemini-summary-container { background-color: rgba(142, 68, 173, 0.15); }
-        .suggest-icon {
-            cursor: pointer;
-            font-size: 1.1em;
-            margin-left: 8px;
-            opacity: 0.7;
-            transition: opacity 0.2s;
-            color: var(--gemini-accent);
-        }
-        .suggest-icon:hover { opacity: 1; }
+        /* .gemini-summary-container is removed */
+        /* .suggest-icon is removed */
+        /* .loading-spinner within suggest-icon is removed */
         
         /* Modal Styles */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; display: none; justify-content: center; align-items: center; animation: fadeIn 0.3s ease; }
@@ -318,7 +309,7 @@
         .modal-body .checkbox-group { display: flex; align-items: center; gap: 10px; }
         .modal-footer { text-align: right; border-top: 1px solid var(--border-color); padding-top: 20px; margin-top: 20px; }
         
-        .sync-scroll-container { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+        .sync-scroll-container { display: none; } /* Removed functionality, so hide UI */
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -327,8 +318,6 @@
 <body>
     <div id="app-content">
         <div id="loader"><div class="loader-spinner"></div></div>
-        <div id="gemini-loader" class="gemini-loader"><div class="loader-spinner"></div></div>
-
         <div id="settingsModal" class="modal-overlay">
             <div class="modal-content">
                 <div class="modal-header">
@@ -355,11 +344,7 @@
                             <label for="caseSensitive" title='Якщо вимкнено, "Text" та "text" будуть вважатися однаковими.'>Враховувати регістр символів</label>
                         </div>
                     </div>
-                     <div class="form-group">
-                        <label for="geminiApiKey">Gemini API Ключ</label>
-                        <input type="text" id="geminiApiKey" placeholder="Введіть ваш API ключ" title="Ваш ключ для доступу до функцій Gemini AI. Зберігається локально у вашому браузері.">
                     </div>
-                </div>
                 <div class="modal-footer">
                     <button id="saveSettingsBtn" class="action-btn" title="Зберегти поточні налаштування">Зберегти</button>
                 </div>
@@ -381,8 +366,8 @@
                     </div>
                     <button id="settingsBtn" title="Розширені налаштування">⚙️</button>
                 </div>
-                <h1>Інтерактивний JSON Comparator з Gemini AI</h1>
-                <p>Порівнюйте файли, перевіряйте схеми та аналізуйте зміни за допомогою ШІ</p>
+                <h1>Інтерактивний JSON Comparator</h1>
+                <p>Порівнюйте файли та перевіряйте схеми</p>
             </div>
 
             <div class="mode-selector">
@@ -426,8 +411,7 @@
                 </div>
                 <button id="clearAllBtn" class="action-btn" title="Очистити всі поля та результати">Очистити</button>
                 <button id="copyResultsBtn" class="action-btn" style="display:none;" title="Скопіювати звіт у форматі CSV">Копіювати</button>
-                <button id="geminiBtn" class="action-btn" style="display:none;" title="Проаналізувати зміни за допомогою Gemini AI">Аналіз з Gemini AI</button>
-            </div>
+                </div>
 
             <div id="results">
                 </div>
@@ -446,14 +430,14 @@
             const resultsContainer = document.getElementById('results');
             const modeSelector = document.querySelector('.mode-selector');
             const loader = document.getElementById('loader');
-            const geminiLoader = document.getElementById('gemini-loader'); // Specific loader for Gemini
+            // Removed geminiLoader as Gemini AI functionality is deprecated
             const settingsBtn = document.getElementById('settingsBtn');
             const settingsModal = document.getElementById('settingsModal');
             const closeSettingsModalBtn = document.getElementById('closeSettingsModal');
             const saveSettingsBtn = document.getElementById('saveSettingsBtn');
             const clearAllBtn = document.getElementById('clearAllBtn');
             const copyResultsBtn = document.getElementById('copyResultsBtn');
-            const geminiBtn = document.getElementById('geminiBtn');
+            // Removed geminiBtn as Gemini AI functionality is deprecated
             const widthToggleBtn = document.getElementById('widthToggleBtn');
             const widthEnterIcon = document.getElementById('width-enter-icon');
             const widthExitIcon = document.getElementById('width-exit-icon');
@@ -469,7 +453,7 @@
                 ignorePaths: [],
                 arrayCompareMode: 'key',
                 caseSensitive: true,
-                geminiApiKey: ''
+                // geminiApiKey: '' // Removed as AI functionality is deprecated
             };
 
             // --- Settings Modal Logic ---
@@ -486,18 +470,18 @@
                 document.getElementById('ignorePaths').value = settings.ignorePaths.join('\n');
                 document.querySelector(`input[name="arrayCompareMode"][value="${settings.arrayCompareMode}"]`).checked = true;
                 document.getElementById('caseSensitive').checked = settings.caseSensitive;
-                document.getElementById('geminiApiKey').value = settings.geminiApiKey;
+                // document.getElementById('geminiApiKey').value = settings.geminiApiKey; // Removed
             }
 
             function saveSettings() {
                 settings.ignorePaths = document.getElementById('ignorePaths').value.split('\n').map(p => p.trim()).filter(p => p);
                 settings.arrayCompareMode = document.querySelector('input[name="arrayCompareMode"]:checked').value;
                 settings.caseSensitive = document.getElementById('caseSensitive').checked;
-                settings.geminiApiKey = document.getElementById('geminiApiKey').value.trim();
+                // settings.geminiApiKey = document.getElementById('geminiApiKey').value.trim(); // Removed
                 localStorage.setItem('comparatorSettings', JSON.stringify(settings));
                 alert('Налаштування збережено.');
                 settingsModal.style.display = 'none';
-                checkGeminiButtonVisibility(); // Update Gemini button visibility after saving API key
+                // checkGeminiButtonVisibility(); // Removed
             }
 
             settingsBtn.addEventListener('click', () => { settingsModal.style.display = 'flex'; });
@@ -897,75 +881,6 @@
                 }
             }
 
-            // --- GEMINI API CALL ---
-            async function callGemini(prompt) { 
-                if (window.location.protocol === 'file:') {
-                    return "Помилка: Функції AI не працюють при відкритті файлу локально (через file://). Будь ласка, розмістіть цей файл на веб-сервері (наприклад, за допомогою Netlify Drop).";
-                }
-                const apiKey = settings.geminiApiKey;
-                if (!apiKey) {
-                    return "Будь ласка, введіть ваш Gemini API ключ у налаштуваннях.";
-                }
-
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`; // Using gemini-pro for more detailed analysis
-                const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
-
-                try {
-                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                    if (!response.ok) {
-                        let errorText = response.statusText;
-                        try { const errorResult = await response.json(); errorText = errorResult?.error?.message || errorText; } catch (e) { /* Ignore */ }
-                        throw new Error(`API error (${response.status}): ${errorText}`);
-                    }
-                    const result = await response.json();
-                    if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0]) {
-                        return result.candidates[0].content.parts[0].text;
-                    } else { 
-                        console.warn("Unexpected Gemini response:", result);
-                        return "Не вдалося отримати відповідь від AI."; 
-                    }
-                } catch (error) {
-                    console.error("Gemini API call failed:", error);
-                    return `Помилка запиту до AI: ${error.message}`;
-                }
-            }
-
-            // --- GEMINI FEATURES ---
-            async function analyzeChangesWithGemini() {
-                const summaryContainer = document.getElementById('gemini-summary-container');
-                summaryContainer.style.display = 'block';
-                summaryContainer.innerHTML = '<h2>Аналіз від Gemini AI...</h2>';
-                geminiLoader.style.display = 'flex';
-
-                const prompt = `
-                    Проаналізуй наступні зміни між двома JSON файлами. Надай короткий, але змістовний підсумок українською мовою. Поясни, які ключові зміни відбулися, і який їхній можливий вплив. Враховуй типи змін: Added, Removed, ValueChanged, TypeChanged, LengthChanged, SchemaError, SchemaParseError.
-
-                    Звіт про відмінності:
-                    ${JSON.stringify(globalDifferences, null, 2)}
-                    
-                    ${sourceFileContent ? `\nSource JSON (для контексту): \n${String(sourceFileContent).substring(0, 1000)}...` : ''}
-                    ${targetFileContent ? `\nTarget JSON (для контексту): \n${String(targetFileContent).substring(0, 1000)}...` : ''}
-                `; // Limit JSON string size for prompt to avoid exceeding token limits
-
-                try {
-                    const text = await callGemini(prompt);
-                    summaryContainer.innerHTML = `<h2>Аналіз від Gemini AI</h2><p>${text.replace(/\n/g, '<br>')}</p>`;
-                } catch (error) {
-                    summaryContainer.innerHTML = `<h2>Помилка аналізу</h2><p style="color: var(--red);">${error.message}</p>`;
-                    console.error('Gemini API Error:', error);
-                } finally {
-                    geminiLoader.style.display = 'none';
-                }
-            }
-
-            async function suggestValueWithGemini(path, oldValue, newValue, targetElement) {
-                targetElement.innerHTML = '<div class="loading-spinner"></div>';
-                const prompt = `Для поля з JSON шляхом "${path}" значення було змінено з "${oldValue}" на "${newValue}". Запропонуй кращу, більш професійну або виправлену версію нового значення українською мовою. Надай лише запропоноване значення без додаткових пояснень, форматуй як JSON рядок, якщо це рядок, або число, якщо це число.`;
-                const suggestion = await callGemini(prompt);
-                alert(`AI пропонує:\n\n${suggestion}`);
-                targetElement.innerHTML = '✨';
-            }
-
             // --- REPORT GENERATION ---
             function renderReport(differences, sourceJson, targetJson) {
                 let reportHtml = ``;
@@ -979,12 +894,9 @@
                         return acc;
                     }, { added: 0, removed: 0, changed: 0 });
 
-                    const geminiButtonHtml = (currentMode === 'direct' || currentMode === 'keys') && settings.geminiApiKey ? 
-                        `<div class="gemini-controls"><button id="analyzeBtn" class="action-btn gemini-btn">✨ Проаналізувати зміни</button></div>` : '';
+                    // Removed geminiButtonHtml as AI functionality is deprecated
                     
                     reportHtml = `
-                        <div id="gemini-summary-container" style="display:none;"></div>
-                        ${geminiButtonHtml}
                         <div class="collapsible-section collapsed">
                             <button class="collapsible-header">
                                 <h2>Детальний звіт про відмінності (${differences.length})</h2>
@@ -1033,10 +945,6 @@
                         </button>
                         <div class="collapsible-content">
                             <div>
-                                <div class="sync-scroll-container">
-                                    <label for="syncScroll">Синхронне прокручування:</label>
-                                    <input type="checkbox" id="syncScroll" checked>
-                                </div>
                                 <div class="json-view">
                                     ${displaySource ? `<div><h3>${sourceTitle}</h3><pre id="sourceJsonView">${sourceHtmlContent}</pre></div>` : ''}
                                     <div style="grid-column: ${displaySource ? 'auto' : 'span 2'}"><h3>${targetTitle}</h3><pre id="targetJsonView">${targetHtmlContent}</pre></div>
@@ -1049,25 +957,19 @@
                 resultsContainer.style.display = 'block';
                 exportBtn.style.display = 'inline-block';
                 copyResultsBtn.style.display = 'inline-block';
-                checkGeminiButtonVisibility(); // Ensure Gemini button visibility is correct
+                // Removed checkGeminiButtonVisibility()
+                // Removed geminiBtn.style.display = 'none' as button is removed from HTML
 
                 renderInteractiveTable(differences); // Render table after resultsContainer is populated
-                setupSyncScroll();
+                // Removed setupSyncScroll()
                 synchronizeJsonViewHeights();
                 setupCollapsibleSections(); // Setup event listeners for new collapsible sections
-                setupAnalyzeButton(); // Setup event listener for new Analyze button
-                setupSuggestIcons(); // Setup event listeners for new Suggest icons
+                // Removed setupAnalyzeButton()
+                // Removed setupSuggestIcons()
                 resultsContainer.scrollIntoView({ behavior: 'smooth' });
             }
 
-            function checkGeminiButtonVisibility() {
-                if (settings.geminiApiKey && (currentMode === 'direct' || currentMode === 'keys') && globalDifferences.length > 0) {
-                    geminiBtn.style.display = 'inline-block';
-                } else {
-                    geminiBtn.style.display = 'none';
-                }
-            }
-
+            // Removed checkGeminiButtonVisibility()
 
             function renderInteractiveTable(allDifferences) {
                 const tableContainer = document.getElementById('table-container');
@@ -1119,19 +1021,21 @@
                             SchemaParseError: '❌'
                         }[d.type] || ' ';
                         // Using 'changed' class for all non-added/removed diffs for unified styling
-                        const cssClass = d.type.toLowerCase().includes('add') ? 'added' : 
-                                         d.type.toLowerCase().includes('remov') ? 'removed' : 'changed';
-                        const suggestIconHtml = (d.type === 'ValueChanged' && currentMode === 'direct' && settings.geminiApiKey) ? 
-                            `<span class="suggest-icon" title="Запропонувати краще значення" data-path="${escapeHtml(d.path)}" data-old="${escapeHtml(d.oldValue || '')}" data-new="${escapeHtml(d.newValue || '')}">✨</span>` : '';
+                        let iconClass = '';
+                        if (d.type.toLowerCase().includes('add')) iconClass = 'added-icon';
+                        else if (d.type.toLowerCase().includes('remov')) iconClass = 'removed-icon';
+                        else iconClass = 'changed-icon'; // For changed, type changed, length changed, schema error
+                        
+                        // Removed suggestIconHtml
                         
                         return `
                             <tr>
-                                <td class="icon ${cssClass}">${icon}</td>
+                                <td class="icon ${iconClass}">${icon}</td>
                                 <td data-sort-value="${d.type}">${d.type}</td>
                                 <td data-sort-value="${d.path}"><pre>${escapeHtml(d.path)}</pre></td>
                                 <td data-sort-value="${d.reason}">${escapeHtml(d.reason)}</td>
                                 <td data-sort-value="${d.oldValue || ''}"><pre>${escapeHtml(d.oldValue || '')}</pre></td>
-                                <td data-sort-value="${d.newValue || ''}"><pre>${escapeHtml(d.newValue || '')}</pre>${suggestIconHtml}</td>
+                                <td data-sort-value="${d.newValue || ''}"><pre>${escapeHtml(d.newValue || '')}</pre></td>
                             </tr>`;
                     }).join('');
                     
@@ -1319,40 +1223,7 @@
                 return str.replace(/[&<>"']/g, m => map[m]);
             }
 
-            function setupSyncScroll() {
-                const sourceView = document.getElementById('sourceJsonView');
-                const targetView = document.getElementById('targetJsonView');
-                const syncCheckbox = document.getElementById('syncScroll');
-                
-                if (!sourceView || !targetView || !syncCheckbox) return;
-
-                // Clear previous listeners to prevent multiple bindings
-                sourceView.removeEventListener('scroll', sourceScrollHandler);
-                targetView.removeEventListener('scroll', targetScrollHandler);
-
-                let isSyncing = false;
-                
-                function sourceScrollHandler() {
-                    if (!isSyncing && syncCheckbox.checked) {
-                        isSyncing = true;
-                        targetView.scrollTop = this.scrollTop;
-                        targetView.scrollLeft = this.scrollLeft;
-                        setTimeout(() => isSyncing = false, 50);
-                    }
-                }
-
-                function targetScrollHandler() {
-                    if (!isSyncing && syncCheckbox.checked) {
-                        isSyncing = true;
-                        sourceView.scrollTop = this.scrollTop;
-                        sourceView.scrollLeft = this.scrollLeft;
-                        setTimeout(() => isSyncing = false, 50);
-                    }
-                }
-
-                sourceView.addEventListener('scroll', sourceScrollHandler);
-                targetView.addEventListener('scroll', targetScrollHandler);
-            }
+            // Removed setupSyncScroll function entirely
 
             function synchronizeJsonViewHeights() {
                 const sourceView = document.getElementById('sourceJsonView');
@@ -1380,30 +1251,14 @@
                 setTimeout(synchronizeJsonViewHeights, 450); 
             }
 
-            function setupAnalyzeButton() {
-                const analyzeBtn = document.getElementById('analyzeBtn');
-                if (analyzeBtn) {
-                    analyzeBtn.removeEventListener('click', analyzeChangesWithGemini); // Prevent duplicate listeners
-                    analyzeBtn.addEventListener('click', analyzeChangesWithGemini);
-                }
-            }
-
-            function setupSuggestIcons() {
-                document.querySelectorAll('.suggest-icon').forEach(icon => {
-                    icon.removeEventListener('click', handleSuggestClick); // Prevent duplicate listeners
-                    icon.addEventListener('click', handleSuggestClick);
-                });
-            }
-
-            function handleSuggestClick(e) {
-                const { path, old, new: newValue } = e.target.dataset;
-                suggestValueWithGemini(path, old, newValue, e.target);
-            }
+            // Removed setupAnalyzeButton function as AI functionality is deprecated
+            // Removed setupSuggestIcons function as AI functionality is deprecated
+            // Removed handleSuggestClick function as AI functionality is deprecated
 
             // --- Initial load ---
             loadSettings();
             updateUiForMode(); // Set initial UI state based on default/saved mode
-            checkGeminiButtonVisibility(); // Check initial visibility based on API key
+            // Removed checkGeminiButtonVisibility()
 
             clearAllBtn.addEventListener('click', () => {
                 document.getElementById('sourceText').value = '';
@@ -1422,7 +1277,7 @@
                 resultsContainer.style.display = 'none';
                 exportBtn.style.display = 'none';
                 copyResultsBtn.style.display = 'none';
-                geminiBtn.style.display = 'none';
+                // Removed geminiBtn.style.display = 'none';
                 sourceFileContent = null;
                 targetFileContent = null;
                 schemaFileContent = null; // Clear schema content
@@ -1462,7 +1317,7 @@
                 });
             });
 
-            geminiBtn.addEventListener('click', analyzeChangesWithGemini);
+            // Removed geminiBtn.addEventListener('click', analyzeChangesWithGemini);
             
             // --- Fullscreen Logic ---
             widthToggleBtn.addEventListener('click', () => {
