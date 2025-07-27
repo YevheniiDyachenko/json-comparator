@@ -50,7 +50,12 @@
             max-width: 1400px;
             margin: 20px auto;
             padding: 20px;
+            transition: max-width 0.3s ease-in-out;
         }
+        .container.full-width {
+            max-width: 98%;
+        }
+
         .header {
             text-align: center;
             margin-bottom: 30px;
@@ -61,85 +66,29 @@
             font-weight: 600;
         }
 
-        /* Додайте ці стилі до вашого існуючого CSS */
-.diff-added {
-    background-color: rgba(40, 167, 69, 0.15);
-    display: inline-block;
-    border-left: 3px solid var(--green);
-    padding-left: 5px;
-    margin-left: -8px;
-}
+        /* Diff Highlighting for JSON View */
+        .diff-added-text { background-color: rgba(40, 167, 69, 0.2); }
+        .diff-removed-text { background-color: rgba(220, 53, 69, 0.2); }
+        .diff-changed-text { background-color: rgba(0, 123, 255, 0.2); } /* For ValueChanged, TypeChanged, LengthChanged, SchemaError */
 
-.diff-removed {
-    background-color: rgba(220, 53, 69, 0.15);
-    display: inline-block;
-    border-left: 3px solid var(--red);
-    padding-left: 5px;
-    margin-left: -8px;
-}
+        body.dark-mode .diff-added-text { background-color: rgba(40, 167, 69, 0.3); }
+        body.dark-mode .diff-removed-text { background-color: rgba(220, 53, 69, 0.3); }
+        body.dark-mode .diff-changed-text { background-color: rgba(0, 123, 255, 0.3); }
 
-.diff-changed {
-    background-color: rgba(0, 70, 190, 0.4)
-    font-weight: bold;
-    border-radius: 3px;
-    padding: 0 2px;
-}
 
-body.dark-mode .diff-added {
-    background-color: rgba(40, 167, 69, 0.25);
-}
-
-body.dark-mode .diff-removed {
-    background-color: rgba(220, 53, 69, 0.25);
-}
-
-body.dark-mode .diff-changed {
-    background-color: rgba(0, 123, 255, 0.25);
-}
-
-        /* Dark Mode Toggle */
-        .theme-switch-wrapper {
-            position: absolute;
-            top: 10px;
-            right: 20px;
-            display: flex;
-            align-items: center;
-        }
-        .theme-switch {
-            display: inline-block;
-            height: 24px;
-            position: relative;
-            width: 50px;
-        }
+        /* Top Controls (Theme, Settings, Width) */
+        .top-controls { position: absolute; top: 10px; right: 20px; display: flex; align-items: center; gap: 15px; }
+        .theme-switch-wrapper { display: flex; align-items: center; }
+        .theme-switch { display: inline-block; height: 24px; position: relative; width: 50px; }
         .theme-switch input { display: none; }
-        .slider {
-            background-color: #ccc;
-            bottom: 0;
-            cursor: pointer;
-            left: 0;
-            position: absolute;
-            right: 0;
-            top: 0;
-            transition: .4s;
-            border-radius: 24px;
-        }
-        .slider:before {
-            background-color: #fff;
-            bottom: 4px;
-            content: "";
-            height: 16px;
-            left: 4px;
-            position: absolute;
-            transition: .4s;
-            width: 16px;
-            border-radius: 50%;
-        }
-        input:checked + .slider {
-            background-color: var(--accent-color);
-        }
-        input:checked + .slider:before {
-            transform: translateX(26px);
-        }
+        .slider { background-color: #ccc; bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .4s; border-radius: 24px; }
+        .slider:before { background-color: #fff; bottom: 4px; content: ""; height: 16px; left: 4px; position: absolute; transition: .4s; width: 16px; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent-color); }
+        input:checked + .slider:before { transform: translateX(26px); }
+
+        #settingsBtn, #widthToggleBtn { background: none; border: none; cursor: pointer; font-size: 1.4em; color: var(--text-color); opacity: 0.7; transition: opacity 0.2s, transform 0.2s; padding: 0; display: flex; align-items: center; justify-content: center; }
+        #settingsBtn:hover, #widthToggleBtn:hover { opacity: 1; transform: scale(1.1); }
+        #widthToggleBtn svg { width: 22px; height: 22px; }
 
         .mode-selector {
             display: flex;
@@ -171,7 +120,7 @@ body.dark-mode .diff-changed {
             gap: 20px;
             margin-bottom: 20px;
         }
-        #dropZoneSchema { grid-column: span 2; }
+        #dropZoneSchema { grid-column: span 2; } /* Schema takes full width */
         .drop-zone {
             border: 2px dashed var(--border-color);
             border-radius: 12px;
@@ -212,24 +161,36 @@ body.dark-mode .diff-changed {
             text-align: left;
             display: none;
         }
-        .controls { text-align: center; margin-bottom: 30px; }
+        .controls { text-align: center; margin-bottom: 30px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
         .action-btn {
-            padding: 12px 30px;
-            font-size: 1.2em;
+            padding: 12px 24px;
+            font-size: 1.1em;
             font-weight: 600;
             color: #fff;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s;
-            margin: 0 5px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
         #compareBtn { background-color: var(--accent-color); }
         #compareBtn:disabled { background-color: #6c757d; cursor: not-allowed; box-shadow: none; }
         #compareBtn:not(:disabled):hover { background-color: #0056b3; transform: translateY(-2px); }
-        #saveBtn { background-color: var(--green); display: none; }
-        #saveBtn:hover { background-color: #218838; transform: translateY(-2px); }
+        body.dark-mode .action-btn { background-color: #0056b3; }
+        body.dark-mode .action-btn:hover { background-color: #004494; }
+
+        .export-container { position: relative; display: inline-block; }
+        #exportBtn { background-color: var(--green); }
+        #exportBtn:hover { background-color: #218838; transform: translateY(-2px); }
+        .export-dropdown { display: none; position: absolute; background-color: var(--main-color); min-width: 160px; box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2); z-index: 1; border-radius: 8px; border: 1px solid var(--border-color); }
+        .export-dropdown a { color: var(--text-color); padding: 12px 16px; text-decoration: none; display: block; }
+        .export-dropdown a:hover { background-color: #f1f3f5; }
+        body.dark-mode .export-dropdown a:hover { background-color: #2c2c2c; }
+        .export-container:hover .export-dropdown { display: block; }
+        #clearAllBtn, #copyResultsBtn { background-color: #6c757d; }
+        #clearAllBtn:hover, #copyResultsBtn:hover { background-color: #5a6268; }
+        #geminiBtn { background-color: var(--gemini-accent); }
+        #geminiBtn:hover { background-color: #732d91; }
         
         #results {
             background-color: var(--main-color);
@@ -241,58 +202,73 @@ body.dark-mode .diff-changed {
         h2 { color: var(--header-color); border-bottom: 2px solid var(--border-color); padding-bottom: 10px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); }
-        th[data-column-index] { cursor: pointer; user-select: none; }
-        th[data-column-index]:hover { background-color: #f1f3f5; }
-        body.dark-mode th[data-column-index]:hover { background-color: #2c2c2c; }
+        th.sortable { cursor: pointer; user-select: none; position: relative; padding-right: 20px; }
+        th.sortable::after { content: '↕'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); opacity: 0.4; }
+        th.sort-asc::after { content: '▲'; opacity: 1; }
+        th.sort-desc::after { content: '▼'; opacity: 1; }
         pre { margin: 0; white-space: pre-wrap; word-break: break-all; font-family: 'Courier New', Courier, monospace; }
         .icon { font-size: 1.2em; text-align: center; width: 40px; }
         .added { color: var(--green); }
         .removed { color: var(--red); }
-        .changed { color: var(--blue); }
-        .type-changed { color: var(--orange); }
-        .length-changed { color: var(--purple); }
-        .controls-table { margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
-        .controls-table input, .controls-table button { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--main-color); color: var(--text-color); }
+        .changed { color: var(--blue); } /* Used for ValueChanged, TypeChanged, LengthChanged, SchemaError */
+        
+
+        .results-controls { margin-bottom: 20px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; padding: 10px; background-color: var(--bg-color); border-radius: 8px;}
+        .results-controls input[type="search"] { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--main-color); color: var(--text-color); min-width: 250px; }
+        .results-controls .filter-group { display: flex; gap: 15px; align-items: center; }
+        .results-controls .filter-group label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+        
+        .stats-bar { display: flex; gap: 20px; padding: 15px; background-color: var(--bg-color); border-radius: 8px; margin-bottom: 20px; }
+        .stat-item { font-size: 1.1em; font-weight: 500; }
+
         .json-view { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
         .json-view pre {
-        background-color: var(--main-color);
-        padding: 15px;
-        border-radius: 8px;
-        line-height: 1.6em;
-        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-        overflow-x: auto;
-        border: 1px solid var(--border-color);
-        margin: 0;
-        font-size: 14px;
-    }
+            background-color: var(--main-color);
+            padding: 15px;
+            border-radius: 8px;
+            line-height: 1.6em;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow: auto; /* Changed from visible for scrolling */
+            border: 1px solid var(--border-color);
+            margin: 0;
+            font-size: 14px;
+        }
+        body.dark-mode .json-view pre {
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+        }
 
-    body.dark-mode .json-view pre {
-        background-color: #1e1e1e;
-        color: #e0e0e0;
-    }
+        /* JSON Syntax Highlighting */
+        .json-key { color: #9c27b0; }          /* Фіолетовий для ключів */
+        .json-string { color: #4caf50; }       /* Зелений для рядків */
+        .json-number { color: #2196f3; }       /* Синій для чисел */
+        .json-boolean { color: #ff9800; }      /* Помаранчевий для булевих значень */
+        .json-null { color: #f44336; }         /* Червоний для null */
+        .json-bracket { color: #795548; }      /* Коричневий для дужок */
+        .json-comma { color: #795548; }        /* Коричневий для ком */
+        .json-colon { color: #795548; }        /* Коричневий для двокрапок */
 
-    .json-key { color: #9c27b0; }          /* Фіолетовий для ключів */
-    .json-string { color: #4caf50; }       /* Зелений для рядків */
-    .json-number { color: #2196f3; }       /* Синій для чисел */
-    .json-boolean { color: #ff9800; }      /* Помаранчевий для булевих значень */
-    .json-null { color: #f44336; }         /* Червоний для null */
-    .json-bracket { color: #795548; }      /* Коричневий для дужок */
-    .json-comma { color: #795548; }        /* Коричневий для ком */
-    .json-colon { color: #795548; }        /* Коричневий для двокрапок */
-
-    body.dark-mode .json-key { color: #ba68c8; }
-    body.dark-mode .json-string { color: #81c784; }
-    body.dark-mode .json-number { color: #64b5f6; }
-    body.dark-mode .json-boolean { color: #ffb74d; }
-    body.dark-mode .json-null { color: #e57373; }
-    body.dark-mode .json-bracket,
-    body.dark-mode .json-comma,
-    body.dark-mode .json-colon { color: #a1887f; }
+        body.dark-mode .json-key { color: #ba68c8; }
+        body.dark-mode .json-string { color: #81c784; }
+        body.dark-mode .json-number { color: #64b5f6; }
+        body.dark-mode .json-boolean { color: #ffb74d; }
+        body.dark-mode .json-null { color: #e57373; }
+        body.dark-mode .json-bracket,
+        body.dark-mode .json-comma,
+        body.dark-mode .json-colon { color: #a1887f; }
         
+        /* Collapsible Sections */
+        .collapsible-header { width: 100%; background: transparent; border: none; padding: 0; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .collapsible-header h2 { border: none; }
+        .collapse-icon { transition: transform 0.3s ease; color: var(--text-color); }
+        .collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out; }
+        .collapsible-section:not(.collapsed) .collapsible-content { max-height: 5000px; /* Arbitrary large value */ }
+        .collapsible-section.collapsed .collapse-icon { transform: rotate(-90deg); }
+
         /* Loading Overlay */
-        #loader {
+        #loader, .gemini-loader {
             position: fixed;
             top: 0;
             left: 0;
@@ -302,7 +278,7 @@ body.dark-mode .diff-changed {
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 1001; /* Higher than modal */
         }
         .loader-spinner {
             border: 8px solid #f3f3f3;
@@ -312,124 +288,227 @@ body.dark-mode .diff-changed {
             height: 60px;
             animation: spin 1s linear infinite;
         }
+        .gemini-loader .loader-spinner { border-top-color: var(--gemini-accent); }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         /* Gemini Features Styles */
-        .gemini-controls { text-align: center; margin: 20px 0; }
-        .gemini-btn {
-            background-color: var(--gemini-accent);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-        .gemini-btn:hover { background-color: #732d91; transform: translateY(-2px); }
-        .gemini-summary {
-            background-color: #f3e5f5;
-            border-left: 4px solid var(--gemini-accent);
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 8px;
-        }
-        body.dark-mode .gemini-summary { background-color: rgba(142, 68, 173, 0.15); }
+        #gemini-summary-container { margin-top: 20px; padding: 15px; border: 1px solid var(--gemini-accent); border-radius: 8px; background-color: rgba(142, 68, 173, 0.05); }
+        body.dark-mode #gemini-summary-container { background-color: rgba(142, 68, 173, 0.15); }
         .suggest-icon {
             cursor: pointer;
             font-size: 1.1em;
             margin-left: 8px;
             opacity: 0.7;
             transition: opacity 0.2s;
+            color: var(--gemini-accent);
         }
         .suggest-icon:hover { opacity: 1; }
-        .loading-spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--gemini-accent);
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            margin-left: 10px;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Modal Styles */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; display: none; justify-content: center; align-items: center; animation: fadeIn 0.3s ease; }
+        .modal-content { background: var(--main-color); padding: 30px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); width: 90%; max-width: 600px; animation: slideIn 0.3s ease; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 20px; }
+        .modal-header h2 { margin: 0; color: var(--header-color); border: none; }
+        .modal-close { font-size: 2em; font-weight: bold; cursor: pointer; color: var(--text-color); background: none; border: none; }
+        .modal-body .form-group { margin-bottom: 20px; }
+        .modal-body label { display: block; font-weight: 600; margin-bottom: 8px; }
+        .modal-body input[type="text"], .modal-body textarea { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-color); color: var(--text-color); box-sizing: border-box; }
+        .modal-body textarea { min-height: 80px; resize: vertical; }
+        .modal-body .radio-group label { display: inline-block; margin-right: 15px; font-weight: normal; }
+        .modal-body .checkbox-group { display: flex; align-items: center; gap: 10px; }
+        .modal-footer { text-align: right; border-top: 1px solid var(--border-color); padding-top: 20px; margin-top: 20px; }
+        
+        .sync-scroll-container { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body>
-    <div id="loader">
-        <div class="loader-spinner"></div>
+    <div id="app-content">
+        <div id="loader"><div class="loader-spinner"></div></div>
+        <div id="gemini-loader" class="gemini-loader"><div class="loader-spinner"></div></div>
+
+        <div id="settingsModal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>⚙️ Налаштування порівняння</h2>
+                    <button class="modal-close" id="closeSettingsModal" title="Закрити вікно">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="ignorePaths">Поля для ігнорування (JSONPath)</label>
+                        <textarea id="ignorePaths" placeholder="$.timestamp&#10;$.user.lastLogin" title="Вкажіть шляхи до полів, які потрібно ігнорувати. Кожен шлях з нового рядка. Наприклад: $.updatedAt або $.items[*].timestamp"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Режим порівняння масивів</label>
+                        <div class="radio-group">
+                            <input type="radio" id="arrayModeKey" name="arrayCompareMode" value="key" checked>
+                            <label for="arrayModeKey" title='"Розумний" режим: шукає об\'єкти в масивах за ключем (id, name), ідеально для невпорядкованих списків.'>Розумний (за ключем)</label>
+                            <input type="radio" id="arrayModeIndex" name="arrayCompareMode" value="index">
+                            <label for="arrayModeIndex" title='"Простий" режим порівнює елементи масивів за їхньою позицією (індексом), що підходить для впорядкованих списків.'>Простий (за індексом)</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="caseSensitive">
+                            <label for="caseSensitive" title='Якщо вимкнено, "Text" та "text" будуть вважатися однаковими.'>Враховувати регістр символів</label>
+                        </div>
+                    </div>
+                     <div class="form-group">
+                        <label for="geminiApiKey">Gemini API Ключ</label>
+                        <input type="text" id="geminiApiKey" placeholder="Введіть ваш API ключ" title="Ваш ключ для доступу до функцій Gemini AI. Зберігається локально у вашому браузері.">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="saveSettingsBtn" class="action-btn" title="Зберегти поточні налаштування">Зберегти</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container" id="main-container">
+            <div class="header">
+                 <div class="top-controls">
+                    <button id="widthToggleBtn" title="Перемкнути ширину">
+                        <svg id="width-enter-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                        <svg id="width-exit-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><path d="M9 3h6v6M15 21H9v-6M3 9V3h6M21 15v6h-6"/></svg>
+                    </button>
+                    <div class="theme-switch-wrapper">
+                        <label class="theme-switch" for="checkbox" title="Перемкнути тему">
+                            <input type="checkbox" id="checkbox" />
+                            <div class="slider round"></div>
+                        </label>
+                    </div>
+                    <button id="settingsBtn" title="Розширені налаштування">⚙️</button>
+                </div>
+                <h1>Інтерактивний JSON Comparator з Gemini AI</h1>
+                <p>Порівнюйте файли, перевіряйте схеми та аналізуйте зміни за допомогою ШІ</p>
+            </div>
+
+            <div class="mode-selector">
+                <input type="radio" id="modeDirect" name="compareMode" value="direct" checked>
+                <label for="modeDirect">Пряме порівняння</label>
+                
+                <input type="radio" id="modeKeys" name="compareMode" value="keys">
+                <label for="modeKeys">Лише ключі</label>
+
+                <input type="radio" id="modeSchema" name="compareMode" value="schema">
+                <label for="modeSchema">Валідація схеми</label>
+            </div>
+
+            <div class="drop-zones">
+                <div id="dropZone1" class="drop-zone">
+                    <textarea id="sourceText" placeholder="Перетягніть сюди Source файл або вставте JSON"></textarea>
+                    <div class="error-message" id="sourceError"></div>
+                    <span class="file-name" id="fileName1"></span>
+                </div>
+                <div id="dropZone2" class="drop-zone">
+                    <textarea id="targetText" placeholder="Перетягніть сюди Target файл або вставте JSON"></textarea>
+                    <div class="error-message" id="targetError"></div>
+                    <span class="file-name" id="fileName2"></span>
+                </div>
+                <div id="dropZoneSchema" class="drop-zone hidden">
+                    <textarea id="schemaText" placeholder="Перетягніть сюди JSON Schema файл або вставте схему"></textarea>
+                    <div class="error-message" id="schemaError"></div>
+                    <span class="file-name" id="fileNameSchema"></span>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="compareBtn" class="action-btn" disabled>Порівняти</button>
+                 <div class="export-container">
+                    <button id="exportBtn" class="action-btn" style="display:none;" title="Експортувати звіт у різних форматах">💾 Експорт</button>
+                    <div class="export-dropdown">
+                        <a href="#" id="exportTxt">Текстовий звіт (.txt)</a>
+                        <a href="#" id="exportJson">JSON звіт (.json)</a>
+                        <a href="#" id="exportCsv">CSV звіт (.csv)</a>
+                    </div>
+                </div>
+                <button id="clearAllBtn" class="action-btn" title="Очистити всі поля та результати">Очистити</button>
+                <button id="copyResultsBtn" class="action-btn" style="display:none;" title="Скопіювати звіт у форматі CSV">Копіювати</button>
+                <button id="geminiBtn" class="action-btn" style="display:none;" title="Проаналізувати зміни за допомогою Gemini AI">Аналіз з Gemini AI</button>
+            </div>
+
+            <div id="results">
+                </div>
+        </div>
     </div>
-
-    <div class="container">
-        <div class="header">
-             <div class="theme-switch-wrapper">
-                <label class="theme-switch" for="checkbox">
-                    <input type="checkbox" id="checkbox" />
-                    <div class="slider round"></div>
-                </label>
-            </div>
-            <h1>Інтерактивний JSON Comparator з Gemini AI</h1>
-            <p>Порівнюйте файли, перевіряйте схеми та аналізуйте зміни за допомогою ШІ</p>
-        </div>
-
-        <div class="mode-selector">
-            <input type="radio" id="modeDirect" name="compareMode" value="direct" checked>
-            <label for="modeDirect">Пряме порівняння</label>
-            
-            <input type="radio" id="modeKeys" name="compareMode" value="keys">
-            <label for="modeKeys">Лише ключі</label>
-
-            <input type="radio" id="modeSchema" name="compareMode" value="schema">
-            <label for="modeSchema">Валідація схеми</label>
-        </div>
-
-        <div class="drop-zones">
-            <div id="dropZone1" class="drop-zone">
-                <textarea id="sourceText" placeholder="Перетягніть сюди Source файл або вставте JSON"></textarea>
-                <div class="error-message" id="sourceError"></div>
-                <span class="file-name" id="fileName1"></span>
-            </div>
-            <div id="dropZone2" class="drop-zone">
-                <textarea id="targetText" placeholder="Перетягніть сюди Target файл або вставте JSON"></textarea>
-                <div class="error-message" id="targetError"></div>
-                <span class="file-name" id="fileName2"></span>
-            </div>
-            <div id="dropZoneSchema" class="drop-zone hidden">
-                <textarea id="schemaText" placeholder="Перетягніть сюди JSON Schema файл або вставте схему"></textarea>
-                <div class="error-message" id="schemaError"></div>
-                <span class="file-name" id="fileNameSchema"></span>
-            </div>
-        </div>
-
-        <div class="controls">
-            <button id="compareBtn" class="action-btn" disabled>Порівняти</button>
-            <button id="saveBtn" class="action-btn">💾 Зберегти звіт</button>
-        </div>
-
-        <div id="results">
-            <!-- Результати будуть вставлені сюди -->
-        </div>
-    </div>
-
+    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const mainContainer = document.getElementById('main-container');
             const dropZone1 = document.getElementById('dropZone1');
             const dropZone2 = document.getElementById('dropZone2');
-            const dropZoneSchema = document.getElementById('dropZoneSchema');
+            const dropZoneSchema = document.getElementById('dropZoneSchema'); // New Schema drop zone
             const compareBtn = document.getElementById('compareBtn');
-            const saveBtn = document.getElementById('saveBtn');
+            const exportBtn = document.getElementById('exportBtn');
             const resultsContainer = document.getElementById('results');
             const modeSelector = document.querySelector('.mode-selector');
             const loader = document.getElementById('loader');
+            const geminiLoader = document.getElementById('gemini-loader'); // Specific loader for Gemini
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsModal = document.getElementById('settingsModal');
+            const closeSettingsModalBtn = document.getElementById('closeSettingsModal');
+            const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+            const clearAllBtn = document.getElementById('clearAllBtn');
+            const copyResultsBtn = document.getElementById('copyResultsBtn');
+            const geminiBtn = document.getElementById('geminiBtn');
+            const widthToggleBtn = document.getElementById('widthToggleBtn');
+            const widthEnterIcon = document.getElementById('width-enter-icon');
+            const widthExitIcon = document.getElementById('width-exit-icon');
 
+            // --- State ---
             let sourceFileContent = null;
             let targetFileContent = null;
-            let schemaFileContent = null;
+            let schemaFileContent = null; // Content for schema file
             let globalDifferences = [];
             let currentMode = 'direct';
 
+            let settings = {
+                ignorePaths: [],
+                arrayCompareMode: 'key',
+                caseSensitive: true,
+                geminiApiKey: ''
+            };
+
+            // --- Settings Modal Logic ---
+            function loadSettings() {
+                try {
+                    const savedSettings = localStorage.getItem('comparatorSettings');
+                    if (savedSettings) {
+                        settings = { ...settings, ...JSON.parse(savedSettings) };
+                    }
+                } catch(e) {
+                    console.error("Не вдалося завантажити налаштування:", e);
+                    localStorage.removeItem('comparatorSettings');
+                }
+                document.getElementById('ignorePaths').value = settings.ignorePaths.join('\n');
+                document.querySelector(`input[name="arrayCompareMode"][value="${settings.arrayCompareMode}"]`).checked = true;
+                document.getElementById('caseSensitive').checked = settings.caseSensitive;
+                document.getElementById('geminiApiKey').value = settings.geminiApiKey;
+            }
+
+            function saveSettings() {
+                settings.ignorePaths = document.getElementById('ignorePaths').value.split('\n').map(p => p.trim()).filter(p => p);
+                settings.arrayCompareMode = document.querySelector('input[name="arrayCompareMode"]:checked').value;
+                settings.caseSensitive = document.getElementById('caseSensitive').checked;
+                settings.geminiApiKey = document.getElementById('geminiApiKey').value.trim();
+                localStorage.setItem('comparatorSettings', JSON.stringify(settings));
+                alert('Налаштування збережено.');
+                settingsModal.style.display = 'none';
+                checkGeminiButtonVisibility(); // Update Gemini button visibility after saving API key
+            }
+
+            settingsBtn.addEventListener('click', () => { settingsModal.style.display = 'flex'; });
+            closeSettingsModalBtn.addEventListener('click', () => { settingsModal.style.display = 'none'; });
+            saveSettingsBtn.addEventListener('click', saveSettings);
+            window.addEventListener('click', (event) => {
+                if (event.target === settingsModal) {
+                    settingsModal.style.display = 'none';
+                }
+            });
+            
             // --- UI/UX Enhancements ---
             const themeToggle = document.getElementById('checkbox');
             themeToggle.addEventListener('change', () => {
@@ -453,11 +532,16 @@ body.dark-mode .diff-changed {
                         return null;
                     }
                     const parsed = JSON.parse(text);
+                    // For schema mode, schema itself can be a boolean, string or array.
+                    // For data, it should generally be an object or array.
+                    if (currentMode !== 'schema' && (typeof parsed !== 'object' || parsed === null)) {
+                        throw new Error("Вхідні дані повинні бути JSON-об'єктом або масивом.");
+                    }
                     errorEl.style.display = 'none';
                     dropZone.classList.remove('invalid');
                     return parsed;
-                } catch (e) {
-                    errorEl.textContent = `Помилка: ${e.message}`;
+                } catch (jsonError) {
+                    errorEl.textContent = `Помилка: Не є валідним JSON. ${jsonError.message}`;
                     errorEl.style.display = 'block';
                     dropZone.classList.add('invalid');
                     return null;
@@ -479,7 +563,14 @@ body.dark-mode .diff-changed {
                     e.preventDefault();
                     dropZone.classList.remove('dragover');
                     const file = e.dataTransfer.files[0];
-                    if (file && file.type === 'application/json') {
+                    if (!file) return;
+
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert("Файл занадто великий. Максимальний розмір - 5MB.");
+                        return;
+                    }
+
+                    if (file.type === 'application/json' || file.name.endsWith('.json')) {
                         fileNameEl.textContent = file.name;
                         const reader = new FileReader();
                         reader.onload = (event) => {
@@ -492,10 +583,7 @@ body.dark-mode .diff-changed {
                         reader.readAsText(file);
                     } else {
                         alert('Будь ласка, перетягніть JSON файл.');
-                        fileNameEl.textContent = '';
-                        textArea.value = '';
-                        fileContentCallback(null);
-                        checkFilesReady();
+                        fileNameEl.textContent = ''; textArea.value = ''; fileContentCallback(null); checkFilesReady();
                     }
                 });
             }
@@ -513,24 +601,47 @@ body.dark-mode .diff-changed {
             function updateUiForMode() {
                 const sourceTextArea = document.getElementById('sourceText');
                 const targetTextArea = document.getElementById('targetText');
+                const sourceFileNameEl = document.getElementById('fileName1');
+                const targetFileNameEl = document.getElementById('fileName2');
+                const schemaFileNameEl = document.getElementById('fileNameSchema');
 
                 if (currentMode === 'schema') {
                     dropZoneSchema.classList.remove('hidden');
                     sourceTextArea.placeholder = 'Перетягніть сюди JSON Schema або вставте код';
                     targetTextArea.placeholder = 'Перетягніть сюди JSON для валідації або вставте код';
+                    // Clear names if mode changes and files don't fit
+                    if (sourceFileContent) {
+                         try { JSON.parse(sourceFileContent); } // Check if it's a valid JSON at least
+                         catch { sourceFileNameEl.textContent = ''; sourceFileContent = null; sourceTextArea.value = ''; }
+                    }
                 } else {
                     dropZoneSchema.classList.add('hidden');
                     sourceTextArea.placeholder = 'Перетягніть сюди Source файл або вставте JSON';
                     targetTextArea.placeholder = 'Перетягніть сюди Target файл або вставте JSON';
+                    schemaFileNameEl.textContent = ''; // Clear schema filename
+                    schemaFileContent = null; // Clear schema content
+                    document.getElementById('schemaText').value = ''; // Clear schema textarea
                 }
+                // Clear errors on mode change to force re-evaluation
+                document.getElementById('sourceError').style.display = 'none';
+                document.getElementById('targetError').style.display = 'none';
+                document.getElementById('schemaError').style.display = 'none';
+                dropZone1.classList.remove('invalid');
+                dropZone2.classList.remove('invalid');
+                dropZoneSchema.classList.remove('invalid');
             }
+
 
             function checkFilesReady() {
                 let isReady = false;
+                const sourceValid = !document.getElementById('sourceError').style.display || document.getElementById('sourceError').style.display === 'none';
+                const targetValid = !document.getElementById('targetError').style.display || document.getElementById('targetError').style.display === 'none';
+                const schemaValid = !document.getElementById('schemaError').style.display || document.getElementById('schemaError').style.display === 'none';
+
                 if (currentMode === 'schema') {
-                    isReady = sourceFileContent && targetFileContent;
+                    isReady = schemaFileContent && targetFileContent && schemaValid && targetValid;
                 } else {
-                    isReady = sourceFileContent && targetFileContent;
+                    isReady = sourceFileContent && targetFileContent && sourceValid && targetValid;
                 }
                 compareBtn.disabled = !isReady;
             }
@@ -538,9 +649,17 @@ body.dark-mode .diff-changed {
             compareBtn.addEventListener('click', () => {
                 showLoader();
                 setTimeout(() => {
-                    let sourceJson = parseJson(sourceFileContent, dropZone1, document.getElementById('sourceError'));
-                    let targetJson = parseJson(targetFileContent, dropZone2, document.getElementById('targetError'));
-                    let schemaJson = (currentMode === 'schema') ? parseJson(schemaFileContent, dropZoneSchema, document.getElementById('schemaError')) : null;
+                    let sourceJson = null;
+                    let targetJson = null;
+                    let schemaJson = null;
+
+                    if (currentMode === 'schema') {
+                        schemaJson = parseJson(schemaFileContent, dropZoneSchema, document.getElementById('schemaError'));
+                        targetJson = parseJson(targetFileContent, dropZone2, document.getElementById('targetError'));
+                    } else {
+                        sourceJson = parseJson(sourceFileContent, dropZone1, document.getElementById('sourceError'));
+                        targetJson = parseJson(targetFileContent, dropZone2, document.getElementById('targetError'));
+                    }
 
                     let canProceed = false;
                      if (currentMode === 'schema') {
@@ -551,138 +670,231 @@ body.dark-mode .diff-changed {
 
                     if (!canProceed) {
                         hideLoader();
+                        alert("Будь ласка, перевірте вхідні дані. Один або декілька файлів не є валідними JSON.");
                         return;
                     }
 
                     try {
-                        switch (currentMode) {
-                            case 'direct':
-                                globalDifferences = findDifferences(sourceJson, targetJson, false);
-                                renderReport(globalDifferences, sourceFileContent, targetFileContent);
-                                break;
-                            case 'keys':
-                                globalDifferences = findDifferences(sourceJson, targetJson, true);
-                                renderReport(globalDifferences, sourceFileContent, targetFileContent);
-                                break;
-                            case 'schema':
-                                globalDifferences = validateWithSchema(targetJson, schemaJson);
-                                renderReport(globalDifferences, schemaFileContent, targetFileContent);
-                                break;
+                        globalDifferences = [];
+                        if (currentMode === 'direct') {
+                            globalDifferences = findDifferences(sourceJson, targetJson, false, '$', settings);
+                            renderReport(globalDifferences, sourceJson, targetJson);
+                        } else if (currentMode === 'keys') {
+                            globalDifferences = findDifferences(sourceJson, targetJson, true, '$', settings);
+                            renderReport(globalDifferences, sourceJson, targetJson);
+                        } else if (currentMode === 'schema') {
+                            globalDifferences = validateWithSchema(targetJson, schemaJson);
+                            renderReport(globalDifferences, schemaJson, targetJson); // Pass schema as "source" for display purposes
                         }
                     } catch (e) {
-                        alert('Помилка аналізу: ' + e.message);
+                        console.error("Помилка аналізу/валідації:", e);
+                        alert(`Сталася непередбачена помилка: ${e.message}`);
+                        resultsContainer.innerHTML = `<p style="color: var(--red);">Помилка: ${e.message}</p>`;
+                        resultsContainer.style.display = 'block';
                     } finally {
                         hideLoader();
                     }
                 }, 50);
             });
 
-            saveBtn.addEventListener('click', () => {
-                let reportText = `Звіт порівняння JSON\n========================\n\n`;
+            document.getElementById('exportTxt').addEventListener('click', (e) => { e.preventDefault(); exportReport('txt'); });
+            document.getElementById('exportJson').addEventListener('click', (e) => { e.preventDefault(); exportReport('json'); });
+            document.getElementById('exportCsv').addEventListener('click', (e) => { e.preventDefault(); exportReport('csv'); });
+
+            function exportReport(format) {
+                let content = '';
+                let fileName = `comparison_report_${new Date().toISOString().slice(0,10)}`;
+                let mimeType = 'text/plain;charset=utf-8';
+
                 if (globalDifferences.length === 0) {
-                    reportText += "Відмінностей не знайдено.";
-                } else {
-                    globalDifferences.forEach(diff => {
-                        reportText += `Тип: ${diff.type}\n`;
-                        reportText += `Шлях: ${diff.path}\n`;
-                        reportText += `Причина: ${diff.reason}\n`;
-                        if (diff.oldValue) reportText += `Старе значення: ${diff.oldValue}\n`;
-                        if (diff.newValue) reportText += `Нове значення: ${diff.newValue}\n`;
-                        reportText += `------------------------\n`;
-                    });
+                    content = "Відмінностей не знайдено.";
+                } else if (format === 'txt') {
+                    content = globalDifferences.map(d => {
+                        let line = `Тип: ${d.type}\nШлях: ${d.path}\nПричина: ${d.reason}\n`;
+                        if (d.oldValue !== undefined) line += `Старе значення: ${d.oldValue}\n`;
+                        if (d.newValue !== undefined) line += `Нове значення: ${d.newValue}\n`;
+                        return line + '---';
+                    }).join('\n');
+                    fileName += '.txt';
+                } else if (format === 'json') {
+                    content = JSON.stringify(globalDifferences, null, 2);
+                    fileName += '.json';
+                    mimeType = 'application/json;charset=utf-8';
+                } else if (format === 'csv') {
+                    const header = "Type,Path,Reason,OldValue,NewValue\n";
+                    const rows = globalDifferences.map(d => {
+                        const escapeCsv = (val) => {
+                            if (val == null) return '';
+                            const str = String(val);
+                            if (str.includes('"') || str.includes(',') || str.includes('\n')) {
+                                return `"${str.replace(/"/g, '""')}"`;
+                            }
+                            return str;
+                        };
+                        return [escapeCsv(d.type), escapeCsv(d.path), escapeCsv(d.reason), escapeCsv(d.oldValue), escapeCsv(d.newValue)].join(',');
+                    }).join('\n');
+                    content = "\uFEFF" + header + rows;
+                    fileName += '.csv';
+                    mimeType = 'text/csv;charset=utf-8';
                 }
                 
-                const blob = new Blob([reportText], { type: 'text/plain;charset=utf-8' });
+                const blob = new Blob([content], { type: mimeType });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'comparison_report.txt';
+                a.download = fileName;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-            });
+            }
+            
+            function isPathIgnored(path, ignorePatterns) {
+                return ignorePatterns.some(pattern => {
+                    // Convert JSONPath-like pattern to a regex
+                    // Handle root ($) and array wildcards ([*])
+                    let regexPattern = '^' + pattern.replace(/\$/g, '\\$').replace(/\./g, '\\.').replace(/\[\*\]/g, '\\[[0-9]+\\]');
+                    // For patterns like $.key.*, make sure it matches any sub-path
+                    if (pattern.endsWith('.*')) {
+                        regexPattern = regexPattern.slice(0, -2) + '(\\.|$).*'; // match .key.any or .key
+                    } else if (pattern.endsWith('[*]')) {
+                        regexPattern = regexPattern.slice(0, -3) + '\\[[0-9]+\\](\\.|$).*'; // match array element and its children
+                    }
+                    const regex = new RegExp(regexPattern);
+                    return regex.test(path);
+                });
+            }
 
             // --- CORE COMPARISON LOGIC ---
-            function findDifferences(elem1, elem2, keysOnly, path = '$') {
+            function findDifferences(elem1, elem2, keysOnly, path = '$', settings) {
+                if (isPathIgnored(path, settings.ignorePaths)) return [];
                 const differences = [];
                 if (typeof elem1 !== typeof elem2 || Array.isArray(elem1) !== Array.isArray(elem2)) {
                     differences.push({ path, type: 'TypeChanged', reason: 'Різні типи', oldValue: typeof elem1, newValue: typeof elem2 });
                     return differences;
                 }
                 if (Array.isArray(elem1)) {
-                    if (!tryCompareArraysByKey(elem1, elem2, keysOnly, path, differences)) {
-                        compareArraysByIndex(elem1, elem2, keysOnly, path, differences);
+                    if (settings.arrayCompareMode === 'key' && !tryCompareArraysByKey(elem1, elem2, keysOnly, path, differences, settings)) {
+                        compareArraysByIndex(elem1, elem2, keysOnly, path, differences, settings);
+                    } else if (settings.arrayCompareMode === 'index') {
+                        compareArraysByIndex(elem1, elem2, keysOnly, path, differences, settings);
                     }
                 } else if (typeof elem1 === 'object' && elem1 !== null) {
-                    compareObjects(elem1, elem2, keysOnly, path, differences);
+                    compareObjects(elem1, elem2, keysOnly, path, differences, settings);
                 } else {
-                    if (!keysOnly && elem1 !== elem2) {
+                    let val1 = elem1;
+                    let val2 = elem2;
+                    if (typeof val1 === 'string' && !settings.caseSensitive) {
+                        val1 = val1.toLowerCase();
+                        val2 = val2.toLowerCase();
+                    }
+                    if (!keysOnly && val1 !== val2) {
                         differences.push({ path, type: 'ValueChanged', reason: 'Різні значення', oldValue: JSON.stringify(elem1), newValue: JSON.stringify(elem2) });
                     }
                 }
                 return differences;
             }
-            function compareObjects(obj1, obj2, keysOnly, path, differences) {
+
+            function compareObjects(obj1, obj2, keysOnly, path, differences, settings) {
                 const allKeys = new Set([...Object.keys(obj1), ...Object.keys(obj2)]);
                 allKeys.forEach(key => {
                     const currentPath = `${path}.${key}`;
+                    if (isPathIgnored(currentPath, settings.ignorePaths)) return;
                     if (key in obj1 && !(key in obj2)) {
-                        differences.push({ path: currentPath, type: 'Removed', reason: 'Властивість видалена', oldValue: JSON.stringify(obj1[key]) });
+                        differences.push({ path: currentPath, type: 'Removed', reason: 'Властивість видалена', oldValue: JSON.stringify(obj1[key], null, 2) });
                     } else if (!(key in obj1) && key in obj2) {
-                        differences.push({ path: currentPath, type: 'Added', reason: 'Властивість додана', newValue: JSON.stringify(obj2[key]) });
+                        differences.push({ path: currentPath, type: 'Added', reason: 'Властивість додана', newValue: JSON.stringify(obj2[key], null, 2) });
                     } else {
-                        differences.push(...findDifferences(obj1[key], obj2[key], keysOnly, currentPath));
+                        differences.push(...findDifferences(obj1[key], obj2[key], keysOnly, currentPath, settings));
                     }
                 });
             }
-            function tryCompareArraysByKey(arr1, arr2, keysOnly, path, differences) {
+            
+            function tryCompareArraysByKey(arr1, arr2, keysOnly, path, differences, settings) {
                 const potentialKeys = ['id', 'productId', 'variantId', 'reviewId', 'key', 'name'];
-                if (arr1.length === 0 || typeof arr1[0] !== 'object' || arr1[0] === null) return false;
-                const bestKey = potentialKeys.find(key => arr1.every(item => item && typeof item === 'object' && key in item));
-                if (!bestKey) return false;
+                if (arr1.length === 0 && arr2.length === 0) return true; // Both empty, no diffs based on keys
+                if (arr1.length > 0 && (typeof arr1[0] !== 'object' || arr1[0] === null)) return false; // Not array of objects
+                if (arr2.length > 0 && (typeof arr2[0] !== 'object' || arr2[0] === null)) return false; // Not array of objects
+
+                const bestKey = potentialKeys.find(key => 
+                    (arr1.length === 0 || arr1.every(item => item && typeof item === 'object' && key in item)) &&
+                    (arr2.length === 0 || arr2.every(item => item && typeof item === 'object' && key in item))
+                );
+                
+                if (!bestKey) return false; // No common key found or not all items are objects with that key
+
                 const dict1 = new Map(arr1.map(item => [item[bestKey], item]));
                 const dict2 = new Map(arr2.map(item => [item[bestKey], item]));
+
                 dict1.forEach((value, key) => {
-                    const currentPath = `${path}[${bestKey}=${key}]`;
+                    const currentPath = `${path}[${bestKey}=${JSON.stringify(key)}]`;
+                    if (isPathIgnored(currentPath, settings.ignorePaths)) return;
                     if (!dict2.has(key)) {
                         differences.push({ path: currentPath, type: 'Removed', reason: 'Об\'єкт видалено', oldValue: JSON.stringify(value, null, 2) });
                     } else {
-                        differences.push(...findDifferences(value, dict2.get(key), keysOnly, currentPath));
+                        differences.push(...findDifferences(value, dict2.get(key), keysOnly, currentPath, settings));
+                        dict2.delete(key); // Mark as processed
                     }
                 });
+
                 dict2.forEach((value, key) => {
-                    if (!dict1.has(key)) {
-                        differences.push({ path: `${path}[${bestKey}=${key}]`, type: 'Added', reason: 'Об\'єкт додано', newValue: JSON.stringify(value, null, 2) });
+                    const currentPath = `${path}[${bestKey}=${JSON.stringify(key)}]`;
+                    if (isPathIgnored(currentPath, settings.ignorePaths)) return;
+                    if (!dict1.has(key)) { // If it wasn't in dict1 (i.e., not processed yet)
+                        differences.push({ path: currentPath, type: 'Added', reason: 'Об\'єкт додано', newValue: JSON.stringify(value, null, 2) });
                     }
                 });
                 return true;
             }
-            function compareArraysByIndex(arr1, arr2, keysOnly, path, differences) {
-                if (arr1.length !== arr2.length) {
+
+            function compareArraysByIndex(arr1, arr2, keysOnly, path, differences, settings) {
+                if (arr1.length !== arr2.length && !keysOnly) {
                     differences.push({ path, type: 'LengthChanged', reason: 'Різна кількість елементів', oldValue: arr1.length, newValue: arr2.length });
                 }
                 const len = Math.min(arr1.length, arr2.length);
                 for (let i = 0; i < len; i++) {
-                    differences.push(...findDifferences(arr1[i], arr2[i], keysOnly, `${path}[${i}]`));
+                    const currentPath = `${path}[${i}]`;
+                    if (isPathIgnored(currentPath, settings.ignorePaths)) continue;
+                    differences.push(...findDifferences(arr1[i], arr2[i], keysOnly, currentPath, settings));
+                }
+                for (let i = len; i < arr1.length; i++) {
+                    const currentPath = `${path}[${i}]`;
+                    if (isPathIgnored(currentPath, settings.ignorePaths)) continue;
+                    differences.push({ path: currentPath, type: 'Removed', reason: 'Елемент видалено', oldValue: JSON.stringify(arr1[i], null, 2) });
+                }
+                for (let i = len; i < arr2.length; i++) {
+                    const currentPath = `${path}[${i}]`;
+                    if (isPathIgnored(currentPath, settings.ignorePaths)) continue;
+                    differences.push({ path: currentPath, type: 'Added', reason: 'Елемент додано', newValue: JSON.stringify(arr2[i], null, 2) });
                 }
             }
 
             // --- JSON SCHEMA VALIDATION ---
             function validateWithSchema(data, schema) {
                 const ajv = new Ajv();
-                const validate = ajv.compile(schema);
-                const valid = validate(data);
-                if (valid) {
-                    return [];
+                try {
+                    const validate = ajv.compile(schema);
+                    const valid = validate(data);
+                    if (valid) {
+                        return [];
+                    }
+                    return validate.errors.map(err => ({
+                        path: err.instancePath || '$',
+                        type: 'SchemaError',
+                        reason: err.message || 'Помилка валідації',
+                        oldValue: `Rule: ${err.keyword}, Params: ${JSON.stringify(err.params)}`,
+                        newValue: `Value: ${JSON.stringify(err.data)}`
+                    }));
+                } catch (e) {
+                    // Handle cases where the schema itself is invalid
+                    return [{
+                        path: '$',
+                        type: 'SchemaParseError',
+                        reason: `Некоректна JSON-схема: ${e.message}`,
+                        oldValue: 'N/A',
+                        newValue: 'N/A'
+                    }];
                 }
-                return validate.errors.map(err => ({
-                    path: err.instancePath || '$',
-                    type: 'SchemaError',
-                    reason: err.message || 'Помилка валідації',
-                    oldValue: `Schema rule: ${err.keyword}`,
-                    newValue: `Value: ${JSON.stringify(err.data)}`
-                }));
             }
 
             // --- GEMINI API CALL ---
@@ -690,9 +902,14 @@ body.dark-mode .diff-changed {
                 if (window.location.protocol === 'file:') {
                     return "Помилка: Функції AI не працюють при відкритті файлу локально (через file://). Будь ласка, розмістіть цей файл на веб-сервері (наприклад, за допомогою Netlify Drop).";
                 }
-                const apiKey = ""; // Provided by the environment
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                const apiKey = settings.geminiApiKey;
+                if (!apiKey) {
+                    return "Будь ласка, введіть ваш Gemini API ключ у налаштуваннях.";
+                }
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`; // Using gemini-pro for more detailed analysis
                 const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+
                 try {
                     const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                     if (!response.ok) {
@@ -703,7 +920,10 @@ body.dark-mode .diff-changed {
                     const result = await response.json();
                     if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0]) {
                         return result.candidates[0].content.parts[0].text;
-                    } else { return "Не вдалося отримати відповідь від AI."; }
+                    } else { 
+                        console.warn("Unexpected Gemini response:", result);
+                        return "Не вдалося отримати відповідь від AI."; 
+                    }
                 } catch (error) {
                     console.error("Gemini API call failed:", error);
                     return `Помилка запиту до AI: ${error.message}`;
@@ -712,204 +932,546 @@ body.dark-mode .diff-changed {
 
             // --- GEMINI FEATURES ---
             async function analyzeChangesWithGemini() {
-                const summaryContainer = document.getElementById('geminiSummary');
-                const analyzeBtn = document.getElementById('analyzeBtn');
-                analyzeBtn.innerHTML = 'Аналізуємо... <div class="loading-spinner"></div>';
-                analyzeBtn.disabled = true;
-                const added = globalDifferences.filter(d => d.type === 'Added').map(d => d.path).join(', ') || 'немає';
-                const removed = globalDifferences.filter(d => d.type === 'Removed').map(d => d.path).join(', ') || 'немає';
-                const changed = globalDifferences.filter(d => d.type === 'ValueChanged' || d.type === 'TypeChanged').map(d => `${d.path} (змінено з '${d.oldValue}' на '${d.newValue}')`).join('; ') || 'немає';
-                const prompt = `Проаналізуй наступні зміни між двома JSON файлами та надай короткий, змістовний підсумок українською мовою. Зосередься на найбільш значущих оновленнях.\n- Додані поля: ${added}\n- Видалені поля: ${removed}\n- Змінені поля: ${changed}`;
-                const summary = await callGemini(prompt);
-                summaryContainer.innerHTML = summary.replace(/\n/g, '<br>');
+                const summaryContainer = document.getElementById('gemini-summary-container');
                 summaryContainer.style.display = 'block';
-                analyzeBtn.innerHTML = '✨ Проаналізувати зміни';
-                analyzeBtn.disabled = false;
+                summaryContainer.innerHTML = '<h2>Аналіз від Gemini AI...</h2>';
+                geminiLoader.style.display = 'flex';
+
+                const prompt = `
+                    Проаналізуй наступні зміни між двома JSON файлами. Надай короткий, але змістовний підсумок українською мовою. Поясни, які ключові зміни відбулися, і який їхній можливий вплив. Враховуй типи змін: Added, Removed, ValueChanged, TypeChanged, LengthChanged, SchemaError, SchemaParseError.
+
+                    Звіт про відмінності:
+                    ${JSON.stringify(globalDifferences, null, 2)}
+                    
+                    ${sourceFileContent ? `\nSource JSON (для контексту): \n${String(sourceFileContent).substring(0, 1000)}...` : ''}
+                    ${targetFileContent ? `\nTarget JSON (для контексту): \n${String(targetFileContent).substring(0, 1000)}...` : ''}
+                `; // Limit JSON string size for prompt to avoid exceeding token limits
+
+                try {
+                    const text = await callGemini(prompt);
+                    summaryContainer.innerHTML = `<h2>Аналіз від Gemini AI</h2><p>${text.replace(/\n/g, '<br>')}</p>`;
+                } catch (error) {
+                    summaryContainer.innerHTML = `<h2>Помилка аналізу</h2><p style="color: var(--red);">${error.message}</p>`;
+                    console.error('Gemini API Error:', error);
+                } finally {
+                    geminiLoader.style.display = 'none';
+                }
             }
+
             async function suggestValueWithGemini(path, oldValue, newValue, targetElement) {
                 targetElement.innerHTML = '<div class="loading-spinner"></div>';
-                const prompt = `Для поля з JSON шляхом "${path}" значення було змінено з "${oldValue}" на "${newValue}". Запропонуй кращу, більш професійну або виправлену версію нового значення українською мовою. Надай лише запропоноване значення без додаткових пояснень.`;
+                const prompt = `Для поля з JSON шляхом "${path}" значення було змінено з "${oldValue}" на "${newValue}". Запропонуй кращу, більш професійну або виправлену версію нового значення українською мовою. Надай лише запропоноване значення без додаткових пояснень, форматуй як JSON рядок, якщо це рядок, або число, якщо це число.`;
                 const suggestion = await callGemini(prompt);
                 alert(`AI пропонує:\n\n${suggestion}`);
                 targetElement.innerHTML = '✨';
             }
 
             // --- REPORT GENERATION ---
-            function renderReport(differences, sourceJsonText, targetJsonText) {
-                const diffMap = new Map(differences.map(d => [d.path, d]));
-                const sourceHtml = sourceJsonText ? renderJsonToHtml(JSON.parse(sourceJsonText), diffMap, true) : 'N/A';
-                const targetHtml = targetJsonText ? renderJsonToHtml(JSON.parse(targetJsonText), diffMap, false) : 'N/A';
-
+            function renderReport(differences, sourceJson, targetJson) {
                 let reportHtml = ``;
                 if (differences.length === 0) {
-                    reportHtml = `<h2>✅ ${currentMode === 'schema' ? 'JSON валідний' : 'Відмінностей не знайдено'}.</h2>`;
+                    reportHtml = `<h2>✅ ${currentMode === 'schema' ? 'JSON валідний за схемою' : 'Відмінностей не знайдено'}.</h2>`;
                 } else {
-                    const geminiButtonHtml = currentMode === 'direct' ? `<div class="gemini-controls"><button id="analyzeBtn" class="gemini-btn">✨ Проаналізувати зміни</button></div>` : '';
-                    reportHtml = `${geminiButtonHtml}<div id="geminiSummary" class="gemini-summary" style="display:none;"></div><div class='controls-table'><input type='text' id='searchInput' placeholder='Пошук за шляхом...'><button data-filter='all'>Всі</button><button data-filter='Added'>Додані</button><button data-filter='Removed'>Видалені</button><button data-filter='ValueChanged'>Змінені</button></div><h2>Знайдені відмінності</h2><table id='diffTable'><thead><tr><th></th><th data-column-index='1'>Шлях ↕️</th><th data-column-index='2'>Причина ↕️</th><th data-column-index='3'>${currentMode === 'schema' ? 'Правило схеми' : 'Старе значення'} ↕️</th><th data-column-index='4'>${currentMode === 'schema' ? 'Значення' : 'Нове значення'} ↕️</th></tr></thead><tbody>
-                                ${differences.map(diff => {
-                                    const icon = { Added: '✔', Removed: '✖', ValueChanged: '🔄', TypeChanged: '🧱', LengthChanged: '📏', SchemaError: '❗' }[diff.type];
-                                    const cssClass = diff.type;
-                                    const suggestIcon = (diff.type === 'ValueChanged' && currentMode === 'direct') ? `<span class="suggest-icon" title="Запропонувати краще значення" data-path="${diff.path}" data-old="${escapeHtml(diff.oldValue || '')}" data-new="${escapeHtml(diff.newValue || '')}">✨</span>` : '';
-                                    return `<tr data-type='${cssClass}'><td class='icon ${cssClass.toLowerCase()}'>${icon}</td><td class='path'>${diff.path}</td><td class='${cssClass.toLowerCase()}'>${diff.reason}</td><td><pre>${escapeHtml(diff.oldValue || 'N/A')}</pre></td><td><pre>${escapeHtml(diff.newValue || 'N/A')}</pre>${suggestIcon}</td></tr>`;
-                                }).join('')}</tbody></table>`;
-                }
+                    const stats = differences.reduce((acc, diff) => {
+                        if (diff.type.toLowerCase().includes('add')) acc.added++;
+                        else if (diff.type.toLowerCase().includes('remov')) acc.removed++;
+                        else acc.changed++; // Includes ValueChanged, TypeChanged, LengthChanged, SchemaError, SchemaParseError
+                        return acc;
+                    }, { added: 0, removed: 0, changed: 0 });
 
+                    const geminiButtonHtml = (currentMode === 'direct' || currentMode === 'keys') && settings.geminiApiKey ? 
+                        `<div class="gemini-controls"><button id="analyzeBtn" class="action-btn gemini-btn">✨ Проаналізувати зміни</button></div>` : '';
+                    
+                    reportHtml = `
+                        <div id="gemini-summary-container" style="display:none;"></div>
+                        ${geminiButtonHtml}
+                        <div class="collapsible-section collapsed">
+                            <button class="collapsible-header">
+                                <h2>Детальний звіт про відмінності (${differences.length})</h2>
+                                <span class="collapse-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                </span>
+                            </button>
+                            <div class="collapsible-content">
+                                <div>
+                                    <div class="stats-bar">
+                                        <span class="stat-item added">➕ Додано: ${stats.added}</span>
+                                        <span class="stat-item removed">➖ Видалено: ${stats.removed}</span>
+                                        <span class="stat-item changed">🔄 Змінено: ${stats.changed}</span>
+                                    </div>
+                                    <div class="results-controls">
+                                        <input type="search" id="searchInput" placeholder="Пошук у звіті...">
+                                        <div class="filter-group">
+                                            <label><input type="checkbox" class="filter-cb" value="add" checked> Додані</label>
+                                            <label><input type="checkbox" class="filter-cb" value="remov" checked> Видалені</label>
+                                            <label><input type="checkbox" class="filter-cb" value="chang" checked> Змінені</label>
+                                            ${currentMode === 'schema' ? `<label><input type="checkbox" class="filter-cb" value="schema" checked> Помилки схеми</label>` : ''}
+                                        </div>
+                                    </div>
+                                    <div id="table-container"></div>
+                                </div>
+                            </div>
+                        </div>`;
+                }
+                
                 const sourceTitle = currentMode === 'schema' ? 'JSON Schema' : 'Source';
                 const targetTitle = currentMode === 'schema' ? 'JSON для валідації' : 'Target';
-                reportHtml += `<h2>JSON файли</h2><div class='json-view'>
-                        ${sourceJsonText ? `<div><h3>${sourceTitle}</h3><pre>${sourceHtml}</pre></div>` : ''}
-                        ${targetJsonText ? `<div style="grid-column: ${sourceJsonText ? 'auto' : 'span 2'}"><h3>${targetTitle}</h3><pre>${targetHtml}</pre></div>` : ''}</div>`;
+
+                // Display sourceJson or schemaJson
+                const displaySource = currentMode === 'schema' ? sourceJson : sourceJson;
+
+                const sourceHtmlContent = displaySource ? generateHighlightedJsonHtml(displaySource, differences, 'source') : '';
+                const targetHtmlContent = targetJson ? generateHighlightedJsonHtml(targetJson, differences, 'target') : '';
+
+                reportHtml += `
+                    <div class="collapsible-section collapsed">
+                        <button class="collapsible-header">
+                            <h2>JSON файли</h2>
+                            <span class="collapse-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </span>
+                        </button>
+                        <div class="collapsible-content">
+                            <div>
+                                <div class="sync-scroll-container">
+                                    <label for="syncScroll">Синхронне прокручування:</label>
+                                    <input type="checkbox" id="syncScroll" checked>
+                                </div>
+                                <div class="json-view">
+                                    ${displaySource ? `<div><h3>${sourceTitle}</h3><pre id="sourceJsonView">${sourceHtmlContent}</pre></div>` : ''}
+                                    <div style="grid-column: ${displaySource ? 'auto' : 'span 2'}"><h3>${targetTitle}</h3><pre id="targetJsonView">${targetHtmlContent}</pre></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
                 
                 resultsContainer.innerHTML = reportHtml;
                 resultsContainer.style.display = 'block';
-                saveBtn.style.display = 'inline-block';
-                setupReportInteractivity();
+                exportBtn.style.display = 'inline-block';
+                copyResultsBtn.style.display = 'inline-block';
+                checkGeminiButtonVisibility(); // Ensure Gemini button visibility is correct
+
+                renderInteractiveTable(differences); // Render table after resultsContainer is populated
+                setupSyncScroll();
+                synchronizeJsonViewHeights();
+                setupCollapsibleSections(); // Setup event listeners for new collapsible sections
+                setupAnalyzeButton(); // Setup event listener for new Analyze button
+                setupSuggestIcons(); // Setup event listeners for new Suggest icons
                 resultsContainer.scrollIntoView({ behavior: 'smooth' });
             }
 
-function renderJsonToHtml(element, diffMap, isSourceView, path = '$', indentLevel = 0) {
-    const indent = ' '.repeat(indentLevel * 2);
-    
-    if (Array.isArray(element)) {
-        let html = '<span class="json-bracket">[</span>\n';
-        const potentialKeys = ['id', 'productId', 'variantId', 'reviewId', 'key', 'name'];
-        const bestKey = potentialKeys.find(key => element.length > 0 && element.every(item => item && typeof item === 'object' && key in item));
-        
-        for (let i = 0; i < element.length; i++) {
-            const item = element[i];
-            let itemPathForLookup = `${path}[${i}]`;
-            let itemPathForRecursion = itemPathForLookup;
-            let lineClass = '';
-            
-            if (bestKey && typeof item === 'object' && item !== null && bestKey in item) {
-                const keyBasedPath = `${path}[${bestKey}=${item[bestKey]}]`;
-                const diff = diffMap.get(keyBasedPath);
-                if (diff) {
-                    if (diff.type === 'Added' && !isSourceView) lineClass = 'diff-added';
-                    if (diff.type === 'Removed' && isSourceView) lineClass = 'diff-removed';
+            function checkGeminiButtonVisibility() {
+                if (settings.geminiApiKey && (currentMode === 'direct' || currentMode === 'keys') && globalDifferences.length > 0) {
+                    geminiBtn.style.display = 'inline-block';
+                } else {
+                    geminiBtn.style.display = 'none';
                 }
-                itemPathForRecursion = keyBasedPath;
             }
-            
-            const itemHtml = renderJsonToHtml(item, diffMap, isSourceView, itemPathForRecursion, indentLevel + 1);
-            html += `<span class="${lineClass}">${indent}  ${itemHtml}`;
-            if (i < element.length - 1) html += '<span class="json-comma">,</span>';
-            html += `</span>\n`;
-        }
-        
-        html += `${indent}<span class="json-bracket">]</span>`;
-        return html;
-    } 
-    else if (typeof element === 'object' && element !== null) {
-        let html = '<span class="json-bracket">{</span>\n';
-        const keys = Object.keys(element);
-        
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const propPath = `${path}.${key}`;
-            const diff = diffMap.get(propPath);
-            let lineClass = '';
-            
-            if (diff) {
-                if (diff.type === 'Added' && !isSourceView) lineClass = 'diff-added';
-                if (diff.type === 'Removed' && isSourceView) lineClass = 'diff-removed';
-            }
-            
-            html += `<span class='${lineClass}'>${indent}  <span class="json-key">"${key}"</span><span class="json-colon">: </span>${renderJsonToHtml(element[key], diffMap, isSourceView, propPath, indentLevel + 1)}`;
-            if (i < keys.length - 1) html += '<span class="json-comma">,</span>';
-            html += `</span>\n`;
-        }
-        
-        html += `${indent}<span class="json-bracket">}</span>`;
-        return html;
-    } 
-    else {
-        const diff = diffMap.get(path);
-        let valueClass = '';
-        
-        if (diff && (diff.type === 'ValueChanged' || diff.type === 'TypeChanged')) {
-            valueClass = 'diff-changed';
-        }
-        
-        let content;
-        if (typeof element === 'string') {
-            content = `<span class="json-string ${valueClass}">${JSON.stringify(element)}</span>`;
-        } 
-        else if (typeof element === 'number') {
-            content = `<span class="json-number ${valueClass}">${element}</span>`;
-        } 
-        else if (typeof element === 'boolean') {
-            content = `<span class="json-boolean ${valueClass}">${element}</span>`;
-        } 
-        else if (element === null) {
-            content = `<span class="json-null ${valueClass}">null</span>`;
-        } 
-        else {
-            content = `<span class="${valueClass}">${escapeHtml(JSON.stringify(element))}</span>`;
-        }
-        
-        return content;
-    }
-}
 
-            function setupReportInteractivity() {
-                const analyzeBtn = document.getElementById('analyzeBtn');
-                if(analyzeBtn) { analyzeBtn.addEventListener('click', analyzeChangesWithGemini); }
-                document.querySelectorAll('.suggest-icon').forEach(icon => {
-                    icon.addEventListener('click', (e) => {
-                        const { path, old, new: newValue } = e.target.dataset;
-                        suggestValueWithGemini(path, old, newValue, e.target);
+
+            function renderInteractiveTable(allDifferences) {
+                const tableContainer = document.getElementById('table-container');
+                let searchTerm = '';
+                let activeFilters = ['add', 'remov', 'chang'];
+                if (currentMode === 'schema') {
+                    activeFilters.push('schema'); // Add schema errors filter if in schema mode
+                }
+                let sortState = { column: null, direction: 'asc' };
+
+                function applyFiltersAndSort() {
+                    let filtered = allDifferences.filter(d => {
+                        const typeMatch = activeFilters.some(f => d.type.toLowerCase().includes(f));
+                        if (!typeMatch) return false;
+
+                        const searchMatch = !searchTerm || Object.values(d).some(val => 
+                            String(val).toLowerCase().includes(searchTerm)
+                        );
+                        return searchMatch;
                     });
-                });
-                document.getElementById('searchInput').addEventListener('keyup', e => {
-                    const query = e.target.value.toLowerCase();
-                    document.querySelectorAll('#diffTable tbody tr').forEach(row => {
-                        const path = row.cells[1].textContent.toLowerCase();
-                        row.style.display = path.includes(query) ? '' : 'none';
-                    });
-                });
-                document.querySelectorAll('.controls-table button').forEach(button => {
-                    button.addEventListener('click', e => {
-                        const type = e.target.dataset.filter;
-                        document.querySelectorAll('#diffTable tbody tr').forEach(row => {
-                            row.style.display = (type === 'all' || row.dataset.type === type) ? '' : 'none';
+
+                    if (sortState.column !== null) {
+                        filtered.sort((a, b) => {
+                            const valA = a[sortState.column];
+                            const valB = b[sortState.column];
+                            if (valA === undefined || valB === undefined || valA === null || valB === null) {
+                                // Handle undefined/null values for sorting
+                                if (valA === undefined || valA === null) return sortState.direction === 'asc' ? 1 : -1;
+                                if (valB === undefined || valB === null) return sortState.direction === 'asc' ? -1 : 1;
+                            }
+                            if (typeof valA === 'string' && typeof valB === 'string') {
+                                return (sortState.direction === 'asc' ? 1 : -1) * valA.localeCompare(valB, 'uk', { numeric: true });
+                            }
+                            if (valA < valB) return sortState.direction === 'asc' ? -1 : 1;
+                            if (valA > valB) return sortState.direction === 'asc' ? 1 : -1;
+                            return 0;
                         });
+                    }
+                    
+                    updateTableDOM(filtered);
+                }
+
+                function updateTableDOM(differences) {
+                    const rows = differences.map(d => {
+                        const icon = { 
+                            Added: '➕', Removed: '➖', 
+                            ValueChanged: '🔄', TypeChanged: '🧱', 
+                            LengthChanged: '📏', SchemaError: '❗',
+                            SchemaParseError: '❌'
+                        }[d.type] || ' ';
+                        // Using 'changed' class for all non-added/removed diffs for unified styling
+                        const cssClass = d.type.toLowerCase().includes('add') ? 'added' : 
+                                         d.type.toLowerCase().includes('remov') ? 'removed' : 'changed';
+                        const suggestIconHtml = (d.type === 'ValueChanged' && currentMode === 'direct' && settings.geminiApiKey) ? 
+                            `<span class="suggest-icon" title="Запропонувати краще значення" data-path="${escapeHtml(d.path)}" data-old="${escapeHtml(d.oldValue || '')}" data-new="${escapeHtml(d.newValue || '')}">✨</span>` : '';
+                        
+                        return `
+                            <tr>
+                                <td class="icon ${cssClass}">${icon}</td>
+                                <td data-sort-value="${d.type}">${d.type}</td>
+                                <td data-sort-value="${d.path}"><pre>${escapeHtml(d.path)}</pre></td>
+                                <td data-sort-value="${d.reason}">${escapeHtml(d.reason)}</td>
+                                <td data-sort-value="${d.oldValue || ''}"><pre>${escapeHtml(d.oldValue || '')}</pre></td>
+                                <td data-sort-value="${d.newValue || ''}"><pre>${escapeHtml(d.newValue || '')}</pre>${suggestIconHtml}</td>
+                            </tr>`;
+                    }).join('');
+                    
+                    const headers = [
+                        { key: '', label: '', sortable: false },
+                        { key: 'type', label: 'Тип', sortable: true },
+                        { key: 'path', label: 'Шлях', sortable: true },
+                        { key: 'reason', label: 'Причина', sortable: true },
+                        { key: 'oldValue', label: currentMode === 'schema' ? 'Правило схеми / Старе значення' : 'Старе значення', sortable: true },
+                        { key: 'newValue', label: currentMode === 'schema' ? 'Значення / Нове значення' : 'Нове значення', sortable: true },
+                    ];
+
+                    const headerHtml = headers.map((h) => {
+                        let classes = h.sortable ? 'sortable' : '';
+                        if (h.key === sortState.column) {
+                            classes += sortState.direction === 'asc' ? ' sort-asc' : ' sort-desc';
+                        }
+                        return `<th class="${classes}" data-key="${h.key}">${h.label}</th>`;
+                    }).join('');
+
+                    tableContainer.innerHTML = `
+                        <table>
+                            <thead><tr>${headerHtml}</tr></thead>
+                            <tbody>${rows}</tbody>
+                        </table>`;
+                }
+
+                document.getElementById('searchInput').addEventListener('input', (e) => {
+                    searchTerm = e.target.value.toLowerCase();
+                    applyFiltersAndSort();
+                });
+
+                document.querySelectorAll('.filter-cb').forEach(cb => {
+                    cb.addEventListener('change', () => {
+                        activeFilters = Array.from(document.querySelectorAll('.filter-cb:checked')).map(c => c.value);
+                        applyFiltersAndSort();
                     });
                 });
-                document.querySelectorAll('#diffTable th[data-column-index]').forEach(th => {
-                    th.addEventListener('click', () => sortTable(th));
+
+                tableContainer.addEventListener('click', (e) => {
+                    const header = e.target.closest('th.sortable');
+                    if (header) {
+                        const key = header.dataset.key;
+                        if (sortState.column === key) {
+                            sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+                        } else {
+                            sortState.column = key;
+                            sortState.direction = 'asc';
+                        }
+                        applyFiltersAndSort();
+                    }
                 });
+
+                applyFiltersAndSort(); // Initial render
             }
             
-            const sortDirections = {};
-            function sortTable(headerCell) {
-                const table = document.getElementById('diffTable');
-                const tbody = table.querySelector('tbody');
-                const colIndex = parseInt(headerCell.dataset.columnIndex);
-                const direction = sortDirections[colIndex] === 'asc' ? 'desc' : 'asc';
-                Object.keys(sortDirections).forEach(key => delete sortDirections[key]);
-                sortDirections[colIndex] = direction;
-                Array.from(tbody.querySelectorAll('tr'))
-                    .sort((a, b) => {
-                        const aText = a.cells[colIndex].textContent.trim();
-                        const bText = b.cells[colIndex].textContent.trim();
-                        return (direction === 'asc' ? 1 : -1) * aText.localeCompare(bText, 'uk', { numeric: true });
-                    })
-                    .forEach(row => tbody.appendChild(row));
-                updateHeaders(colIndex, direction);
+            function generateHighlightedJsonHtml(obj, diffs, side) {
+                // Handle primitive JSON values at root (e.g., "hello", 123, true, null)
+                if (obj === null) return `<span class="json-null">null</span>`;
+                if (typeof obj !== 'object') {
+                    const diffType = diffs.find(d => d.path === '$')?.type;
+                    let lineClass = '';
+                    if (diffType) {
+                        if (side === 'target' && diffType.includes('Added')) lineClass = 'diff-added-text';
+                        else if (side === 'source' && diffType.includes('Removed')) lineClass = 'diff-removed-text';
+                        else if (diffType.includes('ValueChanged') || diffType.includes('TypeChanged') || diffType.includes('LengthChanged') || diffType.includes('SchemaError')) lineClass = 'diff-changed-text';
+                    }
+                    let content;
+                    if (typeof obj === 'string') content = `<span class="json-string">${JSON.stringify(obj)}</span>`;
+                    else if (typeof obj === 'number') content = `<span class="json-number">${obj}</span>`;
+                    else if (typeof obj === 'boolean') content = `<span class="json-boolean">${obj}</span>`;
+                    else content = escapeHtml(String(obj)); // Fallback for other primitives
+                    
+                    return `<span class="diff-line ${lineClass}">${content}</span>`;
+                }
+
+                const diffMap = new Map(diffs.map(d => [d.path, d.type]));
+                const jsonString = JSON.stringify(obj, null, 2);
+                const lines = jsonString.split('\n');
+                const pathPerLine = [];
+                let pathStack = [];
+                let arrayCounters = {}; // Use an object for array counters at each indentation level
+
+                // First pass to determine path for each line
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    const trimmedLine = line.trim();
+                    const indent = (line.match(/^\s*/) || [''])[0].length / 2;
+                    pathStack.length = indent; // Trim stack to current indent level
+
+                    if (trimmedLine.endsWith('{')) {
+                        // Current path is for an object, don't increment array counter at this level
+                        // If it's an item in an array, increment its parent array counter
+                        if (arrayCounters[indent - 1] !== undefined) {
+                             // This is an object inside an array. Its path is arr[idx], but the object's keys will be .key
+                             // The array index should be incremented after this object is fully processed.
+                             // For now, just set path to $.parent[idx]
+                        }
+                    } else if (trimmedLine.endsWith('[')) {
+                        arrayCounters[indent] = 0; // Initialize array counter for this level
+                    } else if (trimmedLine.startsWith(']')) {
+                        delete arrayCounters[indent-1]; // End of array, reset counter for parent level
+                    } else if (trimmedLine.startsWith('}')) {
+                         // End of object, if it was part of an array, increment the array counter
+                         if (arrayCounters[indent - 1] !== undefined) {
+                            arrayCounters[indent - 1]++;
+                         }
+                    }
+                    
+                    const keyMatch = trimmedLine.match(/"([^"]+)"\s*:/);
+                    if (keyMatch) {
+                        pathStack[indent] = keyMatch[1];
+                        // If it's an object inside an array, its full path is like $.arr[0].key
+                        // So the array index part is handled by the parent
+                    } else if (arrayCounters[indent - 1] !== undefined) { // Check if previous level was an array
+                        // This handles items in an array that are not objects (primitives) or are objects themselves but the line starts with '{'
+                        if (!trimmedLine.endsWith('{') && !trimmedLine.startsWith('}') && !trimmedLine.endsWith('},')) { // Avoid { and } lines from incrementing
+                             pathStack[indent] = `[${arrayCounters[indent - 1]}]`;
+                             if (!trimmedLine.endsWith(',') && !trimmedLine.endsWith(']')) { // Only increment if not the last element
+                                arrayCounters[indent - 1]++;
+                            }
+                        }
+                    }
+
+                    let currentPath = '$';
+                    if (pathStack.length > 0) {
+                        currentPath += '.' + pathStack.slice(1).join('.').replace(/\.\[/g, '[');
+                    }
+                    pathPerLine.push(currentPath);
+                }
+
+
+                // Second pass to generate HTML with highlighting
+                return lines.map((line, index) => {
+                    let lineContent = escapeHtml(line);
+                    const path = pathPerLine[index];
+                    let diffType = diffMap.get(path);
+                    
+                    // Also check if any descendant path has a diff
+                    if (!diffType) {
+                        for (const [diffPath, type] of diffMap.entries()) {
+                            if (diffPath.startsWith(path + '.') || diffPath.startsWith(path + '[')) {
+                                if (side === 'target' && type.includes('Added')) {
+                                    diffType = 'Added'; break;
+                                }
+                                if (side === 'source' && type.includes('Removed')) {
+                                    diffType = 'Removed'; break;
+                                }
+                                if (type.includes('ValueChanged') || type.includes('TypeChanged') || type.includes('LengthChanged') || type.includes('SchemaError')) {
+                                     // if a child changed, highlight the parent too, but prioritize added/removed for context
+                                    if (!diffType || (!diffType.includes('Added') && !diffType.includes('Removed'))) {
+                                        diffType = 'Changed'; // Generic change to highlight parent context
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    let lineClass = '';
+                    if (diffType) {
+                        if (side === 'target' && diffType.includes('Added')) lineClass = 'diff-added-text';
+                        else if (side === 'source' && diffType.includes('Removed')) lineClass = 'diff-removed-text';
+                        else if (diffType.includes('ValueChanged') || diffType.includes('TypeChanged') || diffType.includes('LengthChanged') || diffType.includes('SchemaError') || diffType.includes('SchemaParseError')) lineClass = 'diff-changed-text';
+                    }
+
+                    // Apply syntax highlighting
+                    lineContent = lineContent.replace(/"([^"]+)"(\s*:\s*)/g, '<span class="json-key">"$1"</span><span class="json-colon">$2</span>'); // Keys
+                    lineContent = lineContent.replace(/:\s*(".*?[^\\]")/g, ':<span class="json-string">$1</span>'); // Strings after colon
+                    lineContent = lineContent.replace(/:\s*(-?\d+(\.\d+)?([eE][+-]?\d+)?)/g, ':<span class="json-number">$1</span>'); // Numbers
+                    lineContent = lineContent.replace(/:\s*(true|false)/g, ':<span class="json-boolean">$1</span>'); // Booleans
+                    lineContent = lineContent.replace(/:\s*(null)/g, ':<span class="json-null">$1</span>'); // Null
+                    lineContent = lineContent.replace(/([\{\}\[\]])/g, '<span class="json-bracket">$1</span>'); // Brackets
+                    lineContent = lineContent.replace(/,(\s*)$/g, '<span class="json-comma">,</span>$1'); // Commas
+
+                    return `<span class="diff-line ${lineClass}">${lineContent}</span>`;
+                }).join('\n');
             }
-            function updateHeaders(currentColumn, direction) {
-                document.querySelectorAll('#diffTable th[data-column-index]').forEach(th => {
-                    let text = th.textContent.replace(/ [↕️🔼🔽]/g, '');
-                    const colIndex = parseInt(th.dataset.columnIndex);
-                    th.textContent = text + (colIndex === currentColumn ? (direction === 'asc' ? ' 🔼' : ' 🔽') : ' ↕️');
+
+            // Corrected escapeHtml function
+            function escapeHtml(text) {
+                // Ensure text is always a string
+                const str = String(text); 
+                const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+                return str.replace(/[&<>"']/g, m => map[m]);
+            }
+
+            function setupSyncScroll() {
+                const sourceView = document.getElementById('sourceJsonView');
+                const targetView = document.getElementById('targetJsonView');
+                const syncCheckbox = document.getElementById('syncScroll');
+                
+                if (!sourceView || !targetView || !syncCheckbox) return;
+
+                // Clear previous listeners to prevent multiple bindings
+                sourceView.removeEventListener('scroll', sourceScrollHandler);
+                targetView.removeEventListener('scroll', targetScrollHandler);
+
+                let isSyncing = false;
+                
+                function sourceScrollHandler() {
+                    if (!isSyncing && syncCheckbox.checked) {
+                        isSyncing = true;
+                        targetView.scrollTop = this.scrollTop;
+                        targetView.scrollLeft = this.scrollLeft;
+                        setTimeout(() => isSyncing = false, 50);
+                    }
+                }
+
+                function targetScrollHandler() {
+                    if (!isSyncing && syncCheckbox.checked) {
+                        isSyncing = true;
+                        sourceView.scrollTop = this.scrollTop;
+                        sourceView.scrollLeft = this.scrollLeft;
+                        setTimeout(() => isSyncing = false, 50);
+                    }
+                }
+
+                sourceView.addEventListener('scroll', sourceScrollHandler);
+                targetView.addEventListener('scroll', targetScrollHandler);
+            }
+
+            function synchronizeJsonViewHeights() {
+                const sourceView = document.getElementById('sourceJsonView');
+                const targetView = document.getElementById('targetJsonView');
+                if (sourceView && targetView) {
+                    sourceView.style.height = 'auto';
+                    targetView.style.height = 'auto';
+                    const maxHeight = Math.max(sourceView.scrollHeight, targetView.scrollHeight);
+                    sourceView.style.height = `${maxHeight}px`;
+                    targetView.style.height = `${maxHeight}px`;
+                }
+            }
+            
+            function setupCollapsibleSections() {
+                document.querySelectorAll('.collapsible-header').forEach(header => {
+                    header.removeEventListener('click', toggleCollapsible); // Prevent duplicate listeners
+                    header.addEventListener('click', toggleCollapsible);
                 });
             }
-            function escapeHtml(text) {
-                if(typeof text !== 'string') return text;
-                const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#0-39;' };
-                return text.replace(/[&<>"']/g, m => map[m]);
+
+            function toggleCollapsible() {
+                this.closest('.collapsible-section').classList.toggle('collapsed');
+                // Re-sync heights if JSON view is collapsed/expanded
+                // Give a slight delay for content to render before re-syncing heights
+                setTimeout(synchronizeJsonViewHeights, 450); 
             }
+
+            function setupAnalyzeButton() {
+                const analyzeBtn = document.getElementById('analyzeBtn');
+                if (analyzeBtn) {
+                    analyzeBtn.removeEventListener('click', analyzeChangesWithGemini); // Prevent duplicate listeners
+                    analyzeBtn.addEventListener('click', analyzeChangesWithGemini);
+                }
+            }
+
+            function setupSuggestIcons() {
+                document.querySelectorAll('.suggest-icon').forEach(icon => {
+                    icon.removeEventListener('click', handleSuggestClick); // Prevent duplicate listeners
+                    icon.addEventListener('click', handleSuggestClick);
+                });
+            }
+
+            function handleSuggestClick(e) {
+                const { path, old, new: newValue } = e.target.dataset;
+                suggestValueWithGemini(path, old, newValue, e.target);
+            }
+
+            // --- Initial load ---
+            loadSettings();
+            updateUiForMode(); // Set initial UI state based on default/saved mode
+            checkGeminiButtonVisibility(); // Check initial visibility based on API key
+
+            clearAllBtn.addEventListener('click', () => {
+                document.getElementById('sourceText').value = '';
+                document.getElementById('targetText').value = '';
+                document.getElementById('schemaText').value = ''; // Clear schema field
+                document.getElementById('fileName1').textContent = '';
+                document.getElementById('fileName2').textContent = '';
+                document.getElementById('fileNameSchema').textContent = ''; // Clear schema filename
+                document.getElementById('sourceError').style.display = 'none';
+                document.getElementById('targetError').style.display = 'none';
+                document.getElementById('schemaError').style.display = 'none'; // Clear schema error
+                dropZone1.classList.remove('invalid');
+                dropZone2.classList.remove('invalid');
+                dropZoneSchema.classList.remove('invalid');
+                resultsContainer.innerHTML = '';
+                resultsContainer.style.display = 'none';
+                exportBtn.style.display = 'none';
+                copyResultsBtn.style.display = 'none';
+                geminiBtn.style.display = 'none';
+                sourceFileContent = null;
+                targetFileContent = null;
+                schemaFileContent = null; // Clear schema content
+                globalDifferences = [];
+                checkFilesReady();
+            });
+
+            copyResultsBtn.addEventListener('click', () => {
+                const table = resultsContainer.querySelector('table');
+                if (!table) return;
+
+                // Headers from the actual rendered table
+                const headerCells = Array.from(table.querySelectorAll('thead th'));
+                const header = headerCells.map(th => {
+                    let text = th.innerText.trim();
+                    // Remove sort icons from header text for copying
+                    text = text.replace(/[\u2195\u25B2\u25BC]/g, '').trim(); 
+                    return `"${text.replace(/"/g, '""')}"`;
+                }).join(',');
+
+                const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr => 
+                    Array.from(tr.querySelectorAll('td')).map(td => {
+                        // For icon column, just empty string, for pre tags, get innerText
+                        let cellText = td.querySelector('pre') ? td.querySelector('pre').innerText : td.innerText;
+                        return `"${cellText.replace(/"/g, '""')}"`;
+                    }).join(',')
+                );
+                
+                const csvContent = [header, ...rows].join('\n');
+                
+                navigator.clipboard.writeText(csvContent).then(() => {
+                    copyResultsBtn.textContent = 'Скопійовано!';
+                    setTimeout(() => { copyResultsBtn.textContent = 'Копіювати'; }, 1500);
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                    alert('Не вдалося скопіювати. Перевірте дозволи у вашому браузері.');
+                });
+            });
+
+            geminiBtn.addEventListener('click', analyzeChangesWithGemini);
+            
+            // --- Fullscreen Logic ---
+            widthToggleBtn.addEventListener('click', () => {
+                mainContainer.classList.toggle('full-width');
+                const isFullWidth = mainContainer.classList.contains('full-width');
+                widthEnterIcon.style.display = isFullWidth ? 'none' : 'block';
+                widthExitIcon.style.display = isFullWidth ? 'block' : 'none';
+                synchronizeJsonViewHeights(); // Re-adjust heights after width change
+            });
         });
     </script>
 </body>
