@@ -20,6 +20,11 @@
             --orange: #fd7e14;
             --purple: #6f42c1;
             --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --toast-success-bg: #d4edda;
+            --toast-success-color: #155724;
+            --toast-error-bg: #f8d7da;
+            --toast-error-color: #721c24;
+            --toast-border-radius: 8px;
         }
 
         body.dark-mode {
@@ -29,6 +34,10 @@
             --shadow-color: rgba(0, 0, 0, 0.2);
             --text-color: #e0e0e0;
             --header-color: #ffffff;
+            --toast-success-bg: #1f4a2d;
+            --toast-success-color: #a7d9b5;
+            --toast-error-bg: #5f2b2c;
+            --toast-error-color: #f5c6cb;
         }
 
         body {
@@ -132,7 +141,6 @@
         .drop-zone.invalid {
             border-color: var(--red);
         }
-        .drop-zone.hidden { display: none; }
         .drop-zone.dragover {
             background-color: #e9ecef;
             border-color: var(--accent-color);
@@ -250,14 +258,15 @@
         }
 
         /* JSON Syntax Highlighting */
-        .json-key { color: #9c27b0; }          /* Фіолетовий для ключів */
-        .json-string { color: #4caf50; }       /* Зелений для рядків */
-        .json-number { color: #2196f3; }       /* Синій для чисел */
-        .json-boolean { color: #ff9800; }      /* Помаранчевий для булевих значень */
-        .json-null { color: #f44336; }         /* Червоний для null */
-        .json-bracket { color: #795548; }      /* Коричневий для дужок */
-        .json-comma { color: #795548; }        /* Коричневий для ком */
-        .json-colon { color: #795548; }        /* Коричневий для двокрапок */
+        /* Updated color for colon and comma for better visibility */
+        .json-key { color: #9c27b0; }
+        .json-string { color: #4caf50; }
+        .json-number { color: #2196f3; }
+        .json-boolean { color: #ff9800; }
+        .json-null { color: #f44336; }
+        .json-bracket { color: #4b4b4b; } /* Darker for better contrast */
+        .json-comma { color: #4b4b4b; }    /* Darker for better contrast */
+        .json-colon { color: #4b4b4b; }    /* Darker for better contrast */
 
         body.dark-mode .json-key { color: #ba68c8; }
         body.dark-mode .json-string { color: #81c784; }
@@ -266,7 +275,7 @@
         body.dark-mode .json-null { color: #e57373; }
         body.dark-mode .json-bracket,
         body.dark-mode .json-comma,
-        body.dark-mode .json-colon { color: #a1887f; }
+        body.dark-mode .json-colon { color: #b0b0b0; } /* Lighter for dark mode */
         
         /* Collapsible Sections */
         .collapsible-header { width: 100%; background: transparent; border: none; padding: 0; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
@@ -380,6 +389,44 @@
 
         body.dark-mode .tooltip.top::after {
             border-color: transparent transparent #555 transparent;
+        }
+
+        /* Toast notifications */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1002; /* Above modals and tooltips */
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        .toast {
+            padding: 10px 15px;
+            border-radius: var(--toast-border-radius);
+            font-size: 0.9em;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+            min-width: 200px;
+            max-width: 300px;
+            text-align: center;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .toast.success {
+            background-color: var(--toast-success-bg);
+            color: var(--toast-success-color);
+            border: 1px solid var(--green);
+        }
+        .toast.error {
+            background-color: var(--toast-error-bg);
+            color: var(--toast-error-color);
+            border: 1px solid var(--red);
         }
     </style>
 </head>
@@ -521,6 +568,8 @@
                 </div>
         </div>
     </div>
+
+    <div id="toast-container"></div>
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -556,6 +605,24 @@
                 arrayCompareMode: 'key',
                 caseSensitive: true,
             };
+
+            // --- Toast Notifications ---
+            const toastContainer = document.getElementById('toast-container');
+            function showToast(message, type = 'info', duration = 3000) {
+                const toast = document.createElement('div');
+                toast.classList.add('toast', type);
+                toast.textContent = message;
+                toastContainer.appendChild(toast);
+
+                // Force reflow to enable transition
+                void toast.offsetWidth; 
+                toast.classList.add('show');
+
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    toast.addEventListener('transitionend', () => toast.remove());
+                }, duration);
+            }
 
             // --- Tooltip Initialization ---
             function initializeTooltips() {
@@ -658,7 +725,7 @@
                 settings.arrayCompareMode = document.querySelector('input[name="arrayCompareMode"]:checked').value;
                 settings.caseSensitive = document.getElementById('caseSensitive').checked;
                 localStorage.setItem('comparatorSettings', JSON.stringify(settings));
-                alert('Налаштування збережено.');
+                showToast('Налаштування збережено!', 'success');
                 settingsModal.style.display = 'none';
                 // Re-initialize tooltips if settings modal contains tooltip-containers
                 initializeTooltips();
@@ -714,7 +781,10 @@
                 textArea.addEventListener('input', () => {
                     const content = textArea.value;
                     fileContentCallback(content);
-                    parseJson(content, dropZone, errorEl);
+                    const parsed = parseJson(content, dropZone, errorEl);
+                    if (!parsed && content.trim() !== '') {
+                        showToast(`Помилка у файлі: ${fileNameEl.textContent || dropZone.querySelector('textarea').placeholder.split(' ')[2]}. ${errorEl.textContent}`, 'error');
+                    }
                     fileNameEl.textContent = '';
                     checkFilesReady();
                 });
@@ -728,7 +798,7 @@
                     if (!file) return;
 
                     if (file.size > 5 * 1024 * 1024) {
-                        alert("Файл занадто великий. Максимальний розмір - 5MB.");
+                        showToast("Файл занадто великий. Максимальний розмір - 5MB.", 'error');
                         return;
                     }
 
@@ -739,12 +809,17 @@
                             const content = event.target.result;
                             textArea.value = content;
                             fileContentCallback(content);
-                            parseJson(content, dropZone, errorEl);
+                            const parsed = parseJson(content, dropZone, errorEl);
+                            if (!parsed) {
+                                showToast(`Помилка у файлі '${file.name}'. ${errorEl.textContent}`, 'error');
+                            } else {
+                                showToast(`Файл '${file.name}' завантажено.`, 'success');
+                            }
                             checkFilesReady();
                         };
                         reader.readAsText(file);
                     } else {
-                        alert('Будь ласка, перетягніть JSON файл.');
+                        showToast('Будь ласка, перетягніть JSON файл.', 'error');
                         fileNameEl.textContent = ''; textArea.value = ''; fileContentCallback(null); checkFilesReady();
                     }
                 });
@@ -830,7 +905,7 @@
 
                     if (!canProceed) {
                         hideLoader();
-                        alert("Будь ласка, перевірте вхідні дані. Один або декілька файлів не є валідними JSON.");
+                        showToast("Будь ласка, перевірте вхідні дані. Один або декілька файлів не є валідними JSON.", 'error');
                         return;
                     }
 
@@ -846,9 +921,10 @@
                             globalDifferences = validateWithSchema(targetJson, schemaJson);
                             renderReport(globalDifferences, schemaJson, targetJson); // Pass schema as "source" for display purposes
                         }
+                        showToast(`Порівняння завершено. Знайдено ${globalDifferences.length} відмінностей.`, 'success');
                     } catch (e) {
                         console.error("Помилка аналізу/валідації:", e);
-                        alert(`Сталася непередбачена помилка: ${e.message}`);
+                        showToast(`Сталася непередбачена помилка: ${e.message}`, 'error');
                         resultsContainer.innerHTML = `<p style="color: var(--red);">Помилка: ${e.message}</p>`;
                         resultsContainer.style.display = 'block';
                     } finally {
@@ -907,6 +983,7 @@
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
+                showToast(`Звіт експортовано у ${format.toUpperCase()} формат.`, 'success');
             }
             
             function isPathIgnored(path, ignorePatterns) {
@@ -1113,10 +1190,20 @@
                             </span>
                         </button>
                         <div class="collapsible-content">
-                            <div>
-                                <div class="json-view">
-                                    ${sourceJson ? `<div><h3>${sourceTitle}</h3><pre id="sourceJsonView">${sourceHtmlContent}</pre></div>` : ''}
-                                    <div style="grid-column: ${sourceJson ? 'auto' : 'span 2'}"><h3>${targetTitle}</h3><pre id="targetJsonView">${targetHtmlContent}</pre></div>
+                            <div class="json-view-controls" style="text-align: right; margin-bottom: 10px;">
+                                <label><input type="radio" name="jsonViewMode" value="code" checked> Код</label>
+                                <label><input type="radio" name="jsonViewMode" value="tree"> Дерево</label>
+                            </div>
+                            <div class="json-view">
+                                <div id="sourceJsonWrapper" style="${sourceJson ? '' : 'display: none;'}">
+                                    <h3>${sourceTitle}</h3>
+                                    <pre id="sourceJsonViewCode">${sourceHtmlContent}</pre>
+                                    <div id="sourceJsonViewTree" class="json-tree-view" style="display: none;"></div>
+                                </div>
+                                <div id="targetJsonWrapper" style="grid-column: ${sourceJson ? 'auto' : 'span 2'};">
+                                    <h3>${targetTitle}</h3>
+                                    <pre id="targetJsonViewCode">${targetHtmlContent}</pre>
+                                    <div id="targetJsonViewTree" class="json-tree-view" style="display: none;"></div>
                                 </div>
                             </div>
                         </div>
@@ -1130,6 +1217,7 @@
                 renderInteractiveTable(differences);
                 synchronizeJsonViewHeights();
                 setupCollapsibleSections();
+                setupJsonViewToggle(sourceJson, targetJson, differences); // Setup tree view
                 resultsContainer.scrollIntoView({ behavior: 'smooth' });
                 initializeTooltips(); // Re-initialize tooltips for new dynamic content
             }
@@ -1190,7 +1278,7 @@
                         
                         return `
                             <tr>
-                                <td class="icon"><span class="${iconClass}">${iconSymbol}</span></td>
+                                <td><span class="${iconClass}">${iconSymbol}</span></td>
                                 <td data-sort-value="${d.type}">${d.type}</td>
                                 <td data-sort-value="${d.path}"><pre>${escapeHtml(d.path)}</pre></td>
                                 <td data-sort-value="${d.reason}">${escapeHtml(d.reason)}</td>
@@ -1252,14 +1340,13 @@
                 applyFiltersAndSort();
             }
             
-            // Fixed function to traverse JSON and apply highlighting
+            // Fixed and improved function to traverse JSON and apply highlighting + syntax coloring
             function jsonTraverseAndRender(obj, diffs, side, currentPath = '$', indentLevel = 0) {
                 const indentSpace = ' '.repeat(indentLevel * 2);
                 let html = '';
-                // Create a Map from diffs for quick lookup by path
-                const diffMap = new Map(diffs.map(d => [d.path, d.type]));
+                const diffMap = new Map(diffs.map(d => [d.path, d.type])); // For quick lookup
 
-                // Helper to apply syntax highlighting and line class
+                // Helper to apply JSON syntax highlighting to a primitive value string
                 const applySyntaxHighlighting = (value) => {
                     let formattedValue;
                     if (typeof value === 'string') {
@@ -1277,7 +1364,7 @@
                     return formattedValue;
                 };
 
-
+                // Helper to determine the diff class for a given path
                 const getLineClass = (path, isKeyLine = false) => {
                     let lineClass = '';
                     const type = diffMap.get(path);
@@ -1287,9 +1374,10 @@
                         else if (side === 'source' && type.includes('Removed')) lineClass = 'diff-removed-text';
                         else if (type.includes('Changed') || type.includes('Error')) lineClass = 'diff-changed-text';
                     } else if (isKeyLine) {
-                        // Check for child diffs if no direct diff on this line (for object/array parent lines)
+                        // If it's a key line (parent of a value), check for child diffs for broader highlighting
                         for (const [diffPathFromMap, diffType] of diffMap.entries()) {
                             const diffPathStr = String(diffPathFromMap); // Ensure it's a string
+                            // Check if the current path is a direct parent prefix of a changed child path
                             if (diffPathStr.startsWith(path + '.') || diffPathStr.startsWith(path + '[')) {
                                 if (side === 'target' && diffType.includes('Added')) { lineClass = 'diff-added-text'; break; }
                                 if (side === 'source' && diffType.includes('Removed')) { lineClass = 'diff-removed-text'; break; }
@@ -1300,72 +1388,279 @@
                     return lineClass;
                 };
 
+                // Recursive rendering logic
                 if (typeof obj !== 'object' || obj === null) {
-                    // Handle primitive values at any level
+                    // Handle primitive values (string, number, boolean, null)
                     const lineClass = getLineClass(currentPath);
                     return `<span class="diff-line ${lineClass}" data-path="${currentPath}">${applySyntaxHighlighting(obj)}</span>`;
                 }
 
                 if (Array.isArray(obj)) {
+                    // Opening bracket
                     html += `<span class="diff-line ${getLineClass(currentPath)}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">[</span></span>\n`;
+                    
                     const potentialKeys = ['id', 'productId', 'variantId', 'reviewId', 'key', 'name'];
                     const bestKey = potentialKeys.find(key => obj.every(item => item && typeof item === 'object' && item[key] !== undefined));
 
                     for (let i = 0; i < obj.length; i++) {
                         const item = obj[i];
-                        let itemPath = `${currentPath}[${i}]`; // Default for index-based paths
+                        let itemPath = `${currentPath}[${i}]`; // Default index-based path
 
                         if (bestKey && typeof item === 'object' && item !== null && item[bestKey] !== undefined) {
+                            // If a bestKey is found and item is an object, use key-based path for consistent diff mapping
                             itemPath = `${currentPath}[${bestKey}=${JSON.stringify(item[bestKey])}]`;
                         }
                         
+                        // Recursively render array item
                         html += jsonTraverseAndRender(item, diffs, side, itemPath, indentLevel + 1);
+                        
                         if (i < obj.length - 1) {
-                            html += `<span class="json-comma">,</span>`; // Comma after element
+                            html += `<span class="json-comma">,</span>`; // Add comma after element
                         }
-                        html += `\n`;
+                        html += `\n`; // Newline after each element
                     }
+                    // Closing bracket
                     html += `<span class="diff-line ${getLineClass(currentPath)}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">]</span></span>`;
                 } else { // Object
+                    // Opening brace
                     html += `<span class="diff-line ${getLineClass(currentPath)}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">{</span></span>\n`;
                     const keys = Object.keys(obj);
+
                     for (let i = 0; i < keys.length; i++) {
                         const key = keys[i];
                         const propPath = `${currentPath}.${key}`;
+                        const value = obj[key];
                         
-                        // Render value recursively
-                        const valueHtml = jsonTraverseAndRender(obj[key], diffs, side, propPath, indentLevel + 1);
+                        // Recursively render property value
+                        const valueHtml = jsonTraverseAndRender(value, diffs, side, propPath, indentLevel + 1);
                         
-                        // Construct the line for the key-value pair
+                        // Construct the entire line for the key-value pair
                         const keyLineContent = `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> ${valueHtml}`;
                         
+                        // Apply diff highlighting to the entire line
                         html += `<span class="diff-line ${getLineClass(propPath, true)}" data-path="${propPath}">${indentSpace}  ${keyLineContent}`;
                         if (i < keys.length - 1) {
-                            html += `<span class="json-comma">,</span>`; // Comma after property
+                            html += `<span class="json-comma">,</span>`; // Add comma after property
                         }
                         html += `</span>\n`; // Close span for the line and add newline
                     }
+                    // Closing brace
                     html += `<span class="diff-line ${getLineClass(currentPath)}" data-path="${currentPath}">${indentSpace}<span class="json-bracket">}</span></span>`;
                 }
                 return html;
             }
 
-            // Corrected escapeHtml function: only escapes HTML entities, not JSON strings
+            // Function to safely escape HTML entities from a string
             function escapeHtml(text) {
                 const str = String(text); 
                 const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
                 return str.replace(/[&<>"']/g, m => map[m]);
             }
 
+            // --- JSON Tree View (New Feature) ---
+            function createJsonTree(data, containerElement, diffs, side) {
+                containerElement.innerHTML = ''; // Clear previous tree
+                const ul = document.createElement('ul');
+                ul.classList.add('json-tree');
+                let diffMap = new Map(diffs.map(d => [d.path, d.type]));
+
+                function buildTree(node, path, parentUl) {
+                    const li = document.createElement('li');
+                    li.dataset.path = path;
+
+                    let nodeClass = getLineClass(path, true, diffMap, side); // Re-use getLineClass logic
+                    if (nodeClass) {
+                        li.classList.add(nodeClass);
+                    }
+
+                    if (typeof node === 'object' && node !== null) {
+                        const isArray = Array.isArray(node);
+                        const toggleSpan = document.createElement('span');
+                        toggleSpan.classList.add('tree-toggle');
+                        toggleSpan.textContent = isArray ? '[ ]' : '{ }';
+                        toggleSpan.addEventListener('click', (e) => {
+                            e.stopPropagation(); // Prevent parent li click
+                            li.classList.toggle('collapsed');
+                            toggleSpan.textContent = li.classList.contains('collapsed') ? (isArray ? '[ ]' : '{ }') : (isArray ? '[ - ]' : '{ - }');
+                            synchronizeJsonViewHeights(); // Adjust height after collapse/expand
+                        });
+                        li.appendChild(toggleSpan);
+
+                        if (isArray) {
+                            li.classList.add('array-node', 'collapsed'); // Start arrays collapsed
+                            toggleSpan.textContent = '[ ]';
+                        } else {
+                            li.classList.add('object-node', 'collapsed'); // Start objects collapsed
+                            toggleSpan.textContent = '{ }';
+                        }
+
+                        const childUl = document.createElement('ul');
+                        childUl.classList.add('nested');
+
+                        if (isArray) {
+                            const potentialKeys = ['id', 'productId', 'variantId', 'reviewId', 'key', 'name'];
+                            const bestKey = potentialKeys.find(key => node.every(item => item && typeof item === 'object' && item[key] !== undefined));
+
+                            node.forEach((item, index) => {
+                                let itemPath = `${path}[${index}]`;
+                                if (bestKey && typeof item === 'object' && item !== null && item[bestKey] !== undefined) {
+                                    itemPath = `${path}[${bestKey}=${JSON.stringify(item[bestKey])}]`;
+                                }
+                                buildTree(item, itemPath, childUl);
+                            });
+                        } else {
+                            Object.keys(node).forEach(key => {
+                                const propPath = `${path}.${key}`;
+                                const keySpan = document.createElement('span');
+                                keySpan.classList.add('json-key');
+                                keySpan.textContent = `"${key}"`;
+                                const colonSpan = document.createElement('span');
+                                colonSpan.classList.add('json-colon');
+                                colonSpan.textContent = ': ';
+                                
+                                const valueNode = document.createElement('span');
+                                valueNode.appendChild(applySyntaxHighlightingTree(node[key]));
+                                
+                                const lineSpan = document.createElement('span');
+                                lineSpan.classList.add('tree-line');
+                                lineSpan.appendChild(keySpan);
+                                lineSpan.appendChild(colonSpan);
+                                lineSpan.appendChild(valueNode);
+
+                                const childLi = document.createElement('li');
+                                childLi.dataset.path = propPath;
+                                childLi.classList.add(getLineClass(propPath, true, diffMap, side));
+                                childLi.appendChild(lineSpan);
+                                
+                                buildTree(node[key], propPath, childUl); // Recursively build for the value
+                                
+                                if (typeof node[key] !== 'object' || node[key] === null) {
+                                     // If primitive, append directly to li and don't create nested ul
+                                    li.appendChild(lineSpan); 
+                                } else {
+                                    // If object/array, li will contain a toggle and a ul
+                                }
+                            });
+                        }
+                        li.appendChild(childUl); // Append childUl for non-primitive nodes
+                    } else {
+                        // Primitive value node (already handled in applySyntaxHighlightingTree in buildTree)
+                        const valueSpan = document.createElement('span');
+                        valueSpan.appendChild(applySyntaxHighlightingTree(node));
+                        li.appendChild(valueSpan);
+                    }
+                    parentUl.appendChild(li);
+                }
+
+                // Initial build for the root node
+                buildTree(data, '$', ul);
+                containerElement.appendChild(ul);
+                synchronizeJsonViewHeights(); // Adjust heights after tree is built
+            }
+
+            // Helper for tree view syntax highlighting (similar to previous applySyntaxHighlighting)
+            function applySyntaxHighlightingTree(value) {
+                const span = document.createElement('span');
+                if (typeof value === 'string') {
+                    span.classList.add('json-string');
+                    span.textContent = JSON.stringify(value);
+                } else if (typeof value === 'number') {
+                    span.classList.add('json-number');
+                    span.textContent = value;
+                } else if (typeof value === 'boolean') {
+                    span.classList.add('json-boolean');
+                    span.textContent = value;
+                } else if (value === null) {
+                    span.classList.add('json-null');
+                    span.textContent = 'null';
+                } else {
+                    span.textContent = String(value); // Fallback
+                }
+                return span;
+            }
+
+            // Helper for tree view diff highlighting
+            function getLineClass(path, isKeyLine, diffMap, side) {
+                let lineClass = '';
+                const type = diffMap.get(path);
+                if (type) {
+                    if (side === 'target' && type.includes('Added')) lineClass = 'diff-added-text';
+                    else if (side === 'source' && type.includes('Removed')) lineClass = 'diff-removed-text';
+                    else if (type.includes('Changed') || type.includes('Error')) lineClass = 'diff-changed-text';
+                } else if (isKeyLine) {
+                    for (const [diffPathFromMap, diffType] of diffMap.entries()) {
+                        const diffPathStr = String(diffPathFromMap);
+                        if (diffPathStr.startsWith(path + '.') || diffPathStr.startsWith(path + '[')) {
+                            if (side === 'target' && diffType.includes('Added')) { lineClass = 'diff-added-text'; break; }
+                            if (side === 'source' && diffType.includes('Removed')) { lineClass = 'diff-removed-text'; break; }
+                            if (diffType.includes('Changed') || diffType.includes('Error')) { lineClass = 'diff-changed-text'; break; }
+                        }
+                    }
+                }
+                return lineClass;
+            }
+
+            // --- JSON View Toggle Logic ---
+            function setupJsonViewToggle(sourceJson, targetJson, differences) {
+                const radioButtons = document.querySelectorAll('input[name="jsonViewMode"]');
+                const sourceCodeView = document.getElementById('sourceJsonViewCode');
+                const targetCodeView = document.getElementById('targetJsonViewCode');
+                const sourceTreeView = document.getElementById('sourceJsonViewTree');
+                const targetTreeView = document.getElementById('targetJsonViewTree');
+                const sourceWrapper = document.getElementById('sourceJsonWrapper');
+                const targetWrapper = document.getElementById('targetJsonWrapper');
+                
+                // Initialize tree views (they will be hidden by default)
+                if (sourceJson && sourceTreeView) {
+                    createJsonTree(sourceJson, sourceTreeView, differences, 'source');
+                }
+                if (targetJson && targetTreeView) {
+                    createJsonTree(targetJson, targetTreeView, differences, 'target');
+                }
+
+                radioButtons.forEach(radio => {
+                    radio.addEventListener('change', (event) => {
+                        if (event.target.value === 'code') {
+                            if (sourceCodeView) sourceCodeView.style.display = 'block';
+                            if (sourceTreeView) sourceTreeView.style.display = 'none';
+                            if (targetCodeView) targetCodeView.style.display = 'block';
+                            if (targetTreeView) targetTreeView.style.display = 'none';
+                        } else { // tree mode
+                            if (sourceCodeView) sourceCodeView.style.display = 'none';
+                            if (sourceTreeView) sourceTreeView.style.display = 'block';
+                            if (targetCodeView) targetCodeView.style.display = 'none';
+                            if (targetTreeView) targetTreeView.style.display = 'block';
+                        }
+                        synchronizeJsonViewHeights(); // Re-adjust heights after mode change
+                    });
+                });
+                // Ensure initial state is "code" and heights are synced
+                if (document.querySelector('input[name="jsonViewMode"][value="code"]').checked) {
+                     synchronizeJsonViewHeights();
+                }
+            }
+
+
             function synchronizeJsonViewHeights() {
-                const sourceView = document.getElementById('sourceJsonView');
-                const targetView = document.getElementById('targetJsonView');
-                if (sourceView && targetView) {
-                    sourceView.style.height = 'auto';
-                    targetView.style.height = 'auto';
-                    const maxHeight = Math.max(sourceView.scrollHeight, targetView.scrollHeight);
-                    sourceView.style.height = `${maxHeight}px`;
-                    targetView.style.height = `${maxHeight}px`;
+                const sourceView = document.getElementById('sourceJsonViewCode'); // Use code view for height sync
+                const targetView = document.getElementById('targetJsonViewCode');
+                const sourceTreeView = document.getElementById('sourceJsonViewTree');
+                const targetTreeView = document.getElementById('targetJsonViewTree');
+
+                const isCodeMode = document.querySelector('input[name="jsonViewMode"][value="code"]').checked;
+
+                if (isCodeMode) {
+                    if (sourceView) sourceView.style.height = 'auto';
+                    if (targetView) targetView.style.height = 'auto';
+                    const maxHeight = Math.max(sourceView ? sourceView.scrollHeight : 0, targetView ? targetView.scrollHeight : 0);
+                    if (sourceView) sourceView.style.height = `${maxHeight}px`;
+                    if (targetView) targetView.style.height = `${maxHeight}px`;
+                } else { // Tree mode
+                    if (sourceTreeView) sourceTreeView.style.height = 'auto';
+                    if (targetTreeView) targetTreeView.style.height = 'auto';
+                    const maxHeight = Math.max(sourceTreeView ? sourceTreeView.scrollHeight : 0, targetTreeView ? targetTreeView.scrollHeight : 0);
+                    if (sourceTreeView) sourceTreeView.style.height = `${maxHeight}px`;
+                    if (targetTreeView) targetTreeView.style.height = `${maxHeight}px`;
                 }
             }
             
@@ -1408,11 +1703,15 @@
                 schemaFileContent = null;
                 globalDifferences = [];
                 checkFilesReady();
+                showToast('Всі поля очищено!', 'info');
             });
 
             copyResultsBtn.addEventListener('click', () => {
                 const table = resultsContainer.querySelector('table');
-                if (!table) return;
+                if (!table) {
+                    showToast('Немає звіту для копіювання!', 'info');
+                    return;
+                }
 
                 const headerCells = Array.from(table.querySelectorAll('thead th'));
                 const header = headerCells.map(th => {
@@ -1431,11 +1730,10 @@
                 const csvContent = [header, ...rows].join('\n');
                 
                 navigator.clipboard.writeText(csvContent).then(() => {
-                    copyResultsBtn.textContent = 'Скопійовано!';
-                    setTimeout(() => { copyResultsBtn.textContent = 'Копіювати'; }, 1500);
+                    showToast('Звіт скопійовано до буфера обміну!', 'success');
                 }).catch(err => {
                     console.error('Failed to copy: ', err);
-                    alert('Не вдалося скопіювати. Перевірте дозволи у вашому браузері.');
+                    showToast('Не вдалося скопіювати. Перевірте дозволи у вашому браузері.', 'error');
                 });
             });
             
