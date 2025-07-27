@@ -1,0 +1,150 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Product Catalog",
+  "description": "A schema for a list of products in an e-commerce catalog.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "productId": {
+        "description": "The unique identifier for a product.",
+        "type": "integer"
+      },
+      "productName": {
+        "description": "Name of the product.",
+        "type": "string"
+      },
+      "description": {
+        "description": "A detailed description of the product.",
+        "type": "string"
+      },
+      "brand": {
+        "description": "The brand of the product.",
+        "type": "string"
+      },
+      "category": {
+        "description": "The category the product belongs to.",
+        "type": "string"
+      },
+      "price": {
+        "description": "The price of the product.",
+        "type": "number",
+        "exclusiveMinimum": 0
+      },
+      "currency": {
+        "description": "The currency of the price (e.g., USD).",
+        "type": "string",
+        "pattern": "^[A-Z]{3}$"
+      },
+      "stock": {
+        "description": "Information about product availability.",
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "boolean"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": ["available", "quantity"]
+      },
+      "images": {
+        "description": "A list of URLs for product images.",
+        "type": "array",
+        "items": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "variants": {
+        "description": "A list of product variants (e.g., by color, size).",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "variantId": {
+              "type": "string"
+            },
+            "color": {
+              "type": "string"
+            },
+            "size": {
+              "type": "string"
+            },
+            "screenSize": {
+              "type": "string"
+            },
+            "price": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "stockQuantity": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": ["variantId", "price", "stockQuantity"]
+        }
+      },
+      "dimensions": {
+        "description": "Physical dimensions of the product.",
+        "type": "object",
+        "properties": {
+          "weight": { "type": "string" },
+          "width": { "type": "string" },
+          "height": { "type": "string" },
+          "depth": { "type": "string" }
+        },
+        "required": ["weight", "width", "height"]
+      },
+      "ratings": {
+        "description": "Aggregated rating information.",
+        "type": "object",
+        "properties": {
+          "averageRating": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "numberOfReviews": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": ["averageRating", "numberOfReviews"]
+      },
+      "reviews": {
+        "description": "A list of customer reviews.",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "reviewId": { "type": "integer" },
+            "userId": { "type": "integer" },
+            "username": { "type": "string" },
+            "rating": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            },
+            "comment": { "type": "string" }
+          },
+          "required": ["reviewId", "userId", "username", "rating", "comment"]
+        }
+      }
+    },
+    "required": [
+      "productId",
+      "productName",
+      "description",
+      "brand",
+      "category",
+      "price",
+      "currency",
+      "stock",
+      "variants"
+    ]
+  }
+}
