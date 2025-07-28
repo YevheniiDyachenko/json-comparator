@@ -4559,13 +4559,13 @@
                                             <label><input type="checkbox" class="filter-cb" value="chang" checked> Змінені</label>
                                             ${currentMode === 'schema' ? `<label><input type="checkbox" class="filter-cb" value="schema" checked> Помилки схеми</label>` : ''}
                                         </div>
-                                        <select id="importanceFilter" style="padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-color); color: var(--text-color);">
-                                            <option value="">Вся важливість</option>
-                                            <option value="critical">🔴 Критична</option>
-                                            <option value="high">🟡 Висока</option>
-                                            <option value="medium">🟢 Середня</option>
-                                            <option value="low">⚪ Низька</option>
-                                        </select>
+                                                                <select id="importanceFilter" style="padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-color); color: var(--text-color);" title="Критерії важливості:&#10;🔴 Критична - схеми, ID, ключі&#10;🟡 Висока - типи, статуси, стани&#10;🟢 Середня - значення, імена, заголовки&#10;⚪ Низька - все інше">
+                            <option value="">Вся важливість</option>
+                            <option value="critical">🔴 Критична</option>
+                            <option value="high">🟡 Висока</option>
+                            <option value="medium">🟢 Середня</option>
+                            <option value="low">⚪ Низька</option>
+                        </select>
                                     </div>
                                     <div class="results-layout">
                                         <div class="results-main">
