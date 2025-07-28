@@ -1496,21 +1496,13 @@
                             </label>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button id="saveSettingsBtn" class="action-btn">Зберегти</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- AI Settings Modal -->
-        <div id="aiSettingsModal" class="modal-overlay">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>🤖 Налаштування Gemini AI</h2>
-                    <button class="modal-close" id="closeAiSettingsModal" aria-label="Закрити вікно">&times;</button>
-                </div>
-                <div class="modal-body">
+                    
+                    <!-- AI Settings Section -->
+                    <hr style="margin: 30px 0; border: none; border-top: 1px solid var(--border-color);">
+                    <h3 style="margin: 0 0 20px 0; color: var(--header-color); display: flex; align-items: center; gap: 8px;">
+                        🤖 Налаштування Gemini AI
+                    </h3>
+                    
                     <div class="form-group">
                         <label for="geminiApiKey" class="tooltip-container">
                             Gemini API ключ
@@ -1522,6 +1514,7 @@
                         <input type="password" id="geminiApiKey" placeholder="Введіть API ключ...">
                         <button type="button" id="testApiKey" class="action-btn" style="margin-top: 10px; padding: 5px 10px; font-size: 0.9em;">Перевірити ключ</button>
                     </div>
+                    
                     <div class="form-group">
                         <label for="geminiModel" class="tooltip-container">
                             Модель Gemini
@@ -1536,6 +1529,7 @@
                             <option value="gemini-1.0-pro">Gemini 1.0 Pro</option>
                         </select>
                     </div>
+                    
                     <div class="form-group">
                         <label class="tooltip-container">
                             Тип аналізу
@@ -1551,6 +1545,7 @@
                             <label><input type="checkbox" id="aiAnalyzeCategories"> Автоматична категоризація</label>
                         </div>
                     </div>
+                    
                     <div class="form-group">
                         <div class="checkbox-group">
                             <input type="checkbox" id="aiAutoAnalyze">
@@ -1564,7 +1559,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button id="saveAiSettingsBtn" class="action-btn">Зберегти налаштування</button>
+                    <button id="saveSettingsBtn" class="action-btn">Зберегти налаштування</button>
                 </div>
             </div>
         </div>
@@ -1697,10 +1692,6 @@
                 <span class="tooltip-container">
                     <button id="aiAnalyzeBtn" class="action-btn" style="display:none;">🤖 AI Аналіз</button>
                     <span class="tooltip">Розумний аналіз змін за допомогою Gemini AI</span>
-                </span>
-                <span class="tooltip-container">
-                    <button id="aiSettingsBtn" class="action-btn">⚙️ AI</button>
-                    <span class="tooltip">Налаштування Gemini AI інтеграції</span>
                 </span>
             </div>
 
@@ -2586,6 +2577,7 @@
 
         function saveSettings() {
             try {
+                // Save comparison settings
                 const ignorePathsField = document.getElementById('ignorePaths');
                 const arrayCompareMode = document.querySelector('input[name="arrayCompareMode"]:checked')?.value || 'key';
                 const caseSensitive = document.getElementById('caseSensitive')?.checked || true;
@@ -2603,13 +2595,16 @@
                     window.settings = settings;
                 }
                 
+                // Save AI settings
+                saveAiSettings();
+                
                 // Close modal
                 const settingsModal = document.getElementById('settingsModal');
                 if (settingsModal) {
                     settingsModal.style.display = 'none';
                 }
                 
-                showToast('Налаштування збережено!', 'success');
+                showToast('Всі налаштування збережено!', 'success');
             } catch (error) {
                 console.error('Failed to save settings:', error);
                 showToast('Помилка збереження налаштувань!', 'error');
@@ -3910,7 +3905,8 @@
             if (settingsBtn) {
                 settingsBtn.addEventListener('click', () => { 
                     settingsModal.style.display = 'flex'; 
-                    initializeTooltips(); 
+                    initializeTooltips();
+                    loadAiSettings(); // Load AI settings when modal opens
                 });
             }
             
@@ -5130,8 +5126,6 @@
             localStorage.setItem('ai_analyze_risks', aiSettings.analyzeRisks.toString());
             localStorage.setItem('ai_analyze_recommendations', aiSettings.analyzeRecommendations.toString());
             localStorage.setItem('ai_analyze_categories', aiSettings.analyzeCategories.toString());
-
-            showToast('AI налаштування збережено!', 'success');
         }
 
         // Test Gemini API key
@@ -5286,36 +5280,13 @@ ${analysisTypes.map(type => `- ${type}`).join('\n')}
             }
         }
 
-        // Initialize AI functionality
+                // Initialize AI functionality
         document.addEventListener('DOMContentLoaded', function() {
             loadAiSettings();
 
-            // AI Settings Modal handlers
-            const aiSettingsBtn = document.getElementById('aiSettingsBtn');
-            const aiSettingsModal = document.getElementById('aiSettingsModal');
-            const closeAiSettingsModal = document.getElementById('closeAiSettingsModal');
-            const saveAiSettingsBtn = document.getElementById('saveAiSettingsBtn');
+            // AI handlers for integrated settings
             const testApiKeyBtn = document.getElementById('testApiKey');
             const aiAnalyzeBtn = document.getElementById('aiAnalyzeBtn');
-
-            if (aiSettingsBtn) {
-                aiSettingsBtn.addEventListener('click', () => {
-                    if (aiSettingsModal) aiSettingsModal.style.display = 'flex';
-                });
-            }
-
-            if (closeAiSettingsModal) {
-                closeAiSettingsModal.addEventListener('click', () => {
-                    if (aiSettingsModal) aiSettingsModal.style.display = 'none';
-                });
-            }
-
-            if (saveAiSettingsBtn) {
-                saveAiSettingsBtn.addEventListener('click', () => {
-                    saveAiSettings();
-                    if (aiSettingsModal) aiSettingsModal.style.display = 'none';
-                });
-            }
 
             if (testApiKeyBtn) {
                 testApiKeyBtn.addEventListener('click', async () => {
@@ -5333,16 +5304,7 @@ ${analysisTypes.map(type => `- ${type}`).join('\n')}
                     }
                 });
             }
-
-            // Close modal on outside click
-            if (aiSettingsModal) {
-                aiSettingsModal.addEventListener('click', (event) => {
-                    if (event.target === aiSettingsModal) {
-                        aiSettingsModal.style.display = 'none';
-                    }
-                });
-                         }
-         });
+        });
     </script>
 </body>
 </html>
