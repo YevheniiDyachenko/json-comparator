@@ -572,6 +572,30 @@
         .json-tree ul {
             transition: all 0.3s ease;
         }
+        
+        /* Better spacing for tree items */
+        .json-tree li {
+            margin: 2px 0;
+            line-height: 1.6;
+        }
+        
+        /* Styling for collapsed/expanded indicators */
+        .json-tree .tree-toggle:before {
+            content: '';
+            display: inline-block;
+            width: 0;
+            height: 0;
+            margin-right: 6px;
+            vertical-align: middle;
+            border-left: 6px solid var(--text-color);
+            border-top: 4px solid transparent;
+            border-bottom: 4px solid transparent;
+            transition: transform 0.2s ease;
+        }
+        
+        .json-tree li.collapsed .tree-toggle:before {
+            transform: rotate(-90deg);
+        }
         .json-tree .tree-toggle {
             cursor: pointer;
             display: inline-block;
@@ -589,9 +613,20 @@
         .json-tree .json-number { color: var(--json-number); }
         .json-tree .json-boolean { color: var(--json-boolean); }
         .json-tree .json-null { color: var(--json-null); }
-        .json-tree .json-bracket { color: var(--json-bracket); }
+        .json-tree .json-bracket { 
+            color: var(--json-bracket); 
+            font-weight: 500;
+            opacity: 0.8;
+        }
         .json-tree .json-comma { color: var(--json-comma); }
         .json-tree .json-colon { color: var(--json-colon); }
+        
+        /* Array index styling - using attribute selector for better compatibility */
+        .json-tree .array-index { 
+            color: var(--orange); 
+            font-weight: 600;
+            font-style: italic;
+        }
 
         /* Diff highlighting in tree view */
         .json-tree .diff-added-text { background-color: rgba(40, 167, 69, 0.2); }
@@ -1141,25 +1176,79 @@
                     if (path !== '$' && path.includes('.')) { // Object property
                         const key = path.substring(path.lastIndexOf('.') + 1);
                         toggleSpan.innerHTML = `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> `;
-                    } else if (path !== '$' && path.includes('[')) { // Array item (no key to show here, just toggle)
-                        // No key content, only bracket toggle
+                    } else if (path !== '$' && path.includes('[')) { // Array item
+                        // Show array index or key for array items
+                        const indexMatch = path.match(/\[([^\]]+)\]$/);
+                        if (indexMatch) {
+                            const indexOrKey = indexMatch[1];
+                            if (indexOrKey.includes('=')) {
+                                // Key-based indexing like [id=123]
+                                const [keyName, keyValue] = indexOrKey.split('=');
+                                toggleSpan.innerHTML = `<span class="json-key array-index">[${keyName}: ${keyValue}]</span> `;
+                            } else {
+                                // Numeric index like [0]
+                                toggleSpan.innerHTML = `<span class="json-key array-index">[${indexOrKey}]</span> `;
+                            }
+                        }
                     }
 
-                    // Initial state of brackets for toggle
+                    // Initial state of brackets for toggle - показуємо кількість елементів у згорнутому стані
                     const isCollapsed = path !== '$' ? true : false; // Root is expanded, others collapsed
-                    const bracketText = isCollapsed ? (isArray ? '[ ]' : '{ }') : (isArray ? '[ - ]' : '{ - }');
+                    
+                    let bracketText;
+                    if (isCollapsed) {
+                        if (isArray) {
+                            const itemText = node.length === 1 ? 'елемент' : (node.length < 5 ? 'елементи' : 'елементів');
+                            bracketText = `[ ${node.length} ${itemText} ]`;
+                        } else {
+                            const keyCount = Object.keys(node).length;
+                            const keyText = keyCount === 1 ? 'ключ' : (keyCount < 5 ? 'ключі' : 'ключів');
+                            bracketText = `{ ${keyCount} ${keyText} }`;
+                        }
+                    } else {
+                        bracketText = isArray ? '[ - ]' : '{ - }';
+                    }
+                    
                     toggleSpan.innerHTML += `<span class="json-bracket">${bracketText}</span>`;
 
                     toggleSpan.addEventListener('click', (e) => {
                         e.stopPropagation();
                         li.classList.toggle('collapsed');
                         const isCollapsed = li.classList.contains('collapsed');
-                        const bracketText = isCollapsed ? (isArray ? '[ ]' : '{ }') : (isArray ? '[ - ]' : '{ - }');
+                        
+                        // Dynamically calculate bracket text with count info
+                        let bracketText;
+                        if (isCollapsed) {
+                            if (isArray) {
+                                const itemText = node.length === 1 ? 'елемент' : (node.length < 5 ? 'елементи' : 'елементів');
+                                bracketText = `[ ${node.length} ${itemText} ]`;
+                            } else {
+                                const keyCount = Object.keys(node).length;
+                                const keyText = keyCount === 1 ? 'ключ' : (keyCount < 5 ? 'ключі' : 'ключів');
+                                bracketText = `{ ${keyCount} ${keyText} }`;
+                            }
+                        } else {
+                            bracketText = isArray ? '[ - ]' : '{ - }';
+                        }
                         
                         let currentKeyHtml = '';
                         if (path !== '$' && path.includes('.')) {
-                           const key = path.substring(path.lastIndexOf('.') + 1);
-                           currentKeyHtml = `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> `;
+                            const key = path.substring(path.lastIndexOf('.') + 1);
+                            currentKeyHtml = `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> `;
+                        } else if (path !== '$' && path.includes('[')) {
+                            // Show array index or key for array items
+                            const indexMatch = path.match(/\[([^\]]+)\]$/);
+                            if (indexMatch) {
+                                const indexOrKey = indexMatch[1];
+                                if (indexOrKey.includes('=')) {
+                                    // Key-based indexing like [id=123]
+                                    const [keyName, keyValue] = indexOrKey.split('=');
+                                    currentKeyHtml = `<span class="json-key array-index">[${keyName}: ${keyValue}]</span> `;
+                                } else {
+                                    // Numeric index like [0]
+                                    currentKeyHtml = `<span class="json-key array-index">[${indexOrKey}]</span> `;
+                                }
+                            }
                         }
                         toggleSpan.innerHTML = `${currentKeyHtml}<span class="json-bracket">${bracketText}</span>`;
                         
@@ -1169,19 +1258,21 @@
                             childUlElement.style.display = isCollapsed ? 'none' : 'block';
                         }
                         
-                        synchronizeJsonViewHeights();
+                        // Debounce height synchronization for better performance
+                        clearTimeout(window.heightSyncTimeout);
+                        window.heightSyncTimeout = setTimeout(synchronizeJsonViewHeights, 150);
                     });
                     li.appendChild(toggleSpan);
 
                     if (isArray) {
                         li.classList.add('array-node');
-                        // Don't collapse root node, only nested ones
+                        // Collapse nested nodes but keep root expanded
                         if (path !== '$') {
                             li.classList.add('collapsed');
                         }
                     } else {
                         li.classList.add('object-node');
-                        // Don't collapse root node, only nested ones
+                        // Collapse nested nodes but keep root expanded
                         if (path !== '$') {
                             li.classList.add('collapsed');
                         }
@@ -1193,6 +1284,8 @@
                     // Set initial visibility based on collapsed state
                     if (path !== '$') {
                         childUl.style.display = 'none'; // Initially hidden for non-root nodes
+                    } else {
+                        childUl.style.display = 'block'; // Root node is always expanded initially
                     }
 
                     if (isArray) {
@@ -1229,13 +1322,37 @@
                                 // Nested object/array: this <li> will have a toggle and a nested <ul>
                                 const nestedToggleSpan = document.createElement('span');
                                 nestedToggleSpan.classList.add('tree-toggle');
-                                nestedToggleSpan.innerHTML = `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> ${Array.isArray(value) ? '<span class="json-bracket">[ ]</span>' : '<span class="json-bracket">{ }</span>'}`;
+                                // Show count info for nested objects/arrays
+                                let nestedBracketText;
+                                if (Array.isArray(value)) {
+                                    const itemText = value.length === 1 ? 'елемент' : (value.length < 5 ? 'елементи' : 'елементів');
+                                    nestedBracketText = `[ ${value.length} ${itemText} ]`;
+                                } else {
+                                    const keyCount = Object.keys(value).length;
+                                    const keyText = keyCount === 1 ? 'ключ' : (keyCount < 5 ? 'ключі' : 'ключів');
+                                    nestedBracketText = `{ ${keyCount} ${keyText} }`;
+                                }
+                                nestedToggleSpan.innerHTML = `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> <span class="json-bracket">${nestedBracketText}</span>`;
                                 
                                 nestedToggleSpan.addEventListener('click', (e) => {
                                     e.stopPropagation();
                                     childLi.classList.toggle('collapsed');
                                     const isCollapsed = childLi.classList.contains('collapsed');
-                                    const bracketText = isCollapsed ? (Array.isArray(value) ? '[ ]' : '{ }') : (Array.isArray(value) ? '[ - ]' : '{ - }');
+                                    
+                                    // Show count info when collapsed, simple brackets when expanded
+                                    let bracketText;
+                                    if (isCollapsed) {
+                                        if (Array.isArray(value)) {
+                                            const itemText = value.length === 1 ? 'елемент' : (value.length < 5 ? 'елементи' : 'елементів');
+                                            bracketText = `[ ${value.length} ${itemText} ]`;
+                                        } else {
+                                            const keyCount = Object.keys(value).length;
+                                            const keyText = keyCount === 1 ? 'ключ' : (keyCount < 5 ? 'ключі' : 'ключів');
+                                            bracketText = `{ ${keyCount} ${keyText} }`;
+                                        }
+                                    } else {
+                                        bracketText = Array.isArray(value) ? '[ - ]' : '{ - }';
+                                    }
                                     nestedToggleSpan.innerHTML = `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> <span class="json-bracket">${bracketText}</span>`;
                                     
                                     // Toggle child ul visibility
@@ -1244,7 +1361,9 @@
                                         childUlElement.style.display = isCollapsed ? 'none' : 'block';
                                     }
                                     
-                                    synchronizeJsonViewHeights();
+                                    // Debounce height synchronization for better performance
+                                    clearTimeout(window.heightSyncTimeout);
+                                    window.heightSyncTimeout = setTimeout(synchronizeJsonViewHeights, 150);
                                 });
                                 childLi.appendChild(nestedToggleSpan);
 
@@ -1277,7 +1396,16 @@
             // Initial build for the root node
             buildTree(data, '$', ul);
             containerElement.appendChild(ul);
-            console.log('JSON tree created successfully. Tree HTML:', ul.outerHTML.substring(0, 200) + '...');
+            
+            // Ensure root level items are visible
+            const rootItems = ul.querySelectorAll('ul.nested');
+            rootItems.forEach(item => {
+                if (item.parentElement.dataset.path === '$') {
+                    item.style.display = 'block';
+                }
+            });
+            
+            console.log('JSON tree created successfully for', side, 'with', diffs.length, 'differences');
             synchronizeJsonViewHeights(); // Adjust heights after tree is built
         }
 
