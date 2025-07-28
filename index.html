@@ -1072,11 +1072,9 @@
                 targetTreeView.innerHTML = ''; // Clear if no target JSON
             }
 
-            // Clean up existing listeners by cloning nodes
+            // Add event listeners to existing radio buttons
             radioButtons.forEach(radio => {
-                const newRadio = radio.cloneNode(true);
-                radio.parentNode.replaceChild(newRadio, radio);
-                newRadio.addEventListener('change', handleJsonViewChange);
+                radio.addEventListener('change', handleJsonViewChange);
             });
 
             function handleJsonViewChange(event) {
@@ -1425,14 +1423,9 @@
         }
 
         function initializeTooltips() {
-            // Remove existing tooltip containers to prevent duplicates
+            // Add tooltip listeners to existing containers without cloning
             document.querySelectorAll('.tooltip-container').forEach(container => {
-                const tooltip = container.querySelector('.tooltip');
-                if (tooltip) {
-                    let newContainer = container.cloneNode(true);
-                    container.parentNode.replaceChild(newContainer, container);
-                    addTooltipListeners(newContainer);
-                }
+                addTooltipListeners(container);
             });
         }
 
@@ -1506,73 +1499,22 @@
             }
         }
 
-        // --- DOMContentLoaded finishes initialization ---
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- DOM Elements (local references for event handlers) ---
-            const dropZone1 = document.getElementById('dropZone1');
-            const dropZone2 = document.getElementById('dropZone2');
-            const dropZoneSchema = document.getElementById('dropZoneSchema');
-            const compareBtn = document.getElementById('compareBtn');
-            const exportBtn = document.getElementById('exportBtn');
-            const resultsContainer = document.getElementById('results');
-            const modeSelector = document.querySelector('.mode-selector');
-            const loader = document.getElementById('loader');
-            const settingsBtn = document.getElementById('settingsBtn');
-            const settingsModal = document.getElementById('settingsModal');
-            const closeSettingsModalBtn = document.getElementById('closeSettingsModal');
-            const saveSettingsBtn = document.getElementById('saveSettingsBtn');
-            const clearAllBtn = document.getElementById('clearAllBtn');
-            const copyResultsBtn = document.getElementById('copyResultsBtn');
-            const widthToggleBtn = document.getElementById('widthToggleBtn');
-            const widthEnterIcon = document.getElementById('width-enter-icon');
-            const widthExitIcon = document.getElementById('width-exit-icon');
+        // --- Global utility functions for file handling ---
+        
+        // Global state variables
+        let sourceFileContent = null;
+        let targetFileContent = null;
+        let schemaFileContent = null;
+        let globalDifferences = [];
+        let currentMode = 'direct';
+        let settings = {
+            ignorePaths: [],
+            arrayCompareMode: 'key',
+            caseSensitive: true,
+        };
 
-            // --- State ---
-            let sourceFileContent = null;
-            let targetFileContent = null;
-            let schemaFileContent = null;
-            let globalDifferences = [];
-            let currentMode = 'direct';
-
-            let settings = {
-                ignorePaths: [],
-                arrayCompareMode: 'key',
-                caseSensitive: true,
-            };
-
-            // --- Initial calls for setup ---
-            loadSettings();
-            updateUiForMode();
-            initializeTooltips();
-            addKeyboardSupport();
-
-            // --- Event Listeners ---
-            settingsBtn.addEventListener('click', () => { settingsModal.style.display = 'flex'; initializeTooltips(); });
-            closeSettingsModalBtn.addEventListener('click', () => { settingsModal.style.display = 'none'; });
-            saveSettingsBtn.addEventListener('click', saveSettings);
-            window.addEventListener('click', (event) => {
-                if (event.target === settingsModal) {
-                    settingsModal.style.display = 'none';
-                }
-            });
-            
-            const themeToggle = document.getElementById('checkbox');
-            themeToggle.addEventListener('change', () => {
-                document.body.classList.toggle('dark-mode');
-                localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
-            });
-
-            // Re-apply theme on load
-            if (localStorage.getItem('theme') === 'dark') {
-                document.body.classList.add('dark-mode');
-                themeToggle.checked = true;
-            }
-
-            // Moved parseJson, setupDropZone, checkFilesReady outside DOMContentLoaded
-            // to ensure they are accessible globally if needed, and to avoid re-declarations.
-
-            // Function to parse JSON content from textarea with enhanced error handling
-            function parseJson(text, dropZone, errorEl) {
+        // Function to parse JSON content from textarea with enhanced error handling
+        function parseJson(text, dropZone, errorEl) {
                 try {
                     if (!text || text.trim() === '') {
                         errorEl.style.display = 'none';
@@ -1755,23 +1697,88 @@
                 });
             }
 
-            // Function to check if files are ready for comparison
-            function checkFilesReady() {
-                let isReady = false;
-                const sourceValid = (!document.getElementById('sourceError').style.display || document.getElementById('sourceError').style.display === 'none') && (sourceFileContent !== null && sourceFileContent.trim() !== '');
-                const targetValid = (!document.getElementById('targetError').style.display || document.getElementById('targetError').style.display === 'none') && (targetFileContent !== null && targetFileContent.trim() !== '');
-                const schemaValid = (!document.getElementById('schemaError').style.display || document.getElementById('schemaError').style.display === 'none') && (schemaFileContent !== null && schemaFileContent.trim() !== '');
+        // Function to check if files are ready for comparison
+        function checkFilesReady() {
+            let isReady = false;
+            const sourceValid = (!document.getElementById('sourceError').style.display || document.getElementById('sourceError').style.display === 'none') && (sourceFileContent !== null && sourceFileContent.trim() !== '');
+            const targetValid = (!document.getElementById('targetError').style.display || document.getElementById('targetError').style.display === 'none') && (targetFileContent !== null && targetFileContent.trim() !== '');
+            const schemaValid = (!document.getElementById('schemaError').style.display || document.getElementById('schemaError').style.display === 'none') && (schemaFileContent !== null && schemaFileContent.trim() !== '');
 
-
-                if (currentMode === 'schema') {
-                    isReady = schemaValid && targetValid;
-                } else {
-                    isReady = sourceValid && targetValid;
-                }
+            if (currentMode === 'schema') {
+                isReady = schemaValid && targetValid;
+            } else {
+                isReady = sourceValid && targetValid;
+            }
+            const compareBtn = document.getElementById('compareBtn');
+            if (compareBtn) {
                 compareBtn.disabled = !isReady;
             }
+        }
 
-            // Initial setup for drop zones (needs to be inside DOMContentLoaded as it accesses DOM elements)
+        // --- DOMContentLoaded initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const dropZone1 = document.getElementById('dropZone1');
+            const dropZone2 = document.getElementById('dropZone2');
+            const dropZoneSchema = document.getElementById('dropZoneSchema');
+            const compareBtn = document.getElementById('compareBtn');
+            const exportBtn = document.getElementById('exportBtn');
+            const resultsContainer = document.getElementById('results');
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsModal = document.getElementById('settingsModal');
+            const closeSettingsModalBtn = document.getElementById('closeSettingsModal');
+            const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+            const clearAllBtn = document.getElementById('clearAllBtn');
+            const copyResultsBtn = document.getElementById('copyResultsBtn');
+            const widthToggleBtn = document.getElementById('widthToggleBtn');
+            const widthEnterIcon = document.getElementById('width-enter-icon');
+            const widthExitIcon = document.getElementById('width-exit-icon');
+
+            // --- Initial setup ---
+            loadSettings();
+            updateUiForMode();
+            initializeTooltips();
+            addKeyboardSupport();
+
+            // --- Event Listeners ---
+            if (settingsBtn) {
+                settingsBtn.addEventListener('click', () => { 
+                    settingsModal.style.display = 'flex'; 
+                    initializeTooltips(); 
+                });
+            }
+            
+            if (closeSettingsModalBtn) {
+                closeSettingsModalBtn.addEventListener('click', () => { 
+                    settingsModal.style.display = 'none'; 
+                });
+            }
+            
+            if (saveSettingsBtn) {
+                saveSettingsBtn.addEventListener('click', saveSettings);
+            }
+            
+            window.addEventListener('click', (event) => {
+                if (event.target === settingsModal) {
+                    settingsModal.style.display = 'none';
+                }
+            });
+            
+            const themeToggle = document.getElementById('checkbox');
+            if (themeToggle) {
+                themeToggle.addEventListener('change', () => {
+                    document.body.classList.toggle('dark-mode');
+                    localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+                });
+
+                // Re-apply theme on load
+                if (localStorage.getItem('theme') === 'dark') {
+                    document.body.classList.add('dark-mode');
+                    themeToggle.checked = true;
+                }
+            }
+
+            // --- Initial setup for drop zones (needs to be inside DOMContentLoaded as it accesses DOM elements)
             setupDropZone(dropZone1, document.getElementById('sourceText'), document.getElementById('fileName1'), document.getElementById('sourceError'), content => sourceFileContent = content);
             setupDropZone(dropZone2, document.getElementById('targetText'), document.getElementById('fileName2'), document.getElementById('targetError'), content => targetFileContent = content);
             setupDropZone(dropZoneSchema, document.getElementById('schemaText'), document.getElementById('fileNameSchema'), document.getElementById('schemaError'), content => schemaFileContent = content);
@@ -2372,76 +2379,80 @@
             
             // --- These functions are now defined globally to avoid duplication ---
 
-            // --- Initial load ---
-            loadSettings();
-            updateUiForMode();
-            initializeTooltips();
+            if (clearAllBtn) {
+                clearAllBtn.addEventListener('click', () => {
+                    const sourceText = document.getElementById('sourceText');
+                    const targetText = document.getElementById('targetText');
+                    const schemaText = document.getElementById('schemaText');
+                    const fileName1 = document.getElementById('fileName1');
+                    const fileName2 = document.getElementById('fileName2');
+                    const fileNameSchema = document.getElementById('fileNameSchema');
+                    const sourceError = document.getElementById('sourceError');
+                    const targetError = document.getElementById('targetError');
+                    const schemaError = document.getElementById('schemaError');
 
-            clearAllBtn.addEventListener('click', () => {
-                document.getElementById('sourceText').value = '';
-                document.getElementById('targetText').value = '';
-                document.getElementById('schemaText').value = '';
-                document.getElementById('fileName1').textContent = '';
-                document.getElementById('fileName2').textContent = '';
-                document.getElementById('fileNameSchema').textContent = '';
-                document.getElementById('sourceError').style.display = 'none';
-                document.getElementById('targetError').style.display = 'none';
-                document.getElementById('schemaError').style.display = 'none';
-                dropZone1.classList.remove('invalid');
-                dropZone2.classList.remove('invalid');
-                dropZoneSchema.classList.remove('invalid');
-                resultsContainer.innerHTML = '';
-                resultsContainer.style.display = 'none';
-                exportBtn.style.display = 'none';
-                copyResultsBtn.style.display = 'none';
-                sourceFileContent = null;
-                targetFileContent = null;
-                schemaFileContent = null;
-                globalDifferences = [];
-                checkFilesReady();
-                showToast('Всі поля очищено!', 'info');
-            });
-
-            copyResultsBtn.addEventListener('click', () => {
-                const table = resultsContainer.querySelector('table');
-                if (!table) {
-                    showToast('Немає звіту для копіювання!', 'info');
-                    return;
-                }
-
-                const headerCells = Array.from(table.querySelectorAll('thead th'));
-                const header = headerCells.map(th => {
-                    let text = th.innerText.trim();
-                    text = text.replace(/[\u2195\u25B2\u25BC]/g, '').trim(); 
-                    return `"${text.replace(/"/g, '""')}"`;
-                }).join(',');
-
-                const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr => 
-                    Array.from(tr.querySelectorAll('td')).map(td => {
-                        let cellText = td.querySelector('pre') ? td.querySelector('pre').innerText : td.innerText;
-                        return `"${cellText.replace(/"/g, '""')}"`;
-                    }).join(',')
-                );
-                
-                const csvContent = [header, ...rows].join('\n');
-                
-                navigator.clipboard.writeText(csvContent).then(() => {
-                    showToast('Звіт скопійовано до буфера обміну!', 'success');
-                }).catch(err => {
-                    console.error('Failed to copy: ', err);
-                    showToast('Не вдалося скопіювати. Перевірте дозволи у вашому браузері.', 'error');
+                    if (sourceText) sourceText.value = '';
+                    if (targetText) targetText.value = '';
+                    if (schemaText) schemaText.value = '';
+                    if (fileName1) fileName1.textContent = '';
+                    if (fileName2) fileName2.textContent = '';
+                    if (fileNameSchema) fileNameSchema.textContent = '';
+                    if (sourceError) sourceError.style.display = 'none';
+                    if (targetError) targetError.style.display = 'none';
+                    if (schemaError) schemaError.style.display = 'none';
+                    
+                    if (dropZone1) dropZone1.classList.remove('invalid');
+                    if (dropZone2) dropZone2.classList.remove('invalid');
+                    if (dropZoneSchema) dropZoneSchema.classList.remove('invalid');
+                    
+                    if (resultsContainer) {
+                        resultsContainer.innerHTML = '';
+                        resultsContainer.style.display = 'none';
+                    }
+                    if (exportBtn) exportBtn.style.display = 'none';
+                    if (copyResultsBtn) copyResultsBtn.style.display = 'none';
+                    
+                    sourceFileContent = null;
+                    targetFileContent = null;
+                    schemaFileContent = null;
+                    globalDifferences = [];
+                    checkFilesReady();
+                    showToast('Всі поля очищено!', 'info');
                 });
-            });
-            
-            // --- Fullscreen Logic ---
-            widthToggleBtn.addEventListener('click', () => {
-                const mainContainer = document.querySelector('.container'); // Get main container reference
-                mainContainer.classList.toggle('full-width');
-                const isFullWidth = mainContainer.classList.contains('full-width');
-                widthEnterIcon.style.display = isFullWidth ? 'none' : 'block';
-                widthExitIcon.style.display = isFullWidth ? 'block' : 'none';
-                synchronizeJsonViewHeights();
-            });
+            }
+
+            if (copyResultsBtn) {
+                copyResultsBtn.addEventListener('click', () => {
+                    const table = resultsContainer?.querySelector('table');
+                    if (!table) {
+                        showToast('Немає звіту для копіювання!', 'info');
+                        return;
+                    }
+
+                    const headerCells = Array.from(table.querySelectorAll('thead th'));
+                    const header = headerCells.map(th => {
+                        let text = th.innerText.trim();
+                        text = text.replace(/[\u2195\u25B2\u25BC]/g, '').trim(); 
+                        return `"${text.replace(/"/g, '""')}"`;
+                    }).join(',');
+
+                    const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr => 
+                        Array.from(tr.querySelectorAll('td')).map(td => {
+                            let cellText = td.querySelector('pre') ? td.querySelector('pre').innerText : td.innerText;
+                            return `"${cellText.replace(/"/g, '""')}"`;
+                        }).join(',')
+                    );
+                    
+                    const csvContent = [header, ...rows].join('\n');
+                    
+                    navigator.clipboard.writeText(csvContent).then(() => {
+                        showToast('Звіт скопійовано до буфера обміну!', 'success');
+                    }).catch(err => {
+                        console.error('Failed to copy: ', err);
+                        showToast('Не вдалося скопіювати. Перевірте дозволи у вашому браузері.', 'error');
+                    });
+                });
+            }
         });
     </script>
 </body>
