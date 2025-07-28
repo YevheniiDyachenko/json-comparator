@@ -346,10 +346,10 @@
             max-width: 300px; /* Максимальна ширина підказки */
             background-color: var(--header-color);
             color: var(--main-color);
-            text-align: center;
+            text-align: left; /* Змінено з center на left для кращої читабельності */
             border-radius: 8px;
             padding: 8px 12px;
-            position: absolute;
+            position: fixed; /* Змінено з absolute на fixed для cursor-based positioning */
             z-index: 1000;
             font-size: 0.85em;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -358,47 +358,10 @@
             white-space: pre-wrap; /* Зберігає переноси рядків */
         }
 
-        /* Tooltip arrow */
-        .tooltip::after {
-            content: "";
-            position: absolute;
-            border-width: 6px;
-            border-style: solid;
-            border-color: var(--header-color) transparent transparent transparent;
-            /* Default: arrow at the bottom */
-            left: 50%;
-            margin-left: -6px;
-        }
-
-        /* Tooltip position adjustments */
-        .tooltip.top {
-            transform: translateY(10px); /* Initial transform for animation */
-        }
-        .tooltip.top::after {
-            top: auto;
-            bottom: -6px; /* Arrow at the top */
-            border-color: transparent transparent var(--header-color) transparent;
-        }
-        .tooltip.bottom {
-            transform: translateY(-10px); /* Initial transform for animation */
-        }
-        .tooltip.bottom::after {
-            top: 100%; /* Arrow at the bottom */
-            border-color: var(--header-color) transparent transparent transparent;
-        }
-
         /* Dark mode adjustments for tooltip */
         body.dark-mode .tooltip {
             background-color: #555;
             color: #eee;
-        }
-
-        body.dark-mode .tooltip::after {
-            border-color: #555 transparent transparent transparent;
-        }
-
-        body.dark-mode .tooltip.top::after {
-            border-color: transparent transparent #555 transparent;
         }
 
         /* Toast notifications */
@@ -947,7 +910,7 @@
                 li.dataset.path = path;
 
                 let nodeClass = getLineClass(path, true, diffMap, side);
-                if (nodeClass) {
+                if (nodeClass && nodeClass.trim()) {
                     li.classList.add(nodeClass);
                 }
 
@@ -1007,7 +970,10 @@
                             const value = node[key];
                             const childLi = document.createElement('li');
                             childLi.dataset.path = propPath;
-                            childLi.classList.add(getLineClass(propPath, true, diffMap, side)); // Apply line class to this specific item line
+                            const lineClass = getLineClass(propPath, true, diffMap, side);
+                            if (lineClass && lineClass.trim()) {
+                                childLi.classList.add(lineClass);
+                            }
                             
                             if (typeof value !== 'object' || value === null) {
                                 // Primitive value: display key-value directly in this <li>
@@ -1341,7 +1307,7 @@
                     if (tooltip) {
                         tooltip.style.visibility = 'hidden';
                         tooltip.style.opacity = '0';
-                        tooltip.style.transform = tooltip.classList.contains('top') ? 'translateY(10px)' : 'translateY(-10px)';
+                        tooltip.style.transform = 'translateY(10px)';
                     }
                 });
             });
@@ -1434,10 +1400,18 @@
             if (!tooltip) return;
 
             let timeoutId;
+            let mousePosition = { x: 0, y: 0 };
 
-            const mouseEnterHandler = () => {
+            const mouseMoveHandler = (e) => {
+                mousePosition.x = e.clientX;
+                mousePosition.y = e.clientY;
+            };
+
+            const mouseEnterHandler = (e) => {
                 clearTimeout(timeoutId);
-                positionTooltip(container, tooltip);
+                mousePosition.x = e.clientX;
+                mousePosition.y = e.clientY;
+                positionTooltipNearCursor(tooltip, mousePosition);
                 tooltip.style.visibility = 'visible';
                 tooltip.style.opacity = '1';
                 tooltip.style.transform = 'translateY(0)';
@@ -1447,56 +1421,80 @@
                 timeoutId = setTimeout(() => {
                     tooltip.style.visibility = 'hidden';
                     tooltip.style.opacity = '0';
-                    tooltip.style.transform = tooltip.classList.contains('top') ? 'translateY(10px)' : 'translateY(-10px)';
+                    tooltip.style.transform = 'translateY(10px)';
                 }, 100);
             };
 
+            addGlobalEventListener(container, 'mousemove', mouseMoveHandler);
             addGlobalEventListener(container, 'mouseenter', mouseEnterHandler);
             addGlobalEventListener(container, 'mouseleave', mouseLeaveHandler);
         }
 
-        function positionTooltip(container, tooltip) {
-            const containerRect = container.getBoundingClientRect();
-            const tooltipRect = tooltip.getBoundingClientRect();
+        function positionTooltipNearCursor(tooltip, mousePos) {
             const windowHeight = window.innerHeight;
             const windowWidth = window.innerWidth;
+            const offset = 15; // Distance from cursor
 
-            // Reset classes
-            tooltip.classList.remove('top', 'bottom');
+            // Reset positioning styles
+            tooltip.style.position = 'fixed';
+            tooltip.style.left = 'auto';
+            tooltip.style.right = 'auto';
+            tooltip.style.top = 'auto';
+            tooltip.style.bottom = 'auto';
+            tooltip.style.transform = 'none';
+            tooltip.style.margin = '0';
 
-            // Determine vertical position
-            const spaceAbove = containerRect.top;
-            const spaceBelow = windowHeight - containerRect.bottom;
-
-            if (spaceBelow >= tooltipRect.height + 10 || spaceBelow > spaceAbove) {
-                // Position below
-                tooltip.classList.add('bottom');
-                tooltip.style.top = '100%';
-                tooltip.style.bottom = 'auto';
-                tooltip.style.marginTop = '8px';
-                tooltip.style.marginBottom = '0';
-            } else {
-                // Position above
-                tooltip.classList.add('top');
-                tooltip.style.bottom = '100%';
-                tooltip.style.top = 'auto';
-                tooltip.style.marginBottom = '8px';
-                tooltip.style.marginTop = '0';
+            // Get tooltip dimensions (make it temporarily visible for measurement)
+            const wasVisible = tooltip.style.visibility === 'visible';
+            if (!wasVisible) {
+                tooltip.style.visibility = 'hidden';
+                tooltip.style.opacity = '1';
             }
-
-            // Horizontal centering with bounds checking
-            tooltip.style.left = '50%';
-            tooltip.style.transform = 'translateX(-50%)';
             
-            // Check if tooltip would go off-screen horizontally
-            const tooltipLeft = containerRect.left + containerRect.width / 2 - tooltipRect.width / 2;
-            if (tooltipLeft < 10) {
-                tooltip.style.left = `${10 - containerRect.left}px`;
-                tooltip.style.transform = 'none';
-            } else if (tooltipLeft + tooltipRect.width > windowWidth - 10) {
-                tooltip.style.left = `${windowWidth - 10 - containerRect.left - tooltipRect.width}px`;
-                tooltip.style.transform = 'none';
+            const tooltipRect = tooltip.getBoundingClientRect();
+            const tooltipWidth = tooltipRect.width || 200; // fallback width
+            const tooltipHeight = tooltipRect.height || 50; // fallback height
+
+            // Calculate preferred position (right of cursor)
+            let left = mousePos.x + offset;
+            let top = mousePos.y - tooltipHeight / 2;
+
+            // Check boundaries and adjust
+            if (left + tooltipWidth > windowWidth - 10) {
+                // If doesn't fit on right, place on left
+                left = mousePos.x - tooltipWidth - offset;
             }
+
+            if (left < 10) {
+                // If still doesn't fit, position at edge
+                left = 10;
+            }
+
+            if (top < 10) {
+                top = 10;
+            } else if (top + tooltipHeight > windowHeight - 10) {
+                top = windowHeight - tooltipHeight - 10;
+            }
+
+            // Apply final position
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+
+            // Restore visibility state
+            if (!wasVisible) {
+                tooltip.style.visibility = 'hidden';
+                tooltip.style.opacity = '0';
+            }
+        }
+
+        // Legacy function for focus-based positioning
+        function positionTooltip(container, tooltip) {
+            const containerRect = container.getBoundingClientRect();
+            const mousePos = {
+                x: containerRect.left + containerRect.width / 2,
+                y: containerRect.top + containerRect.height / 2
+            };
+            positionTooltipNearCursor(tooltip, mousePos);
         }
 
         // --- Global utility functions for file handling ---
@@ -2451,6 +2449,40 @@
                         console.error('Failed to copy: ', err);
                         showToast('Не вдалося скопіювати. Перевірте дозволи у вашому браузері.', 'error');
                     });
+                });
+            }
+
+            // --- Width Toggle Logic ---
+            if (widthToggleBtn) {
+                widthToggleBtn.addEventListener('click', () => {
+                    const mainContainer = document.querySelector('.container');
+                    if (mainContainer) {
+                        mainContainer.classList.toggle('full-width');
+                        const isFullWidth = mainContainer.classList.contains('full-width');
+                        if (widthEnterIcon) widthEnterIcon.style.display = isFullWidth ? 'none' : 'block';
+                        if (widthExitIcon) widthExitIcon.style.display = isFullWidth ? 'block' : 'none';
+                        synchronizeJsonViewHeights();
+                    }
+                });
+            }
+
+            // --- Export Logic ---
+            if (document.getElementById('exportTxt')) {
+                document.getElementById('exportTxt').addEventListener('click', (e) => { 
+                    e.preventDefault(); 
+                    exportReport('txt'); 
+                });
+            }
+            if (document.getElementById('exportJson')) {
+                document.getElementById('exportJson').addEventListener('click', (e) => { 
+                    e.preventDefault(); 
+                    exportReport('json'); 
+                });
+            }
+            if (document.getElementById('exportCsv')) {
+                document.getElementById('exportCsv').addEventListener('click', (e) => { 
+                    e.preventDefault(); 
+                    exportReport('csv'); 
                 });
             }
         });
