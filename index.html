@@ -648,6 +648,622 @@
         .json-tree li.collapsed .tree-toggle:before {
             transform: rotate(-90deg);
         }
+
+        /* Drag & Drop Styles */
+        .drop-zone {
+            position: relative;
+            transition: all 0.3s ease;
+            border: 2px dashed transparent;
+            border-radius: 8px;
+            background: var(--bg-color);
+        }
+        
+        .drop-zone.drag-over {
+            border-color: var(--accent-color);
+            background: rgba(76, 175, 80, 0.1);
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+        }
+        
+        .drop-zone.drag-invalid {
+            border-color: var(--red);
+            background: rgba(244, 67, 54, 0.1);
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        .drop-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            background: var(--main-color);
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid var(--accent-color);
+            color: var(--accent-color);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .drop-zone.drag-over .drop-indicator {
+            opacity: 1;
+        }
+        
+        .drop-zone.drag-invalid .drop-indicator {
+            border-color: var(--red);
+            color: var(--red);
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        @keyframes dropSuccess {
+            0% { transform: scale(1) rotate(0deg); opacity: 1; }
+            50% { transform: scale(1.1) rotate(180deg); opacity: 0.8; }
+            100% { transform: scale(1) rotate(360deg); opacity: 1; }
+        }
+        
+        .drop-success {
+            animation: dropSuccess 0.6s ease-in-out;
+        }
+        
+        /* File input styling */
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .file-input-hidden {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .file-upload-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: var(--text-muted);
+            font-size: 1.2em;
+            pointer-events: none;
+        }
+
+        /* JSON Formatter Controls */
+        .formatter-controls {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+        
+        .drop-zone:hover .formatter-controls,
+        .drop-zone:focus-within .formatter-controls {
+            opacity: 1;
+        }
+        
+        .formatter-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .formatter-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .formatter-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .formatter-btn.beautify {
+            background: #4CAF50;
+        }
+        
+        .formatter-btn.beautify:hover {
+            background: #45a049;
+        }
+        
+        .formatter-btn.minify {
+            background: #FF9800;
+        }
+        
+        .formatter-btn.minify:hover {
+            background: #f57c00;
+        }
+        
+        .formatter-btn.validate {
+            background: #2196F3;
+        }
+        
+                 .formatter-btn.validate:hover {
+             background: #1976D2;
+         }
+
+         /* History Modal Styles */
+         .history-list {
+             max-height: 400px;
+             overflow-y: auto;
+             margin: 20px 0;
+         }
+         
+         .history-item {
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+             padding: 12px;
+             border: 1px solid var(--border-color);
+             border-radius: 6px;
+             margin-bottom: 8px;
+             background: var(--bg-color);
+             transition: all 0.2s ease;
+             cursor: pointer;
+         }
+         
+         .history-item:hover {
+             background: var(--main-color);
+             border-color: var(--accent-color);
+             transform: translateY(-1px);
+             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+         }
+         
+         .history-item.selected {
+             border-color: var(--accent-color);
+             background: rgba(76, 175, 80, 0.1);
+         }
+         
+         .history-info {
+             flex: 1;
+         }
+         
+         .history-title {
+             font-weight: 600;
+             color: var(--header-color);
+             margin-bottom: 4px;
+         }
+         
+         .history-meta {
+             font-size: 0.85em;
+             color: var(--text-muted);
+             display: flex;
+             gap: 15px;
+         }
+         
+         .history-actions {
+             display: flex;
+             gap: 8px;
+         }
+         
+         .history-btn {
+             padding: 4px 8px;
+             border: none;
+             border-radius: 4px;
+             font-size: 0.8em;
+             cursor: pointer;
+             transition: all 0.2s ease;
+         }
+         
+         .history-btn.load {
+             background: var(--accent-color);
+             color: white;
+         }
+         
+         .history-btn.load:hover {
+             background: var(--accent-hover);
+         }
+         
+         .history-btn.delete {
+             background: var(--red);
+             color: white;
+         }
+         
+         .history-btn.delete:hover {
+             background: #d32f2f;
+         }
+         
+         .history-empty {
+             text-align: center;
+             padding: 40px 20px;
+             color: var(--text-muted);
+         }
+         
+         .history-stats {
+             background: var(--bg-color);
+             padding: 10px;
+             border-radius: 6px;
+             margin-bottom: 15px;
+             font-size: 0.9em;
+             color: var(--text-muted);
+         }
+
+         /* Side-by-Side Diff Viewer Styles */
+         .view-mode-toggle {
+             display: flex;
+             gap: 10px;
+             margin-bottom: 20px;
+             padding: 10px;
+             background: var(--bg-color);
+             border-radius: 8px;
+             border: 1px solid var(--border-color);
+         }
+         
+         .view-mode-btn {
+             padding: 8px 16px;
+             border: 1px solid var(--border-color);
+             border-radius: 6px;
+             background: var(--main-color);
+             color: var(--text-color);
+             cursor: pointer;
+             transition: all 0.2s ease;
+             font-size: 0.9em;
+         }
+         
+         .view-mode-btn:hover {
+             border-color: var(--accent-color);
+             transform: translateY(-1px);
+         }
+         
+         .view-mode-btn.active {
+             background: var(--accent-color);
+             color: white;
+             border-color: var(--accent-color);
+         }
+         
+         .side-by-side-container {
+             display: flex;
+             gap: 20px;
+             height: 600px;
+             border: 1px solid var(--border-color);
+             border-radius: 8px;
+             overflow: hidden;
+         }
+         
+         .side-panel {
+             flex: 1;
+             display: flex;
+             flex-direction: column;
+             background: var(--main-color);
+         }
+         
+         .side-panel-header {
+             background: var(--bg-color);
+             padding: 12px 16px;
+             border-bottom: 1px solid var(--border-color);
+             font-weight: 600;
+             color: var(--header-color);
+             display: flex;
+             align-items: center;
+             gap: 8px;
+         }
+         
+         .side-panel-content {
+             flex: 1;
+             overflow: auto;
+             padding: 16px;
+             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+             font-size: 14px;
+             line-height: 1.6;
+             white-space: pre-wrap;
+             word-break: break-word;
+         }
+         
+         .side-panel.left {
+             border-right: 1px solid var(--border-color);
+         }
+         
+         .diff-line {
+             padding: 2px 8px;
+             margin: 1px 0;
+             border-radius: 4px;
+             position: relative;
+         }
+         
+         .diff-line.added {
+             background: rgba(76, 175, 80, 0.15);
+             border-left: 3px solid #4CAF50;
+         }
+         
+         .diff-line.removed {
+             background: rgba(244, 67, 54, 0.15);
+             border-left: 3px solid #f44336;
+         }
+         
+         .diff-line.modified {
+             background: rgba(255, 152, 0, 0.15);
+             border-left: 3px solid #FF9800;
+         }
+         
+         .diff-line.context {
+             background: transparent;
+             color: var(--text-muted);
+         }
+         
+         .diff-line-number {
+             display: inline-block;
+             width: 40px;
+             text-align: right;
+             color: var(--text-muted);
+             margin-right: 12px;
+             font-size: 0.85em;
+         }
+         
+         .diff-highlight {
+             background: rgba(255, 235, 59, 0.4);
+             padding: 2px;
+             border-radius: 2px;
+         }
+         
+         .sync-scroll {
+             scrollbar-width: thin;
+         }
+         
+         .sync-scroll::-webkit-scrollbar {
+             width: 8px;
+         }
+         
+         .sync-scroll::-webkit-scrollbar-track {
+             background: var(--bg-color);
+         }
+         
+         .sync-scroll::-webkit-scrollbar-thumb {
+             background: var(--border-color);
+             border-radius: 4px;
+         }
+         
+         .sync-scroll::-webkit-scrollbar-thumb:hover {
+             background: var(--text-muted);
+         }
+
+         /* Advanced Search Styles */
+         .search-container {
+             background: var(--bg-color);
+             padding: 15px;
+             border-radius: 8px;
+             border: 1px solid var(--border-color);
+             margin-bottom: 20px;
+         }
+         
+         .search-box {
+             position: relative;
+             display: flex;
+             align-items: center;
+             gap: 10px;
+         }
+         
+         .search-input {
+             flex: 1;
+             padding: 10px 40px 10px 12px;
+             border: 1px solid var(--border-color);
+             border-radius: 6px;
+             background: var(--main-color);
+             color: var(--text-color);
+             font-size: 14px;
+             transition: border-color 0.2s ease;
+         }
+         
+         .search-input:focus {
+             outline: none;
+             border-color: var(--accent-color);
+             box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+         }
+         
+         .search-icon {
+             position: absolute;
+             right: 12px;
+             top: 50%;
+             transform: translateY(-50%);
+             color: var(--text-muted);
+             pointer-events: none;
+         }
+         
+         .search-filters {
+             display: flex;
+             gap: 15px;
+             margin-top: 10px;
+             flex-wrap: wrap;
+         }
+         
+         .search-filter-group {
+             display: flex;
+             align-items: center;
+             gap: 8px;
+         }
+         
+         .search-filter-group label {
+             font-size: 0.9em;
+             color: var(--text-color);
+             cursor: pointer;
+         }
+         
+         .search-filter-group input[type="checkbox"] {
+             margin: 0;
+         }
+         
+         .search-stats {
+             margin-top: 10px;
+             padding: 8px 12px;
+             background: var(--main-color);
+             border-radius: 4px;
+             font-size: 0.9em;
+             color: var(--text-muted);
+             border-left: 3px solid var(--accent-color);
+         }
+         
+         .search-highlight {
+             background: rgba(255, 235, 59, 0.6);
+             padding: 1px 2px;
+             border-radius: 2px;
+             font-weight: 600;
+         }
+         
+         .search-hidden {
+             display: none !important;
+         }
+         
+         .search-match {
+             background: rgba(76, 175, 80, 0.1);
+             border-left: 3px solid var(--accent-color);
+         }
+         
+         .search-no-results {
+             text-align: center;
+             padding: 40px 20px;
+             color: var(--text-muted);
+             background: var(--bg-color);
+             border-radius: 6px;
+             margin: 20px 0;
+         }
+
+         /* Real-time JSON Editor Styles */
+         .json-editor-container {
+             position: relative;
+         }
+         
+         .json-editor-overlay {
+             position: absolute;
+             top: 0;
+             left: 0;
+             right: 0;
+             bottom: 0;
+             pointer-events: none;
+             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+             font-size: inherit;
+             line-height: inherit;
+             padding: inherit;
+             margin: inherit;
+             border: inherit;
+             white-space: pre-wrap;
+             overflow: hidden;
+             color: transparent;
+             background: transparent;
+         }
+         
+         .json-editor-textarea {
+             position: relative;
+             z-index: 2;
+             background: transparent;
+             color: var(--text-color);
+             resize: vertical;
+         }
+         
+         .json-syntax-highlight {
+             z-index: 1;
+         }
+         
+         .json-preview {
+             background: var(--bg-color);
+             border: 1px solid var(--border-color);
+             border-radius: 6px;
+             padding: 12px;
+             margin-top: 10px;
+             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+             font-size: 0.9em;
+             max-height: 200px;
+             overflow: auto;
+         }
+         
+         .json-validation-status {
+             display: flex;
+             align-items: center;
+             gap: 8px;
+             margin-top: 8px;
+             padding: 6px 10px;
+             border-radius: 4px;
+             font-size: 0.85em;
+             transition: all 0.2s ease;
+         }
+         
+         .json-validation-status.valid {
+             background: rgba(76, 175, 80, 0.1);
+             color: var(--green);
+             border-left: 3px solid var(--green);
+         }
+         
+         .json-validation-status.invalid {
+             background: rgba(244, 67, 54, 0.1);
+             color: var(--red);
+             border-left: 3px solid var(--red);
+         }
+         
+         .json-validation-status.empty {
+             background: rgba(158, 158, 158, 0.1);
+             color: var(--text-muted);
+             border-left: 3px solid var(--text-muted);
+         }
+         
+         .json-char-count {
+             position: absolute;
+             bottom: 8px;
+             right: 12px;
+             font-size: 0.75em;
+             color: var(--text-muted);
+             background: var(--main-color);
+             padding: 2px 6px;
+             border-radius: 3px;
+             pointer-events: none;
+         }
+         
+         .json-line-numbers {
+             position: absolute;
+             top: 0;
+             left: 0;
+             bottom: 0;
+             width: 40px;
+             background: var(--bg-color);
+             border-right: 1px solid var(--border-color);
+             color: var(--text-muted);
+             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+             font-size: 0.85em;
+             line-height: inherit;
+             padding: 12px 8px;
+             user-select: none;
+             overflow: hidden;
+         }
+         
+         .json-editor-with-numbers textarea {
+             padding-left: 52px;
+         }
+         
+         .auto-save-indicator {
+             position: absolute;
+             top: 8px;
+             right: 8px;
+             padding: 4px 8px;
+             background: var(--accent-color);
+             color: white;
+             border-radius: 4px;
+             font-size: 0.75em;
+             opacity: 0;
+             transition: opacity 0.3s ease;
+         }
+         
+         .auto-save-indicator.show {
+             opacity: 1;
+         }
         .json-tree .tree-toggle {
             cursor: pointer;
             display: inline-block;
@@ -1459,6 +2075,34 @@
                     <button class="modal-close" id="closeSettingsModal" aria-label="Закрити вікно">&times;</button>
                 </div>
                 <div class="modal-body">
+                    <!-- Templates Section -->
+                    <div class="form-group">
+                        <label class="tooltip-container">
+                            📋 Шаблони налаштувань
+                            <span class="tooltip">
+                                Збережіть поточні налаштування як шаблон або завантажте готовий
+                            </span>
+                        </label>
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <select id="settingsTemplates" style="flex: 1; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-color); color: var(--text-color);">
+                                <option value="">Оберіть шаблон...</option>
+                                <option value="default">🏠 За замовчуванням</option>
+                                <option value="api-comparison">🔌 API Порівняння</option>
+                                <option value="config-files">⚙️ Конфігураційні файли</option>
+                                <option value="strict-validation">🔒 Строга валідація</option>
+                                <option value="loose-comparison">🔓 М'яке порівняння</option>
+                            </select>
+                            <button type="button" id="loadTemplate" class="action-btn" style="padding: 8px 12px; font-size: 0.9em;">📥 Завантажити</button>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="newTemplateName" placeholder="Назва нового шаблону..." style="flex: 1; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--main-color); color: var(--text-color);">
+                            <button type="button" id="saveTemplate" class="action-btn" style="padding: 8px 12px; font-size: 0.9em;">💾 Зберегти</button>
+                            <button type="button" id="deleteTemplate" class="action-btn" style="padding: 8px 12px; font-size: 0.9em; background: var(--red);">🗑️ Видалити</button>
+                        </div>
+                    </div>
+                    
+                    <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border-color);">
+                    
                     <div class="form-group">
                         <label for="ignorePaths" class="tooltip-container">
                             Поля для ігнорування (JSONPath)
@@ -1564,6 +2208,35 @@
             </div>
         </div>
 
+        <!-- History Modal -->
+        <div id="historyModal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>📚 Історія порівнянь</h2>
+                    <button class="modal-close" id="closeHistoryModal" aria-label="Закрити вікно">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="history-stats" id="historyStats">
+                        Завантаження...
+                    </div>
+                    
+                    <div class="history-list" id="historyList">
+                        <!-- History items will be inserted here -->
+                    </div>
+                    
+                    <div class="history-empty" id="historyEmpty" style="display: none;">
+                        <div style="font-size: 3em; margin-bottom: 10px;">📝</div>
+                        <p>Історія порівнянь пуста</p>
+                        <p style="font-size: 0.9em;">Виконайте порівняння, щоб побачити історію тут</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="clearHistoryBtn" class="action-btn" style="background: var(--red);">🗑️ Очистити історію</button>
+                    <button id="exportHistoryBtn" class="action-btn">💾 Експорт історії</button>
+                </div>
+            </div>
+        </div>
+
         <div class="container" id="main-container">
             <main id="main-content">
             <div class="header">
@@ -1622,6 +2295,14 @@
                     <textarea id="sourceText" placeholder="Перетягніть сюди Source файл або вставте JSON" 
                               aria-labelledby="dropZone1-label" aria-describedby="dropZone1-desc sourceError"
                               aria-invalid="false"></textarea>
+                    <div class="formatter-controls">
+                        <button class="formatter-btn beautify" title="Форматувати JSON" data-target="sourceText">✨ Format</button>
+                        <button class="formatter-btn minify" title="Стиснути JSON" data-target="sourceText">📦 Minify</button>
+                        <button class="formatter-btn validate" title="Перевірити JSON" data-target="sourceText">✅ Valid</button>
+                    </div>
+                    <div class="drop-indicator">
+                        📄 Відпустіть для завантаження JSON файлу
+                    </div>
                     <div class="error-message" id="sourceError" role="alert" aria-live="polite"></div>
                     <span class="file-name" id="fileName1" aria-live="polite"></span>
                 </div>
@@ -1631,6 +2312,14 @@
                     <textarea id="targetText" placeholder="Перетягніть сюди Target файл або вставте JSON"
                               aria-labelledby="dropZone2-label" aria-describedby="dropZone2-desc targetError"
                               aria-invalid="false"></textarea>
+                    <div class="formatter-controls">
+                        <button class="formatter-btn beautify" title="Форматувати JSON" data-target="targetText">✨ Format</button>
+                        <button class="formatter-btn minify" title="Стиснути JSON" data-target="targetText">📦 Minify</button>
+                        <button class="formatter-btn validate" title="Перевірити JSON" data-target="targetText">✅ Valid</button>
+                    </div>
+                    <div class="drop-indicator">
+                        📄 Відпустіть для завантаження JSON файлу
+                    </div>
                     <div class="error-message" id="targetError" role="alert" aria-live="polite"></div>
                     <span class="file-name" id="fileName2" aria-live="polite"></span>
                 </div>
@@ -1640,6 +2329,14 @@
                                     <textarea id="schemaText" placeholder="Перетягніть сюди JSON Schema файл або вставте схему"
                           aria-labelledby="dropZoneSchema-label" aria-describedby="dropZoneSchema-desc schemaError"
                           aria-invalid="false"></textarea>
+                    <div class="formatter-controls">
+                        <button class="formatter-btn beautify" title="Форматувати Schema" data-target="schemaText">✨ Format</button>
+                        <button class="formatter-btn minify" title="Стиснути Schema" data-target="schemaText">📦 Minify</button>
+                        <button class="formatter-btn validate" title="Перевірити Schema" data-target="schemaText">✅ Valid</button>
+                    </div>
+                    <div class="drop-indicator">
+                        📋 Відпустіть для завантаження JSON Schema
+                    </div>
                 <div class="schema-examples" style="margin-top: 10px; font-size: 0.9em; color: var(--text-color); opacity: 0.7;">
                     <details>
                         <summary style="cursor: pointer; margin-bottom: 5px;">📋 Приклади JSON Schema</summary>
@@ -1684,6 +2381,10 @@
                 <span class="tooltip-container">
                     <button id="clearAllBtn" class="action-btn">Очистити</button>
                     <span class="tooltip">Очистити всі вхідні поля та результати</span>
+                </span>
+                <span class="tooltip-container">
+                    <button id="historyBtn" class="action-btn">📚 Історія</button>
+                    <span class="tooltip">Переглянути та завантажити попередні порівняння</span>
                 </span>
                 <span class="tooltip-container">
                     <button id="copyResultsBtn" class="action-btn" style="display:none;">Копіювати</button>
@@ -3065,6 +3766,7 @@
 
             // Create various analytics cards
             grid.appendChild(createChangeDistributionChart(differences));
+            grid.appendChild(createImportanceLevelChart(differences));
             grid.appendChild(createComplexityMetrics(differences, sourceJson, targetJson));
             grid.appendChild(createPathAnalysisChart(differences));
             grid.appendChild(createTimelineAnalysis(differences));
@@ -3123,6 +3825,96 @@
                                         position: 'bottom',
                                         labels: {
                                             font: { size: 10 }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+            }, 100);
+
+            return card;
+        }
+
+        function createImportanceLevelChart(differences) {
+            const card = document.createElement('div');
+            card.className = 'analytics-card';
+            card.innerHTML = `
+                <div class="card-title">Розподіл за важливістю</div>
+                <div class="chart-container">
+                    <canvas id="importanceLevelChart"></canvas>
+                </div>
+            `;
+
+            // Count importance levels
+            const importanceCounts = {
+                'critical': 0,
+                'high': 0,
+                'medium': 0,
+                'low': 0
+            };
+
+            differences.forEach(diff => {
+                const importance = getImportanceLevel(diff);
+                importanceCounts[importance]++;
+            });
+
+            // Remove zero counts for cleaner chart
+            const nonZeroImportance = {};
+            Object.entries(importanceCounts).forEach(([level, count]) => {
+                if (count > 0) {
+                    nonZeroImportance[level] = count;
+                }
+            });
+
+            const importanceLabels = {
+                'critical': '🔴 Критична',
+                'high': '🟡 Висока',
+                'medium': '🟢 Середня',
+                'low': '⚪ Низька'
+            };
+
+            const importanceColors = {
+                'critical': '#dc3545',
+                'high': '#fd7e14',
+                'medium': '#ffc107',
+                'low': '#6c757d'
+            };
+
+            setTimeout(() => {
+                if (typeof Chart !== 'undefined') {
+                    const ctx = document.getElementById('importanceLevelChart');
+                    if (ctx) {
+                        analyticsCharts.importance = new Chart(ctx, {
+                            type: 'pie',
+                            data: {
+                                labels: Object.keys(nonZeroImportance).map(level => importanceLabels[level]),
+                                datasets: [{
+                                    data: Object.values(nonZeroImportance),
+                                    backgroundColor: Object.keys(nonZeroImportance).map(level => importanceColors[level]),
+                                    borderWidth: 2,
+                                    borderColor: '#fff'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: 'bottom',
+                                        labels: {
+                                            font: { size: 10 },
+                                            padding: 10
+                                        }
+                                    },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                                const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                                return `${context.label}: ${context.parsed} (${percentage}%)`;
+                                            }
                                         }
                                     }
                                 }
@@ -4703,12 +5495,20 @@
                 exportBtn.style.display = 'inline-block';
                 copyResultsBtn.style.display = 'inline-block';
                 
+                // Add side-by-side view toggle if we have differences
+                if (errorDifferences.length > 0) {
+                    addSideBySideViewToggle(sourceJson, targetJson, errorDifferences);
+                }
+                
                 // Store differences for AI analysis and show AI button
                 window.lastDifferences = errorDifferences.length > 0 ? errorDifferences : differences;
                 const aiAnalyzeBtn = document.getElementById('aiAnalyzeBtn');
                 if (aiAnalyzeBtn) {
                     aiAnalyzeBtn.style.display = 'inline-block';
                 }
+                
+                // Save to history
+                saveCurrentComparisonToHistory();
                 
                 // Auto AI analysis if enabled
                 if (aiSettings.autoAnalyze && aiSettings.apiKey && window.lastDifferences.length > 0) {
@@ -4979,6 +5779,10 @@
                     targetFileContent = null;
                     schemaFileContent = null;
                     globalDifferences = [];
+                    
+                    // Clean up analytics charts
+                    cleanupAnalyticsCharts();
+                    
                     checkFilesReady();
                     showToast('Всі поля очищено!', 'info');
                 });
@@ -5304,7 +6108,1875 @@ ${analysisTypes.map(type => `- ${type}`).join('\n')}
                     }
                 });
             }
+
+            // --- Drag & Drop Functionality ---
+            initializeDragAndDrop();
+
+            // --- JSON Formatter Functionality ---
+            initializeJSONFormatter();
+
+            // --- History Functionality ---
+            initializeHistory();
+
+            // --- Real-time JSON Editor ---
+            initializeRealtimeJsonEditor();
+
+            // --- Settings Templates ---
+            initializeSettingsTemplates();
         });
+
+        // Drag & Drop Implementation
+        function initializeDragAndDrop() {
+            const dropZones = [
+                { zone: document.getElementById('dropZone1'), textarea: document.getElementById('sourceText'), fileName: document.getElementById('fileName1') },
+                { zone: document.getElementById('dropZone2'), textarea: document.getElementById('targetText'), fileName: document.getElementById('fileName2') },
+                { zone: document.getElementById('dropZoneSchema'), textarea: document.getElementById('schemaText'), fileName: document.getElementById('fileNameSchema') }
+            ];
+
+            dropZones.forEach(({ zone, textarea, fileName }) => {
+                if (!zone || !textarea) return;
+
+                // Prevent default drag behaviors
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    zone.addEventListener(eventName, preventDefaults, false);
+                    document.body.addEventListener(eventName, preventDefaults, false);
+                });
+
+                // Highlight drop zone when item is dragged over it
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    zone.addEventListener(eventName, () => highlightDropZone(zone), false);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    zone.addEventListener(eventName, () => unhighlightDropZone(zone), false);
+                });
+
+                // Handle dropped files
+                zone.addEventListener('drop', (e) => handleDrop(e, textarea, fileName), false);
+            });
+        }
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlightDropZone(zone) {
+            zone.classList.add('drag-over');
+        }
+
+        function unhighlightDropZone(zone) {
+            zone.classList.remove('drag-over', 'drag-invalid');
+        }
+
+        function handleDrop(e, textarea, fileNameElement) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+
+            if (files.length === 0) {
+                showToast('Не знайдено файлів для завантаження', 'warning');
+                return;
+            }
+
+            if (files.length > 1) {
+                showToast('Будь ласка, перетягніть лише один файл', 'warning');
+                return;
+            }
+
+            const file = files[0];
+            
+            // Validate file type
+            if (!isValidJSONFile(file)) {
+                const zone = e.currentTarget;
+                zone.classList.add('drag-invalid');
+                setTimeout(() => zone.classList.remove('drag-invalid'), 500);
+                showToast('Будь ласка, завантажте JSON файл (.json або .txt)', 'error');
+                return;
+            }
+
+            // Success animation
+            const zone = e.currentTarget;
+            zone.classList.add('drop-success');
+            setTimeout(() => zone.classList.remove('drop-success'), 600);
+
+            // Read file
+            readJSONFile(file, textarea, fileNameElement);
+        }
+
+        function isValidJSONFile(file) {
+            const validTypes = ['application/json', 'text/json', 'text/plain'];
+            const validExtensions = ['.json', '.txt'];
+            
+            const hasValidType = validTypes.includes(file.type);
+            const hasValidExtension = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+            
+            return hasValidType || hasValidExtension || file.type === '';
+        }
+
+        function readJSONFile(file, textarea, fileNameElement) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const content = e.target.result;
+                    
+                    // Try to parse JSON to validate
+                    JSON.parse(content);
+                    
+                    // If parsing successful, set content
+                    textarea.value = content;
+                    
+                    // Update file name display
+                    if (fileNameElement) {
+                        fileNameElement.textContent = `📁 ${file.name} (${formatFileSize(file.size)})`;
+                        fileNameElement.style.display = 'block';
+                    }
+                    
+                    // Clear any existing errors
+                    const errorElement = getErrorElementForTextarea(textarea);
+                    if (errorElement) {
+                        errorElement.textContent = '';
+                        textarea.setAttribute('aria-invalid', 'false');
+                    }
+                    
+                    // Trigger change event
+                    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                    
+                    showToast(`✅ Файл "${file.name}" успішно завантажено`, 'success');
+                    
+                } catch (error) {
+                    console.error('JSON parsing error:', error);
+                    showToast(`❌ Помилка в JSON файлі: ${error.message}`, 'error');
+                    
+                    // Still load content but show error
+                    textarea.value = e.target.result;
+                    
+                    const errorElement = getErrorElementForTextarea(textarea);
+                    if (errorElement) {
+                        errorElement.textContent = `Невалідний JSON: ${error.message}`;
+                        textarea.setAttribute('aria-invalid', 'true');
+                    }
+                }
+            };
+            
+            reader.onerror = function() {
+                showToast('❌ Помилка читання файлу', 'error');
+            };
+            
+            reader.readAsText(file);
+        }
+
+        function getErrorElementForTextarea(textarea) {
+            const textareaId = textarea.id;
+            const errorId = textareaId.replace('Text', 'Error');
+            return document.getElementById(errorId);
+        }
+
+                 function formatFileSize(bytes) {
+             if (bytes === 0) return '0 Bytes';
+             const k = 1024;
+             const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+             const i = Math.floor(Math.log(bytes) / Math.log(k));
+             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+         }
+
+         // JSON Formatter Implementation
+         function initializeJSONFormatter() {
+             document.addEventListener('click', function(e) {
+                 if (e.target.classList.contains('formatter-btn')) {
+                     const targetId = e.target.getAttribute('data-target');
+                     const textarea = document.getElementById(targetId);
+                     
+                     if (!textarea) return;
+                     
+                     if (e.target.classList.contains('beautify')) {
+                         beautifyJSON(textarea);
+                     } else if (e.target.classList.contains('minify')) {
+                         minifyJSON(textarea);
+                     } else if (e.target.classList.contains('validate')) {
+                         validateJSON(textarea);
+                     }
+                 }
+             });
+         }
+
+         function beautifyJSON(textarea) {
+             const content = textarea.value.trim();
+             
+             if (!content) {
+                 showToast('Немає JSON для форматування', 'warning');
+                 return;
+             }
+
+             try {
+                 const jsonObject = JSON.parse(content);
+                 const beautified = JSON.stringify(jsonObject, null, 2);
+                 
+                 textarea.value = beautified;
+                 
+                 // Clear any errors
+                 const errorElement = getErrorElementForTextarea(textarea);
+                 if (errorElement) {
+                     errorElement.textContent = '';
+                     textarea.setAttribute('aria-invalid', 'false');
+                 }
+                 
+                 // Trigger change event
+                 textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                 
+                 showToast('✨ JSON відформатовано!', 'success');
+                 
+             } catch (error) {
+                 showToast(`❌ Помилка JSON: ${error.message}`, 'error');
+                 highlightJSONError(textarea, error);
+             }
+         }
+
+         function minifyJSON(textarea) {
+             const content = textarea.value.trim();
+             
+             if (!content) {
+                 showToast('Немає JSON для стиснення', 'warning');
+                 return;
+             }
+
+             try {
+                 const jsonObject = JSON.parse(content);
+                 const minified = JSON.stringify(jsonObject);
+                 
+                 textarea.value = minified;
+                 
+                 // Clear any errors
+                 const errorElement = getErrorElementForTextarea(textarea);
+                 if (errorElement) {
+                     errorElement.textContent = '';
+                     textarea.setAttribute('aria-invalid', 'false');
+                 }
+                 
+                 // Trigger change event
+                 textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                 
+                 const originalLength = content.length;
+                 const minifiedLength = minified.length;
+                 const savedBytes = originalLength - minifiedLength;
+                 const savedPercent = ((savedBytes / originalLength) * 100).toFixed(1);
+                 
+                 showToast(`📦 JSON стиснено! Зекономлено ${savedBytes} символів (${savedPercent}%)`, 'success');
+                 
+             } catch (error) {
+                 showToast(`❌ Помилка JSON: ${error.message}`, 'error');
+                 highlightJSONError(textarea, error);
+             }
+         }
+
+         function validateJSON(textarea) {
+             const content = textarea.value.trim();
+             
+             if (!content) {
+                 showToast('Немає JSON для перевірки', 'warning');
+                 return;
+             }
+
+             try {
+                 const jsonObject = JSON.parse(content);
+                 
+                 // Clear any errors
+                 const errorElement = getErrorElementForTextarea(textarea);
+                 if (errorElement) {
+                     errorElement.textContent = '';
+                     textarea.setAttribute('aria-invalid', 'false');
+                 }
+                 
+                 // Count properties for detailed info
+                 const stats = getJSONStats(jsonObject);
+                 
+                 showToast(`✅ Валідний JSON! ${stats}`, 'success');
+                 
+             } catch (error) {
+                 const errorElement = getErrorElementForTextarea(textarea);
+                 if (errorElement) {
+                     errorElement.textContent = `Помилка JSON: ${error.message}`;
+                     textarea.setAttribute('aria-invalid', 'true');
+                 }
+                 
+                 showToast(`❌ Невалідний JSON: ${error.message}`, 'error');
+                 highlightJSONError(textarea, error);
+             }
+         }
+
+         function highlightJSONError(textarea, error) {
+             // Try to extract line number from error message
+             const lineMatch = error.message.match(/line (\d+)|position (\d+)/i);
+             if (lineMatch) {
+                 const position = parseInt(lineMatch[1] || lineMatch[2]);
+                 if (position && textarea.setSelectionRange) {
+                     setTimeout(() => {
+                         textarea.focus();
+                         textarea.setSelectionRange(Math.max(0, position - 10), Math.min(textarea.value.length, position + 10));
+                     }, 100);
+                 }
+             }
+         }
+
+         function getJSONStats(obj) {
+             const type = Array.isArray(obj) ? 'Array' : typeof obj;
+             
+             if (Array.isArray(obj)) {
+                 return `Масив з ${obj.length} елементів`;
+             } else if (typeof obj === 'object' && obj !== null) {
+                 const keys = Object.keys(obj);
+                 return `Об'єкт з ${keys.length} властивостями`;
+             } else {
+                 return `Тип: ${type}`;
+             }
+         }
+
+         // Enhanced JSON validation with detailed error reporting
+         function validateJSONWithDetails(content) {
+             try {
+                 const obj = JSON.parse(content);
+                 return {
+                     valid: true,
+                     data: obj,
+                     stats: getJSONStats(obj),
+                     size: content.length
+                 };
+             } catch (error) {
+                 return {
+                     valid: false,
+                     error: error.message,
+                     line: extractLineNumber(error.message),
+                     column: extractColumnNumber(error.message)
+                 };
+             }
+         }
+
+         function extractLineNumber(errorMessage) {
+             const match = errorMessage.match(/line (\d+)/i);
+             return match ? parseInt(match[1]) : null;
+         }
+
+         function extractColumnNumber(errorMessage) {
+             const match = errorMessage.match(/column (\d+)/i);
+             return match ? parseInt(match[1]) : null;
+         }
+
+         // History Management Implementation
+         const HISTORY_KEY = 'jsonComparatorHistory';
+         const MAX_HISTORY_ITEMS = 20;
+
+         function initializeHistory() {
+             const historyBtn = document.getElementById('historyBtn');
+             const historyModal = document.getElementById('historyModal');
+             const closeHistoryModal = document.getElementById('closeHistoryModal');
+             const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+             const exportHistoryBtn = document.getElementById('exportHistoryBtn');
+
+             if (historyBtn) {
+                 historyBtn.addEventListener('click', () => {
+                     openHistoryModal();
+                 });
+             }
+
+             if (closeHistoryModal) {
+                 closeHistoryModal.addEventListener('click', () => {
+                     historyModal.style.display = 'none';
+                 });
+             }
+
+             if (clearHistoryBtn) {
+                 clearHistoryBtn.addEventListener('click', () => {
+                     clearHistory();
+                 });
+             }
+
+             if (exportHistoryBtn) {
+                 exportHistoryBtn.addEventListener('click', () => {
+                     exportHistory();
+                 });
+             }
+
+             // Close modal on outside click
+             if (historyModal) {
+                 historyModal.addEventListener('click', (event) => {
+                     if (event.target === historyModal) {
+                         historyModal.style.display = 'none';
+                     }
+                 });
+             }
+         }
+
+         function saveToHistory(sourceData, targetData, schemaData, differences, mode) {
+             try {
+                 const history = getHistory();
+                 
+                 const historyItem = {
+                     id: Date.now(),
+                     timestamp: new Date().toISOString(),
+                     mode: mode,
+                     sourceData: sourceData ? sourceData.substring(0, 1000) + (sourceData.length > 1000 ? '...' : '') : '',
+                     targetData: targetData ? targetData.substring(0, 1000) + (targetData.length > 1000 ? '...' : '') : '',
+                     schemaData: schemaData ? schemaData.substring(0, 1000) + (schemaData.length > 1000 ? '...' : '') : '',
+                     fullSourceData: sourceData || '',
+                     fullTargetData: targetData || '',
+                     fullSchemaData: schemaData || '',
+                     differenceCount: differences.length,
+                     summary: generateComparisonSummary(differences),
+                     title: generateComparisonTitle(mode, differences.length)
+                 };
+
+                 // Add to beginning of array
+                 history.unshift(historyItem);
+
+                 // Limit history size
+                 if (history.length > MAX_HISTORY_ITEMS) {
+                     history.splice(MAX_HISTORY_ITEMS);
+                 }
+
+                 localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+                 console.log('Comparison saved to history:', historyItem.title);
+                 
+             } catch (error) {
+                 console.error('Failed to save to history:', error);
+             }
+         }
+
+         function getHistory() {
+             try {
+                 const historyJson = localStorage.getItem(HISTORY_KEY);
+                 return historyJson ? JSON.parse(historyJson) : [];
+             } catch (error) {
+                 console.error('Failed to load history:', error);
+                 return [];
+             }
+         }
+
+         function generateComparisonTitle(mode, diffCount) {
+             const modeNames = {
+                 'direct': 'Пряме порівняння',
+                 'keys': 'Розумне порівняння',
+                 'schema': 'Валідація схеми'
+             };
+             
+             const modeName = modeNames[mode] || 'Порівняння';
+             return `${modeName} (${diffCount} ${diffCount === 1 ? 'зміна' : diffCount < 5 ? 'зміни' : 'змін'})`;
+         }
+
+         function generateComparisonSummary(differences) {
+             if (differences.length === 0) {
+                 return 'Відмінностей не знайдено';
+             }
+
+             const types = {};
+             differences.forEach(diff => {
+                 types[diff.type] = (types[diff.type] || 0) + 1;
+             });
+
+             const summary = Object.entries(types)
+                 .map(([type, count]) => `${type}: ${count}`)
+                 .join(', ');
+
+             return summary;
+         }
+
+         function openHistoryModal() {
+             const historyModal = document.getElementById('historyModal');
+             const historyList = document.getElementById('historyList');
+             const historyEmpty = document.getElementById('historyEmpty');
+             const historyStats = document.getElementById('historyStats');
+
+             if (!historyModal) return;
+
+             historyModal.style.display = 'flex';
+             loadHistoryItems();
+         }
+
+         function loadHistoryItems() {
+             const history = getHistory();
+             const historyList = document.getElementById('historyList');
+             const historyEmpty = document.getElementById('historyEmpty');
+             const historyStats = document.getElementById('historyStats');
+
+             if (history.length === 0) {
+                 historyList.innerHTML = '';
+                 historyEmpty.style.display = 'block';
+                 historyStats.innerHTML = 'Історія порівнянь пуста';
+                 return;
+             }
+
+             historyEmpty.style.display = 'none';
+
+             // Update stats
+             const totalComparisons = history.length;
+             const totalDifferences = history.reduce((sum, item) => sum + item.differenceCount, 0);
+             const oldestDate = new Date(history[history.length - 1].timestamp).toLocaleDateString('uk-UA');
+             
+             historyStats.innerHTML = `
+                 📊 ${totalComparisons} порівнянь • 🔍 ${totalDifferences} відмінностей • 📅 Найстаріше: ${oldestDate}
+             `;
+
+             // Render history items
+             historyList.innerHTML = history.map(item => `
+                 <div class="history-item" data-id="${item.id}">
+                     <div class="history-info">
+                         <div class="history-title">${item.title}</div>
+                         <div class="history-meta">
+                             <span>📅 ${new Date(item.timestamp).toLocaleString('uk-UA')}</span>
+                             <span>📋 ${item.mode}</span>
+                             <span>📄 ${item.summary}</span>
+                         </div>
+                     </div>
+                     <div class="history-actions">
+                         <button class="history-btn load" onclick="loadHistoryItem(${item.id})" title="Завантажити">📂 Завантажити</button>
+                         <button class="history-btn delete" onclick="deleteHistoryItem(${item.id})" title="Видалити">🗑️</button>
+                     </div>
+                 </div>
+             `).join('');
+         }
+
+         function loadHistoryItem(id) {
+             const history = getHistory();
+             const item = history.find(h => h.id === id);
+             
+             if (!item) {
+                 showToast('Історичний запис не знайдено', 'error');
+                 return;
+             }
+
+             // Load data into textareas
+             const sourceText = document.getElementById('sourceText');
+             const targetText = document.getElementById('targetText');
+             const schemaText = document.getElementById('schemaText');
+
+             if (sourceText) sourceText.value = item.fullSourceData;
+             if (targetText) targetText.value = item.fullTargetData;
+             if (schemaText && item.fullSchemaData) schemaText.value = item.fullSchemaData;
+
+             // Set mode
+             const modeRadio = document.querySelector(`input[name="compareMode"][value="${item.mode}"]`);
+             if (modeRadio) {
+                 modeRadio.checked = true;
+                 // Trigger change event to update UI
+                 modeRadio.dispatchEvent(new Event('change', { bubbles: true }));
+             }
+
+             // Close modal
+             const historyModal = document.getElementById('historyModal');
+             if (historyModal) historyModal.style.display = 'none';
+
+             showToast(`✅ Завантажено: ${item.title}`, 'success');
+
+             // Auto-run comparison if data is valid
+             setTimeout(() => {
+                 if (sourceText.value && targetText.value) {
+                     const compareBtn = document.getElementById('compareBtn');
+                     if (compareBtn && !compareBtn.disabled) {
+                         compareBtn.click();
+                     }
+                 }
+             }, 500);
+         }
+
+         function deleteHistoryItem(id) {
+             if (!confirm('Видалити цей запис з історії?')) return;
+
+             const history = getHistory();
+             const filteredHistory = history.filter(item => item.id !== id);
+             
+             localStorage.setItem(HISTORY_KEY, JSON.stringify(filteredHistory));
+             loadHistoryItems();
+             
+             showToast('Запис видалено з історії', 'success');
+         }
+
+         function clearHistory() {
+             if (!confirm('Очистити всю історію порівнянь? Цю дію неможливо скасувати.')) return;
+
+             localStorage.removeItem(HISTORY_KEY);
+             loadHistoryItems();
+             
+             showToast('Історію очищено', 'success');
+         }
+
+         function exportHistory() {
+             const history = getHistory();
+             
+             if (history.length === 0) {
+                 showToast('Історія пуста - немає що експортувати', 'warning');
+                 return;
+             }
+
+             const exportData = {
+                 exportDate: new Date().toISOString(),
+                 version: '1.0',
+                 totalItems: history.length,
+                 history: history
+             };
+
+             const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+             const url = URL.createObjectURL(blob);
+             const a = document.createElement('a');
+             a.href = url;
+             a.download = `json-comparator-history-${new Date().toISOString().split('T')[0]}.json`;
+             document.body.appendChild(a);
+             a.click();
+             document.body.removeChild(a);
+             URL.revokeObjectURL(url);
+
+             showToast(`📁 Історію експортовано (${history.length} записів)`, 'success');
+         }
+
+                   // Hook into existing comparison function to save to history
+          // This needs to be called after comparison completes
+          function saveCurrentComparisonToHistory() {
+              try {
+                  const sourceText = document.getElementById('sourceText')?.value || '';
+                  const targetText = document.getElementById('targetText')?.value || '';
+                  const schemaText = document.getElementById('schemaText')?.value || '';
+                  const currentMode = document.querySelector('input[name="compareMode"]:checked')?.value || 'direct';
+                  
+                  if (window.lastDifferences && (sourceText || targetText)) {
+                      saveToHistory(sourceText, targetText, schemaText, window.lastDifferences, currentMode);
+                  }
+              } catch (error) {
+                  console.error('Failed to save comparison to history:', error);
+              }
+          }
+
+          // Side-by-Side Diff Viewer Implementation
+          let diffViewMode = 'table'; // 'table' or 'side-by-side'
+
+          function addSideBySideViewToggle(sourceJson, targetJson, differences) {
+              const resultsContainer = document.getElementById('results');
+              if (!resultsContainer) return;
+
+              // Create view mode toggle
+              const viewModeToggle = document.createElement('div');
+              viewModeToggle.className = 'view-mode-toggle';
+              viewModeToggle.innerHTML = `
+                  <div style="display: flex; align-items: center; gap: 15px; width: 100%;">
+                      <span style="font-weight: 600; color: var(--header-color);">Режим відображення:</span>
+                                             <button class="view-mode-btn ${diffViewMode === 'table' ? 'active' : ''}" data-mode="table">
+                           📋 Таблиця
+                       </button>
+                       <button class="view-mode-btn ${diffViewMode === 'side-by-side' ? 'active' : ''}" data-mode="side-by-side">
+                          👥 Порівняння поряд
+                      </button>
+                      <div style="margin-left: auto; font-size: 0.9em; color: var(--text-muted);">
+                          ${differences.length} відмінностей знайдено
+                      </div>
+                  </div>
+              `;
+
+              // Create search container
+              const searchContainer = createAdvancedSearchContainer(differences);
+              
+              // Insert search and toggle at the beginning of results
+              resultsContainer.insertBefore(searchContainer, resultsContainer.firstChild);
+              resultsContainer.insertBefore(viewModeToggle, searchContainer.nextSibling);
+
+              // Add event listeners
+              const toggleButtons = viewModeToggle.querySelectorAll('.view-mode-btn');
+              toggleButtons.forEach(btn => {
+                  btn.addEventListener('click', () => {
+                      const mode = btn.getAttribute('data-mode');
+                      switchViewMode(mode, sourceJson, targetJson, differences);
+                  });
+              });
+
+              // Store data for mode switching
+              window.currentComparisonData = {
+                  sourceJson,
+                  targetJson,
+                  differences
+              };
+          }
+
+                     function switchViewMode(mode, sourceJson, targetJson, differences) {
+               diffViewMode = mode;
+              
+              // Update active button
+              document.querySelectorAll('.view-mode-btn').forEach(btn => {
+                  btn.classList.toggle('active', btn.getAttribute('data-mode') === mode);
+              });
+
+              const resultsContainer = document.getElementById('results');
+              const existingContent = resultsContainer.querySelector(':not(.view-mode-toggle)');
+              
+              if (mode === 'side-by-side') {
+                  // Hide existing content and show side-by-side view
+                  if (existingContent) existingContent.style.display = 'none';
+                  
+                  let sideBySideContainer = resultsContainer.querySelector('.side-by-side-container');
+                  if (!sideBySideContainer) {
+                      sideBySideContainer = createSideBySideView(sourceJson, targetJson, differences);
+                      resultsContainer.appendChild(sideBySideContainer);
+                  } else {
+                      sideBySideContainer.style.display = 'flex';
+                  }
+              } else {
+                  // Show table view and hide side-by-side
+                  if (existingContent) existingContent.style.display = 'block';
+                  
+                  const sideBySideContainer = resultsContainer.querySelector('.side-by-side-container');
+                  if (sideBySideContainer) {
+                      sideBySideContainer.style.display = 'none';
+                  }
+              }
+          }
+
+          function createSideBySideView(sourceJson, targetJson, differences) {
+              const container = document.createElement('div');
+              container.className = 'side-by-side-container';
+
+              const sourceFormatted = JSON.stringify(sourceJson, null, 2);
+              const targetFormatted = JSON.stringify(targetJson, null, 2);
+
+              const sourceLines = sourceFormatted.split('\n');
+              const targetLines = targetFormatted.split('\n');
+
+              // Create diff mapping
+              const diffMap = createDiffMapping(differences, sourceJson, targetJson);
+
+              container.innerHTML = `
+                  <div class="side-panel left">
+                      <div class="side-panel-header">
+                          📄 Source JSON
+                          <span style="margin-left: auto; font-size: 0.8em; opacity: 0.7;">${sourceLines.length} рядків</span>
+                      </div>
+                      <div class="side-panel-content sync-scroll" id="leftPanel">
+                          ${renderDiffLines(sourceLines, diffMap.source, 'source')}
+                      </div>
+                  </div>
+                  <div class="side-panel right">
+                      <div class="side-panel-header">
+                          📄 Target JSON
+                          <span style="margin-left: auto; font-size: 0.8em; opacity: 0.7;">${targetLines.length} рядків</span>
+                      </div>
+                      <div class="side-panel-content sync-scroll" id="rightPanel">
+                          ${renderDiffLines(targetLines, diffMap.target, 'target')}
+                      </div>
+                  </div>
+              `;
+
+              // Add synchronized scrolling
+              setTimeout(() => {
+                  setupSynchronizedScrolling();
+              }, 100);
+
+              return container;
+          }
+
+          function createDiffMapping(differences, sourceJson, targetJson) {
+              const mapping = {
+                  source: new Map(),
+                  target: new Map()
+              };
+
+              differences.forEach(diff => {
+                  try {
+                      const path = diff.path;
+                      
+                      // Simple path-based mapping for demonstration
+                      // In a real implementation, you'd need more sophisticated line mapping
+                      const pathSegments = path.split('.').filter(p => p !== '$');
+                      
+                      if (pathSegments.length > 0) {
+                          const key = pathSegments[pathSegments.length - 1];
+                          
+                          if (diff.type.includes('Add')) {
+                              mapping.target.set(key, 'added');
+                          } else if (diff.type.includes('Remov')) {
+                              mapping.source.set(key, 'removed');
+                          } else {
+                              mapping.source.set(key, 'modified');
+                              mapping.target.set(key, 'modified');
+                          }
+                      }
+                  } catch (error) {
+                      console.warn('Error processing diff for mapping:', error);
+                  }
+              });
+
+              return mapping;
+          }
+
+          function renderDiffLines(lines, diffMap, side) {
+              return lines.map((line, index) => {
+                  let diffClass = 'context';
+                  let diffType = '';
+
+                  // Check if this line contains any of the changed keys
+                  for (const [key, type] of diffMap.entries()) {
+                      if (line.includes(`"${key}"`)) {
+                          diffClass = type;
+                          diffType = type;
+                          break;
+                      }
+                  }
+
+                  const lineNumber = index + 1;
+                  const escapedLine = escapeHtml(line);
+                  
+                  return `
+                      <div class="diff-line ${diffClass}" data-line="${lineNumber}">
+                          <span class="diff-line-number">${lineNumber}</span>
+                          ${diffType ? `<span class="diff-highlight">${escapedLine}</span>` : escapedLine}
+                      </div>
+                  `;
+              }).join('');
+          }
+
+          function escapeHtml(text) {
+              const div = document.createElement('div');
+              div.textContent = text;
+              return div.innerHTML;
+          }
+
+          function setupSynchronizedScrolling() {
+              const leftPanel = document.getElementById('leftPanel');
+              const rightPanel = document.getElementById('rightPanel');
+
+              if (!leftPanel || !rightPanel) return;
+
+              let isScrolling = false;
+
+              function syncScroll(source, target) {
+                  if (isScrolling) return;
+                  isScrolling = true;
+                  
+                  const percentage = source.scrollTop / (source.scrollHeight - source.clientHeight);
+                  target.scrollTop = percentage * (target.scrollHeight - target.clientHeight);
+                  
+                  setTimeout(() => {
+                      isScrolling = false;
+                  }, 10);
+              }
+
+                             leftPanel.addEventListener('scroll', () => syncScroll(leftPanel, rightPanel));
+               rightPanel.addEventListener('scroll', () => syncScroll(rightPanel, leftPanel));
+           }
+
+           // Advanced Search Implementation
+           let searchState = {
+               query: '',
+               caseSensitive: false,
+               searchInPaths: true,
+               searchInValues: true,
+               searchInTypes: true,
+               regexMode: false
+           };
+
+           function createAdvancedSearchContainer(differences) {
+               const container = document.createElement('div');
+               container.className = 'search-container';
+               container.id = 'advancedSearchContainer';
+               
+               container.innerHTML = `
+                   <div class="search-box">
+                       <input type="text" class="search-input" id="searchInput" 
+                              placeholder="Пошук в результатах... (підтримується JSONPath та регулярні вирази)">
+                       <span class="search-icon">🔍</span>
+                   </div>
+                   <div class="search-filters">
+                       <div class="search-filter-group">
+                           <input type="checkbox" id="searchPaths" checked>
+                           <label for="searchPaths">Шляхи</label>
+                       </div>
+                       <div class="search-filter-group">
+                           <input type="checkbox" id="searchValues" checked>
+                           <label for="searchValues">Значення</label>
+                       </div>
+                       <div class="search-filter-group">
+                           <input type="checkbox" id="searchTypes" checked>
+                           <label for="searchTypes">Типи</label>
+                       </div>
+                       <div class="search-filter-group">
+                           <input type="checkbox" id="caseSensitive">
+                           <label for="caseSensitive">Регістр</label>
+                       </div>
+                       <div class="search-filter-group">
+                           <input type="checkbox" id="regexMode">
+                           <label for="regexMode">Regex</label>
+                       </div>
+                       <button class="action-btn" id="clearSearch" style="padding: 6px 12px; font-size: 0.8em;">✖ Очистити</button>
+                   </div>
+                   <div class="search-stats" id="searchStats" style="display: none;">
+                       📊 Знайдено: 0 з ${differences.length} результатів
+                   </div>
+               `;
+
+               // Initialize search functionality
+               setTimeout(() => {
+                   initializeAdvancedSearch();
+               }, 100);
+
+               return container;
+           }
+
+           function initializeAdvancedSearch() {
+               const searchInput = document.getElementById('searchInput');
+               const searchPaths = document.getElementById('searchPaths');
+               const searchValues = document.getElementById('searchValues');
+               const searchTypes = document.getElementById('searchTypes');
+               const caseSensitive = document.getElementById('caseSensitive');
+               const regexMode = document.getElementById('regexMode');
+               const clearSearch = document.getElementById('clearSearch');
+
+               if (!searchInput) return;
+
+               // Add event listeners
+               searchInput.addEventListener('input', debounce(performSearch, 300));
+               searchInput.addEventListener('keydown', (e) => {
+                   if (e.key === 'Enter') {
+                       e.preventDefault();
+                       performSearch();
+                   }
+               });
+
+               [searchPaths, searchValues, searchTypes, caseSensitive, regexMode].forEach(element => {
+                   if (element) {
+                       element.addEventListener('change', () => {
+                           updateSearchState();
+                           performSearch();
+                       });
+                   }
+               });
+
+               if (clearSearch) {
+                   clearSearch.addEventListener('click', clearSearchResults);
+               }
+
+               // Initialize state
+               updateSearchState();
+           }
+
+           function updateSearchState() {
+               searchState.query = document.getElementById('searchInput')?.value || '';
+               searchState.caseSensitive = document.getElementById('caseSensitive')?.checked || false;
+               searchState.searchInPaths = document.getElementById('searchPaths')?.checked || true;
+               searchState.searchInValues = document.getElementById('searchValues')?.checked || true;
+               searchState.searchInTypes = document.getElementById('searchTypes')?.checked || true;
+               searchState.regexMode = document.getElementById('regexMode')?.checked || false;
+           }
+
+           function performSearch() {
+               updateSearchState();
+               
+               if (!searchState.query.trim()) {
+                   clearSearchResults();
+                   return;
+               }
+
+               try {
+                   const results = searchInResults(searchState.query);
+                   displaySearchResults(results);
+               } catch (error) {
+                   console.error('Search error:', error);
+                   showToast(`❌ Помилка пошуку: ${error.message}`, 'error');
+               }
+           }
+
+           function searchInResults(query) {
+               const resultsContainer = document.getElementById('results');
+               if (!resultsContainer) return [];
+
+               const searchResults = [];
+               let totalElements = 0;
+
+               // Search in table rows
+               const tableRows = resultsContainer.querySelectorAll('tr[data-diff-index]');
+               tableRows.forEach((row, index) => {
+                   totalElements++;
+                   const isMatch = checkRowMatch(row, query);
+                   
+                   if (isMatch) {
+                       searchResults.push({
+                           element: row,
+                           type: 'table-row',
+                           index: index,
+                           content: getRowContent(row)
+                       });
+                       row.classList.add('search-match');
+                       highlightMatches(row, query);
+                   } else {
+                       row.classList.remove('search-match');
+                       removeHighlights(row);
+                   }
+               });
+
+               // Search in side-by-side view
+               const diffLines = resultsContainer.querySelectorAll('.diff-line');
+               diffLines.forEach((line, index) => {
+                   if (tableRows.length === 0) totalElements++; // Only count if not already counted table rows
+                   
+                   const isMatch = checkLineMatch(line, query);
+                   
+                   if (isMatch && tableRows.length === 0) {
+                       searchResults.push({
+                           element: line,
+                           type: 'diff-line',
+                           index: index,
+                           content: line.textContent
+                       });
+                       line.classList.add('search-match');
+                       highlightMatches(line, query);
+                   } else if (!isMatch) {
+                       line.classList.remove('search-match');
+                       removeHighlights(line);
+                   }
+               });
+
+               return {
+                   matches: searchResults,
+                   total: totalElements
+               };
+           }
+
+           function checkRowMatch(row, query) {
+               let searchText = '';
+               
+               if (searchState.searchInPaths) {
+                   const pathCell = row.querySelector('td:nth-child(2)');
+                   if (pathCell) searchText += pathCell.textContent + ' ';
+               }
+               
+               if (searchState.searchInValues) {
+                   const oldValueCell = row.querySelector('td:nth-child(4)');
+                   const newValueCell = row.querySelector('td:nth-child(5)');
+                   if (oldValueCell) searchText += oldValueCell.textContent + ' ';
+                   if (newValueCell) searchText += newValueCell.textContent + ' ';
+               }
+               
+               if (searchState.searchInTypes) {
+                   const typeCell = row.querySelector('td:nth-child(1)');
+                   if (typeCell) searchText += typeCell.textContent + ' ';
+               }
+
+               return performTextMatch(searchText, query);
+           }
+
+           function checkLineMatch(line, query) {
+               const searchText = line.textContent;
+               return performTextMatch(searchText, query);
+           }
+
+           function performTextMatch(text, query) {
+               if (!text || !query) return false;
+
+               if (searchState.regexMode) {
+                   try {
+                       const flags = searchState.caseSensitive ? 'g' : 'gi';
+                       const regex = new RegExp(query, flags);
+                       return regex.test(text);
+                   } catch (error) {
+                       return false;
+                   }
+               } else {
+                   const searchText = searchState.caseSensitive ? text : text.toLowerCase();
+                   const searchQuery = searchState.caseSensitive ? query : query.toLowerCase();
+                   return searchText.includes(searchQuery);
+               }
+           }
+
+           function highlightMatches(element, query) {
+               if (!query || searchState.regexMode) return; // Skip highlighting for regex searches
+               
+               const walker = document.createTreeWalker(
+                   element,
+                   NodeFilter.SHOW_TEXT,
+                   null,
+                   false
+               );
+
+               const textNodes = [];
+               let node;
+               while (node = walker.nextNode()) {
+                   textNodes.push(node);
+               }
+
+               textNodes.forEach(textNode => {
+                   const text = textNode.textContent;
+                   const searchText = searchState.caseSensitive ? text : text.toLowerCase();
+                   const searchQuery = searchState.caseSensitive ? query : query.toLowerCase();
+                   
+                   if (searchText.includes(searchQuery)) {
+                       const parent = textNode.parentNode;
+                       const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), searchState.caseSensitive ? 'g' : 'gi');
+                       const highlightedText = text.replace(regex, '<span class="search-highlight">$&</span>');
+                       
+                       if (highlightedText !== text) {
+                           const span = document.createElement('span');
+                           span.innerHTML = highlightedText;
+                           parent.replaceChild(span, textNode);
+                       }
+                   }
+               });
+           }
+
+           function removeHighlights(element) {
+               const highlights = element.querySelectorAll('.search-highlight');
+               highlights.forEach(highlight => {
+                   const parent = highlight.parentNode;
+                   parent.replaceChild(document.createTextNode(highlight.textContent), highlight);
+                   parent.normalize(); // Merge adjacent text nodes
+               });
+           }
+
+           function displaySearchResults(results) {
+               const searchStats = document.getElementById('searchStats');
+               const matchCount = results.matches.length;
+               const totalCount = results.total;
+
+               if (searchStats) {
+                   searchStats.style.display = 'block';
+                   searchStats.innerHTML = `📊 Знайдено: ${matchCount} з ${totalCount} результатів`;
+                   
+                   if (matchCount === 0) {
+                       searchStats.innerHTML += ' - спробуйте інший запит';
+                       searchStats.style.borderLeftColor = 'var(--red)';
+                   } else {
+                       searchStats.style.borderLeftColor = 'var(--accent-color)';
+                   }
+               }
+
+               // Show/hide non-matching elements
+               const allElements = document.querySelectorAll('[data-diff-index], .diff-line');
+               allElements.forEach(element => {
+                   const isMatch = results.matches.some(match => match.element === element);
+                   if (matchCount > 0) {
+                       element.style.display = isMatch ? '' : 'none';
+                   } else {
+                       element.style.display = '';
+                   }
+               });
+
+               // Scroll to first match
+               if (results.matches.length > 0) {
+                   setTimeout(() => {
+                       results.matches[0].element.scrollIntoView({ 
+                           behavior: 'smooth', 
+                           block: 'center' 
+                       });
+                   }, 100);
+               }
+           }
+
+           function clearSearchResults() {
+               const searchInput = document.getElementById('searchInput');
+               const searchStats = document.getElementById('searchStats');
+               
+               if (searchInput) searchInput.value = '';
+               if (searchStats) searchStats.style.display = 'none';
+
+               // Remove all highlights and show all elements
+               const allElements = document.querySelectorAll('[data-diff-index], .diff-line');
+               allElements.forEach(element => {
+                   element.style.display = '';
+                   element.classList.remove('search-match');
+                   removeHighlights(element);
+               });
+
+               searchState.query = '';
+           }
+
+           function getRowContent(row) {
+               const cells = row.querySelectorAll('td');
+               return Array.from(cells).map(cell => cell.textContent).join(' ');
+           }
+
+           function debounce(func, wait) {
+               let timeout;
+               return function executedFunction(...args) {
+                   const later = () => {
+                       clearTimeout(timeout);
+                       func(...args);
+                   };
+                   clearTimeout(timeout);
+                   timeout = setTimeout(later, wait);
+                               };
+            }
+
+            // Real-time JSON Editor Implementation
+            function initializeRealtimeJsonEditor() {
+                const textareas = ['sourceText', 'targetText', 'schemaText'];
+                
+                textareas.forEach(textareaId => {
+                    const textarea = document.getElementById(textareaId);
+                    if (textarea) {
+                        enhanceTextareaWithRealtimeFeatures(textarea);
+                    }
+                });
+            }
+
+            function enhanceTextareaWithRealtimeFeatures(textarea) {
+                const container = textarea.parentElement;
+                
+                // Wrap textarea in editor container
+                const editorContainer = document.createElement('div');
+                editorContainer.className = 'json-editor-container';
+                
+                // Move textarea inside container
+                container.insertBefore(editorContainer, textarea);
+                editorContainer.appendChild(textarea);
+                
+                // Add validation status element
+                const validationStatus = document.createElement('div');
+                validationStatus.className = 'json-validation-status empty';
+                validationStatus.innerHTML = '📝 Готовий до введення';
+                editorContainer.appendChild(validationStatus);
+                
+                // Add character count
+                const charCount = document.createElement('div');
+                charCount.className = 'json-char-count';
+                charCount.textContent = '0 символів';
+                editorContainer.appendChild(charCount);
+                
+                // Add auto-save indicator
+                const autoSaveIndicator = document.createElement('div');
+                autoSaveIndicator.className = 'auto-save-indicator';
+                autoSaveIndicator.textContent = '💾 Збережено';
+                editorContainer.appendChild(autoSaveIndicator);
+                
+                // Set up real-time validation
+                let validationTimeout;
+                let autoSaveTimeout;
+                
+                textarea.addEventListener('input', function() {
+                    const content = textarea.value;
+                    
+                    // Update character count
+                    updateCharacterCount(charCount, content);
+                    
+                    // Clear previous validation timeout
+                    clearTimeout(validationTimeout);
+                    
+                    // Debounced validation
+                    validationTimeout = setTimeout(() => {
+                        validateJsonRealtime(content, validationStatus);
+                    }, 300);
+                    
+                    // Auto-save functionality
+                    clearTimeout(autoSaveTimeout);
+                    autoSaveTimeout = setTimeout(() => {
+                        autoSaveContent(textarea.id, content, autoSaveIndicator);
+                    }, 1000);
+                });
+                
+                // Load saved content on page load
+                loadAutoSavedContent(textarea);
+                
+                // Initial validation
+                const initialContent = textarea.value;
+                if (initialContent) {
+                    updateCharacterCount(charCount, initialContent);
+                    validateJsonRealtime(initialContent, validationStatus);
+                }
+            }
+
+            function updateCharacterCount(charCountElement, content) {
+                const charCount = content.length;
+                const lineCount = content.split('\n').length;
+                charCountElement.textContent = `${charCount} символів, ${lineCount} рядків`;
+                
+                // Color coding based on length
+                if (charCount > 10000) {
+                    charCountElement.style.color = 'var(--red)';
+                } else if (charCount > 5000) {
+                    charCountElement.style.color = 'var(--orange)';
+                } else {
+                    charCountElement.style.color = 'var(--text-muted)';
+                }
+            }
+
+            function validateJsonRealtime(content, statusElement) {
+                if (!content.trim()) {
+                    statusElement.className = 'json-validation-status empty';
+                    statusElement.innerHTML = '📝 Готовий до введення';
+                    return;
+                }
+
+                try {
+                    const parsed = JSON.parse(content);
+                    const objectInfo = getJsonObjectInfo(parsed);
+                    
+                    statusElement.className = 'json-validation-status valid';
+                    statusElement.innerHTML = `✅ Валідний JSON - ${objectInfo}`;
+                    
+                } catch (error) {
+                    statusElement.className = 'json-validation-status invalid';
+                    
+                    const errorInfo = getDetailedJsonError(error, content);
+                    statusElement.innerHTML = `❌ ${errorInfo}`;
+                }
+            }
+
+            function getJsonObjectInfo(obj) {
+                if (Array.isArray(obj)) {
+                    return `Масив з ${obj.length} елементів`;
+                } else if (typeof obj === 'object' && obj !== null) {
+                    const keys = Object.keys(obj);
+                    return `Об'єкт з ${keys.length} властивостями`;
+                } else {
+                    return `Примітив: ${typeof obj}`;
+                }
+            }
+
+            function getDetailedJsonError(error, content) {
+                let errorMessage = error.message;
+                
+                // Try to extract line and column information
+                const lineMatch = errorMessage.match(/line (\d+)/i);
+                const columnMatch = errorMessage.match(/column (\d+)/i);
+                const positionMatch = errorMessage.match(/position (\d+)/i);
+                
+                if (positionMatch) {
+                    const position = parseInt(positionMatch[1]);
+                    const lines = content.substring(0, position).split('\n');
+                    const line = lines.length;
+                    const column = lines[lines.length - 1].length + 1;
+                    
+                    return `Помилка в рядку ${line}, позиція ${column}: ${errorMessage}`;
+                } else if (lineMatch && columnMatch) {
+                    return `Помилка в рядку ${lineMatch[1]}, позиція ${columnMatch[1]}: ${errorMessage}`;
+                } else {
+                    // Common error types
+                    if (errorMessage.includes('Unexpected token')) {
+                        return `Неочікуваний символ: ${errorMessage}`;
+                    } else if (errorMessage.includes('Unexpected end')) {
+                        return `Незавершений JSON: перевірте дужки та коми`;
+                    } else {
+                        return `Синтаксична помилка: ${errorMessage}`;
+                    }
+                }
+            }
+
+            function autoSaveContent(textareaId, content, indicator) {
+                try {
+                    const key = `json_editor_autosave_${textareaId}`;
+                    const saveData = {
+                        content: content,
+                        timestamp: Date.now(),
+                        textareaId: textareaId
+                    };
+                    
+                    localStorage.setItem(key, JSON.stringify(saveData));
+                    
+                    // Show save indicator
+                    indicator.classList.add('show');
+                    setTimeout(() => {
+                        indicator.classList.remove('show');
+                    }, 1500);
+                    
+                } catch (error) {
+                    console.warn('Auto-save failed:', error);
+                }
+            }
+
+            function loadAutoSavedContent(textarea) {
+                try {
+                    const key = `json_editor_autosave_${textarea.id}`;
+                    const savedData = localStorage.getItem(key);
+                    
+                    if (savedData) {
+                        const data = JSON.parse(savedData);
+                        
+                        // Only load if content is empty and save is recent (within 24 hours)
+                        const isRecent = Date.now() - data.timestamp < 24 * 60 * 60 * 1000;
+                        
+                        if (!textarea.value.trim() && isRecent && data.content) {
+                            textarea.value = data.content;
+                            
+                            // Show notification
+                            showToast(`📁 Завантажено автозбереження для ${getTextareaDisplayName(textarea.id)}`, 'info');
+                            
+                            // Trigger input event to update validation
+                            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Auto-load failed:', error);
+                }
+            }
+
+            function getTextareaDisplayName(textareaId) {
+                const names = {
+                    'sourceText': 'Source JSON',
+                    'targetText': 'Target JSON',
+                    'schemaText': 'JSON Schema'
+                };
+                return names[textareaId] || textareaId;
+            }
+
+            // Enhanced JSON formatting with better error handling
+            function formatJsonWithErrorRecovery(content) {
+                try {
+                    const parsed = JSON.parse(content);
+                    return JSON.stringify(parsed, null, 2);
+                } catch (error) {
+                    // Try to fix common issues and reparse
+                    let fixedContent = content;
+                    
+                    // Remove trailing commas
+                    fixedContent = fixedContent.replace(/,(\s*[}\]])/g, '$1');
+                    
+                    // Add missing quotes to keys
+                    fixedContent = fixedContent.replace(/([{,]\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, '$1"$2":');
+                    
+                    try {
+                        const parsed = JSON.parse(fixedContent);
+                        return JSON.stringify(parsed, null, 2);
+                    } catch (secondError) {
+                        throw error; // Return original error
+                    }
+                }
+            }
+
+            // Add keyboard shortcuts for JSON editor
+            document.addEventListener('keydown', function(e) {
+                const activeElement = document.activeElement;
+                
+                if (activeElement && (activeElement.id === 'sourceText' || activeElement.id === 'targetText' || activeElement.id === 'schemaText')) {
+                    // Ctrl/Cmd + Shift + F for format
+                    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'F') {
+                        e.preventDefault();
+                        beautifyJSON(activeElement);
+                    }
+                    
+                    // Ctrl/Cmd + Shift + M for minify
+                    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'M') {
+                        e.preventDefault();
+                        minifyJSON(activeElement);
+                    }
+                    
+                    // Ctrl/Cmd + Shift + V for validate
+                    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'V') {
+                        e.preventDefault();
+                        validateJSON(activeElement);
+                    }
+                }
+            });
+
+            // Clear auto-saved content when explicitly cleared
+            function clearAutoSavedContent(textareaId) {
+                const key = `json_editor_autosave_${textareaId}`;
+                localStorage.removeItem(key);
+            }
+
+                         // Modify existing clear function to also clear auto-saved content
+             const originalClearAll = clearAllBtn?.onclick;
+             if (clearAllBtn) {
+                 clearAllBtn.addEventListener('click', () => {
+                     ['sourceText', 'targetText', 'schemaText'].forEach(id => {
+                         clearAutoSavedContent(id);
+                     });
+                 });
+             }
+
+             // Analytics Charts Cleanup
+             function cleanupAnalyticsCharts() {
+                 if (typeof analyticsCharts === 'object' && analyticsCharts) {
+                     Object.keys(analyticsCharts).forEach(chartKey => {
+                         if (analyticsCharts[chartKey] && typeof analyticsCharts[chartKey].destroy === 'function') {
+                             try {
+                                 analyticsCharts[chartKey].destroy();
+                                 console.log(`Chart ${chartKey} destroyed successfully`);
+                             } catch (error) {
+                                 console.warn(`Failed to destroy chart ${chartKey}:`, error);
+                             }
+                         }
+                         delete analyticsCharts[chartKey];
+                     });
+                 }
+             }
+
+             // Enhanced chart creation with better error handling
+             function createChartSafely(canvasId, chartConfig, chartKey) {
+                 if (typeof Chart === 'undefined') {
+                     console.warn('Chart.js is not loaded');
+                     return null;
+                 }
+
+                 const canvas = document.getElementById(canvasId);
+                 if (!canvas) {
+                     console.warn(`Canvas with id ${canvasId} not found`);
+                     return null;
+                 }
+
+                 try {
+                     // Cleanup existing chart if it exists
+                     if (analyticsCharts[chartKey]) {
+                         analyticsCharts[chartKey].destroy();
+                     }
+
+                     const chart = new Chart(canvas, chartConfig);
+                     analyticsCharts[chartKey] = chart;
+                     return chart;
+                 } catch (error) {
+                     console.error(`Failed to create chart ${chartKey}:`, error);
+                     return null;
+                 }
+             }
+
+             // Chart resize handler
+             function setupChartResizeHandlers() {
+                 window.addEventListener('resize', debounce(() => {
+                     Object.values(analyticsCharts).forEach(chart => {
+                         if (chart && typeof chart.resize === 'function') {
+                             chart.resize();
+                         }
+                     });
+                 }, 250));
+             }
+
+             // Initialize chart functionality
+             if (typeof Chart !== 'undefined') {
+                 setupChartResizeHandlers();
+                 console.log('📊 Chart.js integration initialized');
+             } else {
+                 console.warn('⚠️ Chart.js not available - charts will be disabled');
+             }
+
+             // Settings Templates Implementation
+             const TEMPLATES_KEY = 'jsonComparatorTemplates';
+             let settingsTemplates = {};
+
+             // Predefined templates
+             const predefinedTemplates = {
+                 'default': {
+                     name: '🏠 За замовчуванням',
+                     description: 'Базові налаштування для загального використання',
+                     settings: {
+                         ignorePaths: [],
+                         arrayCompareMode: 'key',
+                         caseSensitive: true,
+                         aiAutoAnalyze: false,
+                         aiAnalyzeSummary: true,
+                         aiAnalyzeImpact: true,
+                         aiAnalyzeRisks: true,
+                         aiAnalyzeRecommendations: true,
+                         aiAnalyzeCategories: false
+                     }
+                 },
+                 'api-comparison': {
+                     name: '🔌 API Порівняння',
+                     description: 'Оптимізовано для порівняння API відповідей',
+                     settings: {
+                         ignorePaths: ['$.timestamp', '$.requestId', '$.version', '$.serverTime'],
+                         arrayCompareMode: 'key',
+                         caseSensitive: false,
+                         aiAutoAnalyze: true,
+                         aiAnalyzeSummary: true,
+                         aiAnalyzeImpact: true,
+                         aiAnalyzeRisks: true,
+                         aiAnalyzeRecommendations: true,
+                         aiAnalyzeCategories: true
+                     }
+                 },
+                 'config-files': {
+                     name: '⚙️ Конфігураційні файли',
+                     description: 'Для порівняння конфігураційних файлів',
+                     settings: {
+                         ignorePaths: ['$.lastModified', '$.created', '$.metadata.timestamp'],
+                         arrayCompareMode: 'index',
+                         caseSensitive: true,
+                         aiAutoAnalyze: false,
+                         aiAnalyzeSummary: true,
+                         aiAnalyzeImpact: true,
+                         aiAnalyzeRisks: true,
+                         aiAnalyzeRecommendations: true,
+                         aiAnalyzeCategories: false
+                     }
+                 },
+                 'strict-validation': {
+                     name: '🔒 Строга валідація',
+                     description: 'Максимально строгі налаштування',
+                     settings: {
+                         ignorePaths: [],
+                         arrayCompareMode: 'index',
+                         caseSensitive: true,
+                         aiAutoAnalyze: true,
+                         aiAnalyzeSummary: true,
+                         aiAnalyzeImpact: true,
+                         aiAnalyzeRisks: true,
+                         aiAnalyzeRecommendations: true,
+                         aiAnalyzeCategories: true
+                     }
+                 },
+                 'loose-comparison': {
+                     name: '🔓 М\'яке порівняння',
+                     description: 'Знехтує дрібними відмінностями',
+                     settings: {
+                         ignorePaths: ['$.id', '$.timestamp', '$.created', '$.updated', '$.version', '$.lastModified'],
+                         arrayCompareMode: 'key',
+                         caseSensitive: false,
+                         aiAutoAnalyze: false,
+                         aiAnalyzeSummary: true,
+                         aiAnalyzeImpact: false,
+                         aiAnalyzeRisks: false,
+                         aiAnalyzeRecommendations: true,
+                         aiAnalyzeCategories: false
+                     }
+                 }
+             };
+
+             function initializeSettingsTemplates() {
+                 loadSavedTemplates();
+                 setupTemplateEventListeners();
+                 populateTemplatesDropdown();
+             }
+
+             function loadSavedTemplates() {
+                 try {
+                     const saved = localStorage.getItem(TEMPLATES_KEY);
+                     settingsTemplates = saved ? JSON.parse(saved) : {};
+                 } catch (error) {
+                     console.error('Failed to load templates:', error);
+                     settingsTemplates = {};
+                 }
+             }
+
+             function setupTemplateEventListeners() {
+                 const loadTemplateBtn = document.getElementById('loadTemplate');
+                 const saveTemplateBtn = document.getElementById('saveTemplate');
+                 const deleteTemplateBtn = document.getElementById('deleteTemplate');
+                 const templatesSelect = document.getElementById('settingsTemplates');
+
+                 if (loadTemplateBtn) {
+                     loadTemplateBtn.addEventListener('click', loadSelectedTemplate);
+                 }
+
+                 if (saveTemplateBtn) {
+                     saveTemplateBtn.addEventListener('click', saveCurrentTemplate);
+                 }
+
+                 if (deleteTemplateBtn) {
+                     deleteTemplateBtn.addEventListener('click', deleteSelectedTemplate);
+                 }
+
+                 if (templatesSelect) {
+                     templatesSelect.addEventListener('change', updateTemplateButtons);
+                 }
+             }
+
+             function populateTemplatesDropdown() {
+                 const select = document.getElementById('settingsTemplates');
+                 if (!select) return;
+
+                 // Clear existing custom options
+                 const options = Array.from(select.options);
+                 options.forEach((option, index) => {
+                     if (index > 5) { // Keep first 6 predefined options
+                         option.remove();
+                     }
+                 });
+
+                 // Add custom templates
+                 Object.keys(settingsTemplates).forEach(templateId => {
+                     const template = settingsTemplates[templateId];
+                     const option = document.createElement('option');
+                     option.value = `custom:${templateId}`;
+                     option.textContent = `👤 ${template.name}`;
+                     select.appendChild(option);
+                 });
+             }
+
+             function getCurrentSettings() {
+                 const ignorePathsField = document.getElementById('ignorePaths');
+                 const arrayCompareMode = document.querySelector('input[name="arrayCompareMode"]:checked')?.value || 'key';
+                 const caseSensitive = document.getElementById('caseSensitive')?.checked || true;
+
+                 // AI settings
+                 const aiAutoAnalyze = document.getElementById('aiAutoAnalyze')?.checked || false;
+                 const aiAnalyzeSummary = document.getElementById('aiAnalyzeSummary')?.checked !== false;
+                 const aiAnalyzeImpact = document.getElementById('aiAnalyzeImpact')?.checked !== false;
+                 const aiAnalyzeRisks = document.getElementById('aiAnalyzeRisks')?.checked !== false;
+                 const aiAnalyzeRecommendations = document.getElementById('aiAnalyzeRecommendations')?.checked !== false;
+                 const aiAnalyzeCategories = document.getElementById('aiAnalyzeCategories')?.checked || false;
+
+                 return {
+                     ignorePaths: ignorePathsField ? ignorePathsField.value.split('\n').filter(path => path.trim()) : [],
+                     arrayCompareMode,
+                     caseSensitive,
+                     aiAutoAnalyze,
+                     aiAnalyzeSummary,
+                     aiAnalyzeImpact,
+                     aiAnalyzeRisks,
+                     aiAnalyzeRecommendations,
+                     aiAnalyzeCategories
+                 };
+             }
+
+             function applySettings(settings) {
+                 const ignorePathsField = document.getElementById('ignorePaths');
+                 const caseSensitiveField = document.getElementById('caseSensitive');
+
+                 if (ignorePathsField) {
+                     ignorePathsField.value = settings.ignorePaths.join('\n');
+                 }
+
+                 // Array compare mode
+                 const arrayModeRadio = document.querySelector(`input[name="arrayCompareMode"][value="${settings.arrayCompareMode}"]`);
+                 if (arrayModeRadio) {
+                     arrayModeRadio.checked = true;
+                 }
+
+                 if (caseSensitiveField) {
+                     caseSensitiveField.checked = settings.caseSensitive;
+                 }
+
+                 // Apply AI settings
+                 const aiFields = {
+                     'aiAutoAnalyze': settings.aiAutoAnalyze,
+                     'aiAnalyzeSummary': settings.aiAnalyzeSummary,
+                     'aiAnalyzeImpact': settings.aiAnalyzeImpact,
+                     'aiAnalyzeRisks': settings.aiAnalyzeRisks,
+                     'aiAnalyzeRecommendations': settings.aiAnalyzeRecommendations,
+                     'aiAnalyzeCategories': settings.aiAnalyzeCategories
+                 };
+
+                 Object.entries(aiFields).forEach(([fieldId, value]) => {
+                     const field = document.getElementById(fieldId);
+                     if (field) {
+                         field.checked = value;
+                     }
+                 });
+             }
+
+             function loadSelectedTemplate() {
+                 const select = document.getElementById('settingsTemplates');
+                 const selectedValue = select?.value;
+
+                 if (!selectedValue) {
+                     showToast('Оберіть шаблон для завантаження', 'warning');
+                     return;
+                 }
+
+                 let template;
+                 if (selectedValue.startsWith('custom:')) {
+                     const templateId = selectedValue.replace('custom:', '');
+                     template = settingsTemplates[templateId];
+                 } else {
+                     template = predefinedTemplates[selectedValue];
+                 }
+
+                 if (template) {
+                     applySettings(template.settings);
+                     showToast(`✅ Шаблон "${template.name}" завантажено`, 'success');
+                 } else {
+                     showToast('Шаблон не знайдено', 'error');
+                 }
+             }
+
+             function saveCurrentTemplate() {
+                 const nameField = document.getElementById('newTemplateName');
+                 const templateName = nameField?.value?.trim();
+
+                 if (!templateName) {
+                     showToast('Введіть назву шаблону', 'warning');
+                     return;
+                 }
+
+                 const currentSettings = getCurrentSettings();
+                 const templateId = Date.now().toString();
+
+                 settingsTemplates[templateId] = {
+                     name: templateName,
+                     description: `Створено ${new Date().toLocaleDateString('uk-UA')}`,
+                     settings: currentSettings,
+                     created: new Date().toISOString()
+                 };
+
+                 try {
+                     localStorage.setItem(TEMPLATES_KEY, JSON.stringify(settingsTemplates));
+                     populateTemplatesDropdown();
+                     
+                     // Clear name field and select new template
+                     nameField.value = '';
+                     const select = document.getElementById('settingsTemplates');
+                     if (select) {
+                         select.value = `custom:${templateId}`;
+                     }
+                     
+                     showToast(`💾 Шаблон "${templateName}" збережено`, 'success');
+                 } catch (error) {
+                     console.error('Failed to save template:', error);
+                     showToast('Помилка збереження шаблону', 'error');
+                 }
+             }
+
+             function deleteSelectedTemplate() {
+                 const select = document.getElementById('settingsTemplates');
+                 const selectedValue = select?.value;
+
+                 if (!selectedValue || !selectedValue.startsWith('custom:')) {
+                     showToast('Оберіть користувацький шаблон для видалення', 'warning');
+                     return;
+                 }
+
+                 const templateId = selectedValue.replace('custom:', '');
+                 const template = settingsTemplates[templateId];
+
+                 if (!template) {
+                     showToast('Шаблон не знайдено', 'error');
+                     return;
+                 }
+
+                 if (confirm(`Видалити шаблон "${template.name}"?`)) {
+                     delete settingsTemplates[templateId];
+                     
+                     try {
+                         localStorage.setItem(TEMPLATES_KEY, JSON.stringify(settingsTemplates));
+                         populateTemplatesDropdown();
+                         
+                         // Reset selection
+                         select.value = '';
+                         
+                         showToast(`🗑️ Шаблон "${template.name}" видалено`, 'success');
+                     } catch (error) {
+                         console.error('Failed to delete template:', error);
+                         showToast('Помилка видалення шаблону', 'error');
+                     }
+                 }
+             }
+
+             function updateTemplateButtons() {
+                 const select = document.getElementById('settingsTemplates');
+                 const deleteBtn = document.getElementById('deleteTemplate');
+                 const selectedValue = select?.value;
+
+                 // Enable delete button only for custom templates
+                 if (deleteBtn) {
+                     deleteBtn.disabled = !selectedValue || !selectedValue.startsWith('custom:');
+                     deleteBtn.style.opacity = deleteBtn.disabled ? '0.5' : '1';
+                 }
+             }
+
+             // Export/Import templates functionality
+             function exportTemplates() {
+                 const exportData = {
+                     version: '1.0',
+                     exportDate: new Date().toISOString(),
+                     templates: settingsTemplates
+                 };
+
+                 const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                 const url = URL.createObjectURL(blob);
+                 const a = document.createElement('a');
+                 a.href = url;
+                 a.download = `json-comparator-templates-${new Date().toISOString().split('T')[0]}.json`;
+                 document.body.appendChild(a);
+                 a.click();
+                 document.body.removeChild(a);
+                 URL.revokeObjectURL(url);
+
+                 showToast(`📁 Шаблони експортовано (${Object.keys(settingsTemplates).length} шт.)`, 'success');
+             }
+
+             // Initial template buttons state
+             setTimeout(() => {
+                 updateTemplateButtons();
+             }, 100);
     </script>
 </body>
 </html>
