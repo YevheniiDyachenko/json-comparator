@@ -150,8 +150,8 @@
         }
         
         .mode-selector .tooltip {
-            min-width: 280px;
-            max-width: 350px;
+            min-width: 260px;
+            max-width: 320px;
             text-align: left;
             z-index: 1001; /* Higher than normal tooltips to appear above other elements */
         }
@@ -163,6 +163,15 @@
         
         .tooltip br {
             line-height: 1.6;
+        }
+        
+        /* Remove leading/trailing whitespace for cleaner tooltip appearance */
+        .tooltip {
+            white-space-collapse: discard; /* Modern browsers */
+        }
+        
+        .tooltip:empty::before {
+            content: none;
         }
         .drop-zones {
             display: grid;
@@ -417,19 +426,22 @@
             visibility: hidden;
             opacity: 0;
             width: auto; /* Адаптивна ширина */
-            max-width: 300px; /* Максимальна ширина підказки */
+            max-width: 280px; /* Оптимальна ширина для кращого вирівнювання */
             background-color: var(--header-color);
             color: var(--main-color);
-            text-align: left; /* Змінено з center на left для кращої читабельності */
+            text-align: left;
             border-radius: 8px;
-            padding: 8px 12px;
-            position: fixed; /* Змінено з absolute на fixed для cursor-based positioning */
+            padding: 10px 14px; /* Трохи збільшений padding для кращого виду */
+            position: fixed;
             z-index: 1000;
             font-size: 0.85em;
+            line-height: 1.4; /* Покращена висота рядка */
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-            pointer-events: none; /* Щоб не блокувати взаємодію з елементами під підказкою */
-            white-space: pre-wrap; /* Зберігає переноси рядків */
+            pointer-events: none;
+            white-space: pre-line; /* Зберігає переноси рядків, але видаляє зайві пробіли */
+            word-wrap: break-word; /* Переносить довгі слова */
+            overflow-wrap: break-word; /* Додаткова підтримка переносу */
         }
 
         /* Dark mode adjustments for tooltip */
@@ -760,33 +772,21 @@
                 <input type="radio" id="modeDirect" name="compareMode" value="direct" checked aria-describedby="modeDirect-desc">
                 <div class="tooltip-container">
                     <label for="modeDirect">Пряме порівняння</label>
-                    <span class="tooltip">
-                        Порівнює всі поля та значення між двома JSON файлами.<br/>
-                        Показує всі відмінності: додані, видалені та змінені елементи.<br/>
-                        <strong>Використовуйте для:</strong> повного аналізу відмінностей.
-                    </span>
+                    <span class="tooltip">Порівнює всі поля та значення між двома JSON файлами.<br/>Показує всі відмінності: додані, видалені та змінені елементи.<br/><strong>Використовуйте для:</strong> повного аналізу відмінностей.</span>
                 </div>
                 <span id="modeDirect-desc" class="sr-only">Порівнює всі значення у JSON файлах</span>
                 
                 <input type="radio" id="modeKeys" name="compareMode" value="keys" aria-describedby="modeKeys-desc">
                 <div class="tooltip-container">
                     <label for="modeKeys">Лише ключі</label>
-                    <span class="tooltip">
-                        Порівнює тільки структуру та назви ключів, ігноруючи значення.<br/>
-                        Корисно для перевірки схеми без аналізу даних.<br/>
-                        <strong>Використовуйте для:</strong> валідації структури JSON.
-                    </span>
+                    <span class="tooltip">Порівнює тільки структуру та назви ключів, ігноруючи значення.<br/>Корисно для перевірки схеми без аналізу даних.<br/><strong>Використовуйте для:</strong> валідації структури JSON.</span>
                 </div>
                 <span id="modeKeys-desc" class="sr-only">Порівнює тільки структуру ключів без значень</span>
 
                 <input type="radio" id="modeSchema" name="compareMode" value="schema" aria-describedby="modeSchema-desc">
                 <div class="tooltip-container">
                     <label for="modeSchema">Валідація схеми</label>
-                    <span class="tooltip">
-                        Перевіряє JSON файл на відповідність JSON Schema.<br/>
-                        Виявляє порушення типів даних, обов'язкових полів та обмежень.<br/>
-                        <strong>Використовуйте для:</strong> валідації даних за схемою.
-                    </span>
+                    <span class="tooltip">Перевіряє JSON файл на відповідність JSON Schema.<br/>Виявляє порушення типів даних, обов'язкових полів та обмежень.<br/><strong>Використовуйте для:</strong> валідації даних за схемою.</span>
                 </div>
                 <span id="modeSchema-desc" class="sr-only">Перевіряє JSON на відповідність схемі</span>
             </div>
@@ -1691,6 +1691,8 @@
             const windowHeight = window.innerHeight;
             const windowWidth = window.innerWidth;
             const offset = 15; // Distance from cursor
+
+
 
             // Reset positioning styles
             tooltip.style.position = 'fixed';
