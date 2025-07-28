@@ -1503,6 +1503,72 @@
             </div>
         </div>
 
+        <!-- AI Settings Modal -->
+        <div id="aiSettingsModal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>🤖 Налаштування Gemini AI</h2>
+                    <button class="modal-close" id="closeAiSettingsModal" aria-label="Закрити вікно">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="geminiApiKey" class="tooltip-container">
+                            Gemini API ключ
+                            <span class="tooltip">
+                                Введіть ваш API ключ від Google AI Studio.<br>
+                                Отримати безкоштовний ключ: <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>
+                            </span>
+                        </label>
+                        <input type="password" id="geminiApiKey" placeholder="Введіть API ключ...">
+                        <button type="button" id="testApiKey" class="action-btn" style="margin-top: 10px; padding: 5px 10px; font-size: 0.9em;">Перевірити ключ</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="geminiModel" class="tooltip-container">
+                            Модель Gemini
+                            <span class="tooltip">
+                                Виберіть модель для аналізу.<br>
+                                Pro швидша, Pro Vision підтримує зображення
+                            </span>
+                        </label>
+                        <select id="geminiModel">
+                            <option value="gemini-1.5-flash">Gemini 1.5 Flash (швидка)</option>
+                            <option value="gemini-1.5-pro" selected>Gemini 1.5 Pro (рекомендована)</option>
+                            <option value="gemini-1.0-pro">Gemini 1.0 Pro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="tooltip-container">
+                            Тип аналізу
+                            <span class="tooltip">
+                                Виберіть який тип аналізу виконувати AI
+                            </span>
+                        </label>
+                        <div class="checkbox-group" style="flex-direction: column; align-items: flex-start;">
+                            <label><input type="checkbox" id="aiAnalyzeSummary" checked> Загальний підсумок змін</label>
+                            <label><input type="checkbox" id="aiAnalyzeImpact" checked> Аналіз впливу змін</label>
+                            <label><input type="checkbox" id="aiAnalyzeRisks" checked> Виявлення ризиків</label>
+                            <label><input type="checkbox" id="aiAnalyzeRecommendations" checked> Рекомендації</label>
+                            <label><input type="checkbox" id="aiAnalyzeCategories"> Автоматична категоризація</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="aiAutoAnalyze">
+                            <label for="aiAutoAnalyze" class="tooltip-container">
+                                Автоматичний аналіз
+                                <span class="tooltip">
+                                    Запускати AI аналіз автоматично після кожного порівняння
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="saveAiSettingsBtn" class="action-btn">Зберегти налаштування</button>
+                </div>
+            </div>
+        </div>
+
         <div class="container" id="main-container">
             <main id="main-content">
             <div class="header">
@@ -1628,9 +1694,32 @@
                     <button id="copyResultsBtn" class="action-btn" style="display:none;">Копіювати</button>
                     <span class="tooltip">Скопіювати поточний звіт до буфера обміну (CSV формат)</span>
                 </span>
+                <span class="tooltip-container">
+                    <button id="aiAnalyzeBtn" class="action-btn" style="display:none;">🤖 AI Аналіз</button>
+                    <span class="tooltip">Розумний аналіз змін за допомогою Gemini AI</span>
+                </span>
+                <span class="tooltip-container">
+                    <button id="aiSettingsBtn" class="action-btn">⚙️ AI</button>
+                    <span class="tooltip">Налаштування Gemini AI інтеграції</span>
+                </span>
             </div>
 
                             <div id="results" role="region" aria-labelledby="results-heading">
+                </div>
+                
+                <!-- AI Analysis Results Section -->
+                <div id="aiAnalysisSection" style="display:none;" role="region" aria-labelledby="ai-analysis-heading">
+                    <div class="ai-analysis-container" style="margin-top: 20px; padding: 20px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-color);">
+                        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                            <h3 id="ai-analysis-heading" style="margin: 0; color: var(--header-color);">🤖 AI Аналіз змін</h3>
+                            <div id="aiLoader" style="display: none; margin-left: 15px;">
+                                <div style="width: 20px; height: 20px; border: 2px solid var(--border-color); border-top: 2px solid var(--accent-color); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                            </div>
+                        </div>
+                        <div id="aiAnalysisContent">
+                            <!-- AI analysis results will be inserted here -->
+                        </div>
+                    </div>
                 </div>
             </main>
         </div>
@@ -4617,6 +4706,20 @@
                 resultsContainer.style.display = 'block';
                 exportBtn.style.display = 'inline-block';
                 copyResultsBtn.style.display = 'inline-block';
+                
+                // Store differences for AI analysis and show AI button
+                window.lastDifferences = errorDifferences.length > 0 ? errorDifferences : differences;
+                const aiAnalyzeBtn = document.getElementById('aiAnalyzeBtn');
+                if (aiAnalyzeBtn) {
+                    aiAnalyzeBtn.style.display = 'inline-block';
+                }
+                
+                // Auto AI analysis if enabled
+                if (aiSettings.autoAnalyze && aiSettings.apiKey && window.lastDifferences.length > 0) {
+                    setTimeout(() => {
+                        performAiAnalysis(window.lastDifferences);
+                    }, 1000); // Small delay to let UI settle
+                }
 
                 renderInteractiveTable(errorDifferences.length > 0 ? errorDifferences : differences);
                 synchronizeJsonViewHeights();
@@ -4869,6 +4972,13 @@
                     if (exportBtn) exportBtn.style.display = 'none';
                     if (copyResultsBtn) copyResultsBtn.style.display = 'none';
                     
+                    // Hide AI analysis section and button
+                    const aiAnalyzeBtn = document.getElementById('aiAnalyzeBtn');
+                    const aiAnalysisSection = document.getElementById('aiAnalysisSection');
+                    if (aiAnalyzeBtn) aiAnalyzeBtn.style.display = 'none';
+                    if (aiAnalysisSection) aiAnalysisSection.style.display = 'none';
+                    window.lastDifferences = [];
+                    
                     sourceFileContent = null;
                     targetFileContent = null;
                     schemaFileContent = null;
@@ -4955,6 +5065,284 @@
                 }
             }, 1000); // Затримка для завершення всіх асинхронних операцій
         });
+
+        // --- Gemini AI Integration ---
+        
+        // AI Settings storage
+        let aiSettings = {
+            apiKey: localStorage.getItem('gemini_api_key') || '',
+            model: localStorage.getItem('gemini_model') || 'gemini-1.5-pro',
+            autoAnalyze: localStorage.getItem('ai_auto_analyze') === 'true',
+            analyzeSummary: localStorage.getItem('ai_analyze_summary') !== 'false',
+            analyzeImpact: localStorage.getItem('ai_analyze_impact') !== 'false',
+            analyzeRisks: localStorage.getItem('ai_analyze_risks') !== 'false',
+            analyzeRecommendations: localStorage.getItem('ai_analyze_recommendations') !== 'false',
+            analyzeCategories: localStorage.getItem('ai_analyze_categories') === 'true'
+        };
+
+        // Load AI settings into UI
+        function loadAiSettings() {
+            const apiKeyField = document.getElementById('geminiApiKey');
+            const modelField = document.getElementById('geminiModel');
+            const autoAnalyzeField = document.getElementById('aiAutoAnalyze');
+            const summaryField = document.getElementById('aiAnalyzeSummary');
+            const impactField = document.getElementById('aiAnalyzeImpact');
+            const risksField = document.getElementById('aiAnalyzeRisks');
+            const recommendationsField = document.getElementById('aiAnalyzeRecommendations');
+            const categoriesField = document.getElementById('aiAnalyzeCategories');
+
+            if (apiKeyField) apiKeyField.value = aiSettings.apiKey;
+            if (modelField) modelField.value = aiSettings.model;
+            if (autoAnalyzeField) autoAnalyzeField.checked = aiSettings.autoAnalyze;
+            if (summaryField) summaryField.checked = aiSettings.analyzeSummary;
+            if (impactField) impactField.checked = aiSettings.analyzeImpact;
+            if (risksField) risksField.checked = aiSettings.analyzeRisks;
+            if (recommendationsField) recommendationsField.checked = aiSettings.analyzeRecommendations;
+            if (categoriesField) categoriesField.checked = aiSettings.analyzeCategories;
+        }
+
+        // Save AI settings
+        function saveAiSettings() {
+            const apiKeyField = document.getElementById('geminiApiKey');
+            const modelField = document.getElementById('geminiModel');
+            const autoAnalyzeField = document.getElementById('aiAutoAnalyze');
+            const summaryField = document.getElementById('aiAnalyzeSummary');
+            const impactField = document.getElementById('aiAnalyzeImpact');
+            const risksField = document.getElementById('aiAnalyzeRisks');
+            const recommendationsField = document.getElementById('aiAnalyzeRecommendations');
+            const categoriesField = document.getElementById('aiAnalyzeCategories');
+
+            aiSettings.apiKey = apiKeyField?.value || '';
+            aiSettings.model = modelField?.value || 'gemini-1.5-pro';
+            aiSettings.autoAnalyze = autoAnalyzeField?.checked || false;
+            aiSettings.analyzeSummary = summaryField?.checked !== false;
+            aiSettings.analyzeImpact = impactField?.checked !== false;
+            aiSettings.analyzeRisks = risksField?.checked !== false;
+            aiSettings.analyzeRecommendations = recommendationsField?.checked !== false;
+            aiSettings.analyzeCategories = categoriesField?.checked || false;
+
+            // Save to localStorage
+            localStorage.setItem('gemini_api_key', aiSettings.apiKey);
+            localStorage.setItem('gemini_model', aiSettings.model);
+            localStorage.setItem('ai_auto_analyze', aiSettings.autoAnalyze.toString());
+            localStorage.setItem('ai_analyze_summary', aiSettings.analyzeSummary.toString());
+            localStorage.setItem('ai_analyze_impact', aiSettings.analyzeImpact.toString());
+            localStorage.setItem('ai_analyze_risks', aiSettings.analyzeRisks.toString());
+            localStorage.setItem('ai_analyze_recommendations', aiSettings.analyzeRecommendations.toString());
+            localStorage.setItem('ai_analyze_categories', aiSettings.analyzeCategories.toString());
+
+            showToast('AI налаштування збережено!', 'success');
+        }
+
+        // Test Gemini API key
+        async function testGeminiApiKey(apiKey) {
+            if (!apiKey) {
+                showToast('Введіть API ключ', 'error');
+                return false;
+            }
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+                if (response.ok) {
+                    showToast('✅ API ключ працює!', 'success');
+                    return true;
+                } else {
+                    const error = await response.json();
+                    showToast(`❌ Помилка API: ${error.error?.message || 'Невідома помилка'}`, 'error');
+                    return false;
+                }
+            } catch (error) {
+                showToast(`❌ Помилка з'єднання: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // Call Gemini AI API
+        async function callGeminiAI(prompt, differences) {
+            if (!aiSettings.apiKey) {
+                throw new Error('API ключ не налаштовано');
+            }
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${aiSettings.model}:generateContent?key=${aiSettings.apiKey}`;
+            
+            const requestBody = {
+                contents: [{
+                    parts: [{
+                        text: prompt
+                    }]
+                }],
+                generationConfig: {
+                    temperature: 0.4,
+                    topK: 40,
+                    topP: 0.95,
+                    maxOutputTokens: 2048,
+                }
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error?.message || `HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Немає відповіді від AI';
+            } catch (error) {
+                console.error('Gemini AI API Error:', error);
+                throw error;
+            }
+        }
+
+        // Create prompt for AI analysis
+        function createAnalysisPrompt(differences) {
+            const diffCount = differences.length;
+            const diffTypes = [...new Set(differences.map(d => d.type))];
+            const criticalDiffs = differences.filter(d => getImportanceLevel(d) === 'critical');
+            
+            const analysisTypes = [];
+            if (aiSettings.analyzeSummary) analysisTypes.push('загальний підсумок');
+            if (aiSettings.analyzeImpact) analysisTypes.push('аналіз впливу');
+            if (aiSettings.analyzeRisks) analysisTypes.push('виявлення ризиків');
+            if (aiSettings.analyzeRecommendations) analysisTypes.push('рекомендації');
+            if (aiSettings.analyzeCategories) analysisTypes.push('категоризація');
+
+            let prompt = `Ти експерт з аналізу JSON структур. Проаналізуй наступні зміни у JSON файлі:
+
+СТАТИСТИКА ЗМІН:
+- Загальна кількість змін: ${diffCount}
+- Типи змін: ${diffTypes.join(', ')}
+- Критичних змін: ${criticalDiffs.length}
+
+ДЕТАЛІ ЗМІН:
+${differences.slice(0, 20).map((diff, i) => `${i+1}. ${diff.type} в "${diff.path}": ${diff.oldValue || 'відсутнє'} → ${diff.newValue || 'відсутнє'} (важливість: ${getImportanceLevel(diff)})`).join('\n')}
+${differences.length > 20 ? `\n... та ще ${differences.length - 20} змін` : ''}
+
+Надай аналіз українською мовою, включаючи:
+${analysisTypes.map(type => `- ${type}`).join('\n')}
+
+Використовуй структурований формат з емодзі для кращої читабельності.`;
+
+            return prompt;
+        }
+
+        // Perform AI analysis
+        async function performAiAnalysis(differences) {
+            if (!differences || differences.length === 0) {
+                showToast('Немає змін для аналізу', 'warning');
+                return;
+            }
+
+            if (!aiSettings.apiKey) {
+                showToast('Налаштуйте API ключ для AI аналізу', 'warning');
+                return;
+            }
+
+            const aiLoader = document.getElementById('aiLoader');
+            const aiSection = document.getElementById('aiAnalysisSection');
+            const aiContent = document.getElementById('aiAnalysisContent');
+
+            try {
+                // Show loading
+                if (aiLoader) aiLoader.style.display = 'block';
+                if (aiSection) aiSection.style.display = 'block';
+                if (aiContent) aiContent.innerHTML = '<p>🤖 AI аналізує зміни...</p>';
+
+                const prompt = createAnalysisPrompt(differences);
+                const analysis = await callGeminiAI(prompt, differences);
+                
+                // Display results
+                if (aiContent) {
+                    aiContent.innerHTML = `
+                        <div style="background: var(--main-color); padding: 15px; border-radius: 6px; border-left: 4px solid var(--accent-color);">
+                            <div style="white-space: pre-wrap; line-height: 1.6;">${analysis}</div>
+                        </div>
+                        <div style="margin-top: 10px; text-align: right; font-size: 0.9em; color: var(--text-muted);">
+                            Аналіз виконано: ${new Date().toLocaleString('uk-UA')} | Модель: ${aiSettings.model}
+                        </div>
+                    `;
+                }
+
+                showToast('✨ AI аналіз завершено!', 'success');
+            } catch (error) {
+                console.error('AI Analysis Error:', error);
+                if (aiContent) {
+                    aiContent.innerHTML = `
+                        <div style="background: var(--toast-error-bg); padding: 15px; border-radius: 6px; border-left: 4px solid var(--red); color: var(--red);">
+                            ❌ Помилка AI аналізу: ${error.message}
+                        </div>
+                    `;
+                }
+                showToast(`Помилка AI аналізу: ${error.message}`, 'error');
+            } finally {
+                if (aiLoader) aiLoader.style.display = 'none';
+            }
+        }
+
+        // Initialize AI functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAiSettings();
+
+            // AI Settings Modal handlers
+            const aiSettingsBtn = document.getElementById('aiSettingsBtn');
+            const aiSettingsModal = document.getElementById('aiSettingsModal');
+            const closeAiSettingsModal = document.getElementById('closeAiSettingsModal');
+            const saveAiSettingsBtn = document.getElementById('saveAiSettingsBtn');
+            const testApiKeyBtn = document.getElementById('testApiKey');
+            const aiAnalyzeBtn = document.getElementById('aiAnalyzeBtn');
+
+            if (aiSettingsBtn) {
+                aiSettingsBtn.addEventListener('click', () => {
+                    if (aiSettingsModal) aiSettingsModal.style.display = 'flex';
+                });
+            }
+
+            if (closeAiSettingsModal) {
+                closeAiSettingsModal.addEventListener('click', () => {
+                    if (aiSettingsModal) aiSettingsModal.style.display = 'none';
+                });
+            }
+
+            if (saveAiSettingsBtn) {
+                saveAiSettingsBtn.addEventListener('click', () => {
+                    saveAiSettings();
+                    if (aiSettingsModal) aiSettingsModal.style.display = 'none';
+                });
+            }
+
+            if (testApiKeyBtn) {
+                testApiKeyBtn.addEventListener('click', async () => {
+                    const apiKey = document.getElementById('geminiApiKey')?.value;
+                    await testGeminiApiKey(apiKey);
+                });
+            }
+
+            if (aiAnalyzeBtn) {
+                aiAnalyzeBtn.addEventListener('click', () => {
+                    if (window.lastDifferences && window.lastDifferences.length > 0) {
+                        performAiAnalysis(window.lastDifferences);
+                    } else {
+                        showToast('Спочатку порівняйте JSON файли', 'warning');
+                    }
+                });
+            }
+
+            // Close modal on outside click
+            if (aiSettingsModal) {
+                aiSettingsModal.addEventListener('click', (event) => {
+                    if (event.target === aiSettingsModal) {
+                        aiSettingsModal.style.display = 'none';
+                    }
+                });
+                         }
+         });
     </script>
 </body>
 </html>
