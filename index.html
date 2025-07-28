@@ -15,55 +15,194 @@
     <!-- 📊 Chart.js for Analytics and Visualizations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js" onerror="console.warn('Chart.js failed to load')"></script>
     <script>
-        // Fallback для AJV бібліотеки з додатковими пакетами
+        // Enhanced AJV Loading System with Multiple Fallbacks
+        let ajvLoadAttempts = 0;
+        const maxAjvAttempts = 4;
+
+        // Multiple CDN sources for better reliability
+        const ajvCdnSources = [
+            'https://unpkg.com/ajv@8.17.1/dist/ajv.bundle.js',
+            'https://cdn.jsdelivr.net/npm/ajv@8.17.1/dist/ajv.min.js',
+            'https://cdn.skypack.dev/ajv@8.17.1',
+            'https://esm.sh/ajv@8.17.1'
+        ];
+
         function loadAjvFallback() {
-            console.log('Loading AJV fallback with additional packages...');
+            console.log(`🔄 Loading AJV fallback (attempt ${ajvLoadAttempts + 1}/${maxAjvAttempts})...`);
             
-            // Завантажуємо основну AJV бібліотеку
+            if (ajvLoadAttempts >= maxAjvAttempts) {
+                console.error('🔴 All AJV CDN sources failed. Loading emergency fallback...');
+                loadEmergencyAjvFallback();
+                return;
+            }
+
+            const currentSource = ajvCdnSources[ajvLoadAttempts];
+            ajvLoadAttempts++;
+
             const ajvScript = document.createElement('script');
-            ajvScript.src = 'https://unpkg.com/ajv@8.17.1/dist/ajv.bundle.js';
+            ajvScript.src = currentSource;
             ajvScript.onload = function() {
-                console.log('AJV core fallback loaded successfully');
-                
-                // Завантажуємо додаткові формати
-                const formatsScript = document.createElement('script');
-                formatsScript.src = 'https://unpkg.com/ajv-formats@2.1.1/dist/ajv-formats.min.js';
-                formatsScript.onload = function() {
-                    console.log('AJV formats loaded successfully');
-                    
-                    // Завантажуємо додаткові keywords
-                    const keywordsScript = document.createElement('script');
-                    keywordsScript.src = 'https://unpkg.com/ajv-keywords@5.1.0/dist/ajv-keywords.min.js';
-                    keywordsScript.onload = function() {
-                        console.log('AJV keywords loaded successfully');
-                        window.AjvExtensionsLoaded = true;
-                    };
-                    keywordsScript.onerror = function() {
-                        console.warn('AJV keywords failed to load via fallback');
-                    };
-                    document.head.appendChild(keywordsScript);
-                };
-                formatsScript.onerror = function() {
-                    console.warn('AJV formats failed to load via fallback');
-                };
-                document.head.appendChild(formatsScript);
+                console.log(`✅ AJV loaded successfully from: ${currentSource}`);
+                loadAjvExtensions();
             };
             ajvScript.onerror = function() {
-                console.warn('Primary AJV fallback failed, trying CDN alternatives...');
-                
-                // Спробуємо ще один fallback з jsdelivr
-                const fallbackScript = document.createElement('script');
-                fallbackScript.src = 'https://cdn.jsdelivr.net/npm/ajv@8.17.1/dist/ajv.min.js';
-                fallbackScript.onerror = function() {
-                    console.error('All AJV loading attempts failed. Schema validation will be disabled.');
-                    window.AjvLoadError = true;
-                };
-                document.head.appendChild(fallbackScript);
+                console.warn(`❌ Failed to load AJV from: ${currentSource}`);
+                setTimeout(() => loadAjvFallback(), 1500); // Retry with delay
             };
+            
             document.head.appendChild(ajvScript);
         }
+
+        function loadAjvExtensions() {
+            // Load formats
+            const formatsScript = document.createElement('script');
+            formatsScript.src = 'https://unpkg.com/ajv-formats@2.1.1/dist/ajv-formats.min.js';
+            formatsScript.onload = () => console.log('✅ AJV Formats loaded');
+            formatsScript.onerror = () => console.warn('⚠️ AJV Formats failed (non-critical)');
+            document.head.appendChild(formatsScript);
+
+            // Load keywords
+            const keywordsScript = document.createElement('script');
+            keywordsScript.src = 'https://unpkg.com/ajv-keywords@5.1.0/dist/ajv-keywords.min.js';
+            keywordsScript.onload = () => {
+                console.log('✅ AJV Keywords loaded');
+                window.AjvExtensionsLoaded = true;
+            };
+            keywordsScript.onerror = () => console.warn('⚠️ AJV Keywords failed (non-critical)');
+            document.head.appendChild(keywordsScript);
+        }
+
+        function loadEmergencyAjvFallback() {
+            console.log('🚨 Loading emergency local AJV implementation...');
+            
+            // Minimal AJV implementation for basic validation
+            window.Ajv = function(options = {}) {
+                return {
+                    compile: function(schema) {
+                        return function validate(data) {
+                            try {
+                                // Basic JSON validation - just try to parse and check basic structure
+                                if (typeof data === 'string') {
+                                    JSON.parse(data);
+                                }
+                                
+                                // Basic type checking
+                                if (schema.type) {
+                                    const actualType = Array.isArray(data) ? 'array' : typeof data;
+                                    if (actualType !== schema.type) {
+                                        validate.errors = [{
+                                            keyword: 'type',
+                                            message: `should be ${schema.type}`,
+                                            schemaPath: '#/type',
+                                            data: data
+                                        }];
+                                        return false;
+                                    }
+                                }
+                                
+                                // Basic required fields check
+                                if (schema.required && typeof data === 'object' && !Array.isArray(data)) {
+                                    for (const field of schema.required) {
+                                        if (!(field in data)) {
+                                            validate.errors = [{
+                                                keyword: 'required',
+                                                message: `should have required property '${field}'`,
+                                                schemaPath: '#/required',
+                                                missingProperty: field
+                                            }];
+                                            return false;
+                                        }
+                                    }
+                                }
+                                
+                                validate.errors = null;
+                                return true;
+                            } catch (error) {
+                                validate.errors = [{
+                                    keyword: 'format',
+                                    message: error.message,
+                                    schemaPath: '#/',
+                                    data: data
+                                }];
+                                return false;
+                            }
+                        };
+                    },
+                    addFormat: function() { /* stub */ },
+                    addKeyword: function() { /* stub */ }
+                };
+            };
+            
+            window.Ajv.version = '8.17.1-emergency';
+            console.log('🆘 Emergency AJV implementation loaded (basic validation only)');
+            window.AjvEmergencyMode = true;
+            
+            // Show user notification
+            setTimeout(() => {
+                if (typeof showToast === 'function') {
+                    showToast('⚠️ Використовується базовий режим валідації схеми', 'warning', 5000);
+                }
+                showAjvErrorDialog();
+            }, 1000);
+        }
+
+        function showAjvErrorDialog() {
+            if (document.getElementById('ajvErrorDialog')) return; // Already shown
+
+            const dialog = document.createElement('div');
+            dialog.id = 'ajvErrorDialog';
+            dialog.style.cssText = `
+                position: fixed; top: 20px; right: 20px; z-index: 10000;
+                background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px;
+                padding: 15px; max-width: 400px; font-family: Arial, sans-serif;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15); color: #856404;
+            `;
+            
+            dialog.innerHTML = `
+                <div style="display: flex; align-items: flex-start; gap: 10px;">
+                    <span style="font-size: 1.2em;">⚠️</span>
+                    <div style="flex: 1;">
+                        <strong>Проблема з валідацією схеми</strong>
+                        <p style="margin: 8px 0; font-size: 0.9em;">
+                            Не вдалося завантажити AJV бібліотеку. Можливі причини:
+                        </p>
+                        <ul style="font-size: 0.85em; margin: 8px 0; padding-left: 18px;">
+                            <li>Блокування CDN вашим антивірусом/брандмауером</li>
+                            <li>Проблеми з інтернет-з'єднанням</li>
+                            <li>Корпоративні обмеження мережі</li>
+                        </ul>
+                        <div style="margin-top: 10px;">
+                            <button onclick="retryAjvLoad()" style="background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-right: 8px;">
+                                🔄 Спробувати знову
+                            </button>
+                            <button onclick="closeAjvDialog()" style="background: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">
+                                ✖ Закрити
+                            </button>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 0.8em; color: #6c757d;">
+                            💡 Базовий режим валідації активний
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(dialog);
+        }
+
+        function retryAjvLoad() {
+            closeAjvDialog();
+            ajvLoadAttempts = 0;
+            window.AjvLoadError = false;
+            window.AjvEmergencyMode = false;
+            loadAjvFallback();
+        }
+
+        function closeAjvDialog() {
+            const dialog = document.getElementById('ajvErrorDialog');
+            if (dialog) dialog.remove();
+        }
         
-        // Перевірка доступності AJV та додаткових пакетів після завантаження
+        // Enhanced AJV availability check with emergency mode support
         function isAjvAvailable() {
             const ajvExists = (
                 typeof Ajv !== 'undefined' ||
@@ -74,22 +213,37 @@
             
             const available = ajvExists && !window.AjvLoadError;
             
-            // Перевіряємо додаткові пакети (не критично для роботи)
+            // Check for emergency mode
+            if (window.AjvEmergencyMode) {
+                console.log('🆘 AJV Status: Emergency mode active (basic validation only)');
+                return true; // Emergency mode counts as available
+            }
+            
+            // Check additional packages (not critical for operation)
             const formatsAvailable = typeof addFormats !== 'undefined' || typeof window.addFormats !== 'undefined';
             const keywordsAvailable = typeof addKeywords !== 'undefined' || typeof window.addKeywords !== 'undefined';
             
             if (!available) {
-                console.warn('AJV Library Status:', {
+                console.warn('❌ AJV Library Status:', {
                     'typeof Ajv': typeof Ajv,
                     'typeof window.Ajv': typeof window.Ajv,
                     'typeof window.ajv': typeof window.ajv,
                     'window.Ajv.default': window.Ajv && window.Ajv.default,
                     'AjvLoadError': window.AjvLoadError,
+                    'AjvEmergencyMode': window.AjvEmergencyMode,
                     'formatsAvailable': formatsAvailable,
                     'keywordsAvailable': keywordsAvailable
                 });
+                
+                // Auto-trigger emergency fallback if not already done
+                if (!window.AjvEmergencyMode && !window.AjvLoadError) {
+                    console.log('⚡ Auto-triggering emergency fallback...');
+                    window.AjvLoadError = true;
+                    setTimeout(() => loadEmergencyAjvFallback(), 100);
+                }
             } else if (available) {
-                console.log('AJV Status: ✅ Core available, Formats:', formatsAvailable ? '✅' : '❌', 'Keywords:', keywordsAvailable ? '✅' : '❌');
+                const mode = window.AjvEmergencyMode ? '🆘 Emergency' : '✅ Full';
+                console.log(`AJV Status: ${mode}, Formats: ${formatsAvailable ? '✅' : '❌'}, Keywords: ${keywordsAvailable ? '✅' : '❌'}`);
                 
                 // Show version info if available
                 try {
@@ -101,6 +255,17 @@
                 }
             }
             return available;
+        }
+
+        // Enhanced error message for schema validation issues
+        function getSchemaValidationErrorMessage() {
+            if (window.AjvEmergencyMode) {
+                return 'Використовується базовий режим валідації схеми. Деякі розширені функції можуть бути недоступні.';
+            } else if (window.AjvLoadError) {
+                return 'AJV бібліотека не завантажена. Валідація схеми недоступна. Перевірте інтернет-з\'єднання або використайте режим порівняння.';
+            } else {
+                return 'Валідація схеми тимчасово недоступна. Спробуйте перезавантажити сторінку.';
+            }
         }
     </script>
     <style>
@@ -2394,6 +2559,10 @@
                     <button id="aiAnalyzeBtn" class="action-btn" style="display:none;">🤖 AI Аналіз</button>
                     <span class="tooltip">Розумний аналіз змін за допомогою Gemini AI</span>
                 </span>
+                <span class="tooltip-container">
+                    <button id="ajvDiagnosticsBtn" class="action-btn" style="display:none; background: #ffc107;">🔧 AJV Діагностика</button>
+                    <span class="tooltip">Діагностика та виправлення проблем з валідацією схеми</span>
+                </span>
             </div>
 
                             <div id="results" role="region" aria-labelledby="results-heading">
@@ -3239,7 +3408,7 @@
                 
                 // Перевірка доступності AJV при виборі режиму схеми
                 if (!isAjvAvailable()) {
-                    showToast('⚠️ AJV бібліотека не завантажена. Валідація схеми недоступна. Перезавантажте сторінку.', 'error', 5000);
+                    showToast(getSchemaValidationErrorMessage(), window.AjvEmergencyMode ? 'warning' : 'error', 5000);
                 }
             } else {
                 dropZoneSchema.classList.add('hidden'); 
@@ -4850,7 +5019,7 @@
                                 } else if (currentMode === 'schema') {
                                     // Перевірка доступності AJV перед валідацією
                                     if (!isAjvAvailable()) {
-                                        reject(new Error('AJV бібліотека не завантажена. Перезавантажте сторінку та перевірте інтернет-з\'єднання.'));
+                                        reject(new Error(getSchemaValidationErrorMessage()));
                                         return;
                                     }
                                     globalDifferences = validateWithSchema(targetJson, schemaJson);
@@ -5095,7 +5264,7 @@
                     return [{
                         path: '$',
                         type: 'SchemaLibraryError',
-                        reason: '⚠️ AJV бібліотека не завантажена. Перезавантажте сторінку або перевірте інтернет-з\'єднання.',
+                        reason: getSchemaValidationErrorMessage(),
                         oldValue: '🔧 Рішення: F5 або Ctrl+F5',
                         newValue: '📶 Перевірте інтернет'
                     }];
@@ -5861,7 +6030,7 @@
             setTimeout(() => {
                 console.log('Final AJV availability check after window load:', isAjvAvailable());
                 if (!isAjvAvailable() && currentMode === 'schema') {
-                    showToast('⚠️ Бібліотека AJV не завантажена. Валідація схеми недоступна.', 'error', 7000);
+                    showToast(getSchemaValidationErrorMessage(), window.AjvEmergencyMode ? 'warning' : 'error', 7000);
                 }
             }, 1000); // Затримка для завершення всіх асинхронних операцій
         });
@@ -7635,6 +7804,214 @@ ${analysisTypes.map(type => `- ${type}`).join('\n')}
                  console.log('📊 Chart.js integration initialized');
              } else {
                  console.warn('⚠️ Chart.js not available - charts will be disabled');
+             }
+
+             // AJV Diagnostics functionality
+             initializeAjvDiagnostics();
+
+             function initializeAjvDiagnostics() {
+                 const ajvDiagnosticsBtn = document.getElementById('ajvDiagnosticsBtn');
+                 
+                 if (ajvDiagnosticsBtn) {
+                     ajvDiagnosticsBtn.addEventListener('click', showAjvDiagnostics);
+                 }
+
+                 // Show diagnostics button if there are AJV issues
+                 setInterval(() => {
+                     const hasIssues = window.AjvLoadError || window.AjvEmergencyMode || !isAjvAvailable();
+                     if (ajvDiagnosticsBtn) {
+                         ajvDiagnosticsBtn.style.display = hasIssues ? 'inline-block' : 'none';
+                     }
+                 }, 2000);
+             }
+
+             function showAjvDiagnostics() {
+                 const modal = document.createElement('div');
+                 modal.className = 'modal-overlay';
+                 modal.innerHTML = `
+                     <div class="modal-content">
+                         <div class="modal-header">
+                             <h2>🔧 AJV Діагностика</h2>
+                             <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+                         </div>
+                         <div class="modal-body">
+                             <div style="margin-bottom: 20px;">
+                                 <h3>🔍 Стан системи</h3>
+                                 <div class="diagnostics-info">
+                                     <div class="diagnostic-item">
+                                         <span class="diagnostic-label">AJV Core:</span>
+                                         <span class="diagnostic-status ${typeof Ajv !== 'undefined' ? 'success' : 'error'}">
+                                             ${typeof Ajv !== 'undefined' ? '✅ Завантажено' : '❌ Не завантажено'}
+                                         </span>
+                                     </div>
+                                     <div class="diagnostic-item">
+                                         <span class="diagnostic-label">Emergency Mode:</span>
+                                         <span class="diagnostic-status ${window.AjvEmergencyMode ? 'warning' : 'success'}">
+                                             ${window.AjvEmergencyMode ? '⚠️ Активний' : '✅ Неактивний'}
+                                         </span>
+                                     </div>
+                                     <div class="diagnostic-item">
+                                         <span class="diagnostic-label">Load Errors:</span>
+                                         <span class="diagnostic-status ${window.AjvLoadError ? 'error' : 'success'}">
+                                             ${window.AjvLoadError ? '❌ Є помилки' : '✅ Немає помилок'}
+                                         </span>
+                                     </div>
+                                     <div class="diagnostic-item">
+                                         <span class="diagnostic-label">AJV Formats:</span>
+                                         <span class="diagnostic-status ${typeof addFormats !== 'undefined' ? 'success' : 'warning'}">
+                                             ${typeof addFormats !== 'undefined' ? '✅ Доступно' : '⚠️ Недоступно'}
+                                         </span>
+                                     </div>
+                                     <div class="diagnostic-item">
+                                         <span class="diagnostic-label">AJV Keywords:</span>
+                                         <span class="diagnostic-status ${typeof addKeywords !== 'undefined' ? 'success' : 'warning'}">
+                                             ${typeof addKeywords !== 'undefined' ? '✅ Доступно' : '⚠️ Недоступно'}
+                                         </span>
+                                     </div>
+                                     <div class="diagnostic-item">
+                                         <span class="diagnostic-label">Спроб завантаження:</span>
+                                         <span class="diagnostic-status">${ajvLoadAttempts}/${maxAjvAttempts}</span>
+                                     </div>
+                                 </div>
+                             </div>
+                             
+                             <div style="margin-bottom: 20px;">
+                                 <h3>💡 Рекомендації</h3>
+                                 <div class="recommendations">
+                                     ${getAjvRecommendations()}
+                                 </div>
+                             </div>
+                             
+                             <div style="margin-bottom: 20px;">
+                                 <h3>🔧 Дії</h3>
+                                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                     <button onclick="retryAjvLoad(); this.closest('.modal-overlay').remove();" class="action-btn">
+                                         🔄 Перезавантажити AJV
+                                     </button>
+                                     <button onclick="testNetworkAccess()" class="action-btn">
+                                         🌐 Тест мережі
+                                     </button>
+                                     <button onclick="showAjvDebugInfo()" class="action-btn">
+                                         🐛 Debug інформація
+                                     </button>
+                                     <button onclick="downloadAjvManually()" class="action-btn">
+                                         📥 Ручне завантаження
+                                     </button>
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
+                 `;
+
+                 // Add styles for diagnostics
+                 const style = document.createElement('style');
+                 style.textContent = `
+                     .diagnostics-info { background: var(--bg-color); padding: 15px; border-radius: 6px; }
+                     .diagnostic-item { display: flex; justify-content: space-between; margin: 8px 0; }
+                     .diagnostic-label { font-weight: 600; }
+                     .diagnostic-status.success { color: var(--green); }
+                     .diagnostic-status.warning { color: #ffc107; }
+                     .diagnostic-status.error { color: var(--red); }
+                     .recommendations { background: var(--main-color); padding: 12px; border-radius: 6px; border-left: 4px solid var(--accent-color); }
+                 `;
+                 document.head.appendChild(style);
+                 
+                 document.body.appendChild(modal);
+                 modal.style.display = 'flex';
+             }
+
+             function getAjvRecommendations() {
+                 const recommendations = [];
+                 
+                 if (window.AjvLoadError) {
+                     recommendations.push('🔒 Перевірте чи не блокує ваш антивірус/брандмауер CDN сайти');
+                     recommendations.push('🏢 Якщо ви в корпоративній мережі, зверніться до IT-адміністратора');
+                     recommendations.push('🌐 Перевірте інтернет-з\'єднання та доступ до зовнішніх ресурсів');
+                 }
+                 
+                 if (window.AjvEmergencyMode) {
+                     recommendations.push('⚠️ Поточний режим підтримує лише базову валідацію');
+                     recommendations.push('🔄 Спробуйте перезавантажити сторінку для повного функціоналу');
+                 }
+                 
+                 if (typeof addFormats === 'undefined') {
+                     recommendations.push('📧 Розширені формати (email, URL) можуть бути недоступні');
+                 }
+                 
+                 if (recommendations.length === 0) {
+                     recommendations.push('✅ Все працює коректно!');
+                 }
+                 
+                 return recommendations.map(rec => `<div style="margin: 6px 0;">• ${rec}</div>`).join('');
+             }
+
+             function testNetworkAccess() {
+                 showToast('🌐 Тестування доступу до CDN...', 'info');
+                 
+                 const testUrls = [
+                     'https://cdnjs.cloudflare.com/ajax/libs/ajv/8.17.1/ajv.min.js',
+                     'https://unpkg.com/ajv@8.17.1/package.json',
+                     'https://cdn.jsdelivr.net/npm/ajv@8.17.1/package.json'
+                 ];
+                 
+                 const results = [];
+                 let completed = 0;
+                 
+                 testUrls.forEach((url, index) => {
+                     fetch(url, { method: 'HEAD', mode: 'no-cors' })
+                         .then(() => {
+                             results[index] = '✅';
+                         })
+                         .catch(() => {
+                             results[index] = '❌';
+                         })
+                         .finally(() => {
+                             completed++;
+                             if (completed === testUrls.length) {
+                                 const message = `CDN тест: ${results.join(' ')} ${results.filter(r => r === '✅').length}/${testUrls.length} доступні`;
+                                 showToast(message, results.includes('✅') ? 'success' : 'error');
+                             }
+                         });
+                 });
+             }
+
+             function showAjvDebugInfo() {
+                 const debugInfo = {
+                     userAgent: navigator.userAgent,
+                     cookiesEnabled: navigator.cookieEnabled,
+                     onLine: navigator.onLine,
+                     ajvType: typeof Ajv,
+                     ajvVersion: window.Ajv?.version || 'N/A',
+                     emergencyMode: window.AjvEmergencyMode,
+                     loadError: window.AjvLoadError,
+                     loadAttempts: ajvLoadAttempts,
+                     extensionsLoaded: window.AjvExtensionsLoaded,
+                     currentTime: new Date().toISOString()
+                 };
+                 
+                 console.table(debugInfo);
+                 navigator.clipboard.writeText(JSON.stringify(debugInfo, null, 2))
+                     .then(() => showToast('🐛 Debug інформація скопійована в буфер обміну', 'success'))
+                     .catch(() => showToast('Відкрийте консоль (F12) для перегляду debug інформації', 'info'));
+             }
+
+             function downloadAjvManually() {
+                 const links = [
+                     { name: 'AJV Core', url: 'https://unpkg.com/ajv@8.17.1/dist/ajv.bundle.js' },
+                     { name: 'AJV Formats', url: 'https://unpkg.com/ajv-formats@2.1.1/dist/ajv-formats.min.js' },
+                     { name: 'AJV Keywords', url: 'https://unpkg.com/ajv-keywords@5.1.0/dist/ajv-keywords.min.js' }
+                 ];
+                 
+                 showToast('📥 Список завантажень скопійовано в буфер обміну', 'info');
+                 
+                 const downloadText = 'Ручне завантаження AJV бібліотек:\n\n' + 
+                     links.map(link => `${link.name}: ${link.url}`).join('\n');
+                 
+                 navigator.clipboard.writeText(downloadText)
+                     .catch(() => {
+                         // Fallback - show as alert
+                         alert(downloadText);
+                     });
              }
 
              // Settings Templates Implementation
