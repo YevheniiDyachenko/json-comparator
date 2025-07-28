@@ -4,7 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Інтерактивний JSON Comparator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ajv/8.12.0/ajv.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ajv/8.12.0/ajv.min.js" onerror="loadAjvFallback()"></script>
+    <script>
+        // Fallback для AJV бібліотеки
+        function loadAjvFallback() {
+            console.log('Loading AJV fallback...');
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/ajv@8.12.0/dist/ajv.bundle.js'; // Використовуємо bundle версію
+            script.onload = function() {
+                console.log('AJV fallback loaded successfully');
+            };
+            script.onerror = function() {
+                console.warn('Primary AJV fallback failed, trying standalone version...');
+                // Спробуємо ще один fallback
+                const standaloneScript = document.createElement('script');
+                standaloneScript.src = 'https://cdn.jsdelivr.net/npm/ajv@8.12.0/dist/ajv.min.js';
+                standaloneScript.onerror = function() {
+                    console.error('All AJV loading attempts failed. Schema validation will be disabled.');
+                    window.AjvLoadError = true;
+                };
+                document.head.appendChild(standaloneScript);
+            };
+            document.head.appendChild(script);
+        }
+        
+        // Перевірка доступності AJV після завантаження
+        function isAjvAvailable() {
+            const ajvExists = (
+                typeof Ajv !== 'undefined' ||
+                typeof window.Ajv !== 'undefined' ||
+                typeof window.ajv !== 'undefined' ||
+                (window.Ajv && window.Ajv.default)
+            );
+            
+            const available = ajvExists && !window.AjvLoadError;
+            
+            if (!available) {
+                console.warn('AJV Library Status:', {
+                    'typeof Ajv': typeof Ajv,
+                    'typeof window.Ajv': typeof window.Ajv,
+                    'typeof window.ajv': typeof window.ajv,
+                    'window.Ajv.default': window.Ajv && window.Ajv.default,
+                    'AjvLoadError': window.AjvLoadError
+                });
+            }
+            return available;
+        }
+    </script>
     <style>
         :root {
             --bg-color: #f8f9fa;
@@ -786,7 +832,7 @@
                 <input type="radio" id="modeSchema" name="compareMode" value="schema" aria-describedby="modeSchema-desc">
                 <div class="tooltip-container">
                     <label for="modeSchema">Валідація схеми</label>
-                    <span class="tooltip">Перевіряє JSON файл на відповідність JSON Schema.<br/>Виявляє порушення типів даних, обов'язкових полів та обмежень.<br/><strong>Використовуйте для:</strong> валідації даних за схемою.</span>
+                    <span class="tooltip">Перевіряє JSON файл на відповідність JSON Schema.<br/>Виявляє порушення типів даних, обов'язкових полів та обмежень.<br/><strong>Використовуйте для:</strong> валідації даних за схемою.<br/><strong>Примітка:</strong> Потребує завантаження AJV бібліотеки.</span>
                 </div>
                 <span id="modeSchema-desc" class="sr-only">Перевіряє JSON на відповідність схемі</span>
             </div>
@@ -1571,6 +1617,11 @@
             if (currentMode === 'schema') {
                 dropZoneSchema.classList.remove('hidden');
                 dropZoneSchema.style.display = 'block';
+                
+                // Перевірка доступності AJV при виборі режиму схеми
+                if (!isAjvAvailable()) {
+                    showToast('⚠️ AJV бібліотека не завантажена. Валідація схеми недоступна. Перезавантажте сторінку.', 'error', 5000);
+                }
             } else {
                 dropZoneSchema.classList.add('hidden'); 
                 dropZoneSchema.style.display = 'none';
@@ -1962,7 +2013,7 @@
             const schemaValid = (!document.getElementById('schemaError').style.display || document.getElementById('schemaError').style.display === 'none') && (schemaFileContent !== null && schemaFileContent.trim() !== '');
 
             if (currentMode === 'schema') {
-                isReady = schemaValid && targetValid;
+                isReady = schemaValid && targetValid && isAjvAvailable();
             } else {
                 isReady = sourceValid && targetValid;
             }
@@ -1974,6 +2025,29 @@
 
         // --- DOMContentLoaded initialization ---
         document.addEventListener('DOMContentLoaded', () => {
+            // Діагностика AJV при завантаженні сторінки
+            console.log('AJV Library Check on DOMContentLoaded:', {
+                'typeof Ajv': typeof Ajv,
+                'typeof window.Ajv': typeof window.Ajv,
+                'isAjvAvailable()': isAjvAvailable()
+            });
+
+            // Якщо AJV не завантажена, спробуємо завантажити її ще раз
+            if (!isAjvAvailable()) {
+                console.warn('AJV not available, attempting to load via alternative method...');
+                const fallbackScript = document.createElement('script');
+                fallbackScript.src = 'https://unpkg.com/ajv@8.12.0/dist/ajv.bundle.js';
+                fallbackScript.onload = function() {
+                                    console.log('AJV fallback loaded successfully');
+                showToast('✅ AJV бібліотека завантажена успішно!', 'success');
+                checkFilesReady(); // Перевірити готовність після завантаження
+                };
+                fallbackScript.onerror = function() {
+                    console.error('All AJV loading methods failed');
+                    window.AjvLoadError = true;
+                };
+                document.head.appendChild(fallbackScript);
+            }
             // --- DOM Elements ---
             const dropZone1 = document.getElementById('dropZone1');
             const dropZone2 = document.getElementById('dropZone2');
@@ -2109,6 +2183,11 @@
                                     globalDifferences = findDifferences(sourceJson, targetJson, true, '$', settings);
                                     renderReport(globalDifferences, sourceJson, targetJson);
                                 } else if (currentMode === 'schema') {
+                                    // Перевірка доступності AJV перед валідацією
+                                    if (!isAjvAvailable()) {
+                                        reject(new Error('AJV бібліотека не завантажена. Перезавантажте сторінку та перевірте інтернет-з\'єднання.'));
+                                        return;
+                                    }
                                     globalDifferences = validateWithSchema(targetJson, schemaJson);
                                     renderReport(globalDifferences, schemaJson, targetJson);
                                 }
@@ -2346,27 +2425,68 @@
 
             // --- JSON SCHEMA VALIDATION ---
             function validateWithSchema(data, schema) {
-                const ajv = new Ajv();
+                // Перевірка доступності AJV бібліотеки
+                if (!isAjvAvailable()) {
+                    return [{
+                        path: '$',
+                        type: 'SchemaLibraryError',
+                        reason: '⚠️ AJV бібліотека не завантажена. Перезавантажте сторінку або перевірте інтернет-з\'єднання.',
+                        oldValue: '🔧 Рішення: F5 або Ctrl+F5',
+                        newValue: '📶 Перевірте інтернет'
+                    }];
+                }
+
                 try {
+                    // Ініціалізація AJV з правильним конструктором
+                    let ajv;
+                    let AjvConstructor = null;
+                    
+                    // Спробуємо різні способи доступу до AJV
+                    if (typeof Ajv !== 'undefined') {
+                        AjvConstructor = Ajv;
+                    } else if (typeof window.Ajv !== 'undefined') {
+                        AjvConstructor = window.Ajv;
+                    } else if (typeof window.ajv !== 'undefined') {
+                        AjvConstructor = window.ajv;
+                    } else if (window.Ajv && window.Ajv.default) {
+                        AjvConstructor = window.Ajv.default;
+                    }
+                    
+                    if (!AjvConstructor) {
+                        throw new Error('AJV конструктор недоступний після всіх спроб');
+                    }
+                    
+                    // Перевіримо чи це функція-конструктор
+                    if (typeof AjvConstructor === 'function') {
+                        ajv = new AjvConstructor({ allErrors: true });
+                    } else if (AjvConstructor.default && typeof AjvConstructor.default === 'function') {
+                        ajv = new AjvConstructor.default({ allErrors: true });
+                    } else {
+                        throw new Error('AJV не є валідним конструктором');
+                    }
+
                     const validate = ajv.compile(schema);
                     const valid = validate(data);
+                    
                     if (valid) {
                         return [];
                     }
-                    return validate.errors.map(err => ({
-                        path: err.instancePath || '$',
+                    
+                    return (validate.errors || []).map(err => ({
+                        path: err.instancePath || err.dataPath || '$',
                         type: 'SchemaError',
                         reason: err.message || 'Помилка валідації',
-                        oldValue: `Rule: ${err.keyword}, Params: ${JSON.stringify(err.params)}`,
+                        oldValue: `Rule: ${err.keyword || 'unknown'}, Params: ${JSON.stringify(err.params || {})}`,
                         newValue: `Value: ${JSON.stringify(err.data)}`
                     }));
                 } catch (e) {
+                    console.error('Schema validation error:', e);
                     return [{
                         path: '$',
                         type: 'SchemaParseError',
-                        reason: `Некоректна JSON-схема: ${e.message}`,
-                        oldValue: 'N/A',
-                        newValue: 'N/A'
+                        reason: `Помилка валідації схеми: ${e.message}`,
+                        oldValue: 'Schema compilation failed',
+                        newValue: 'Check schema format'
                     }];
                 }
             }
@@ -2749,6 +2869,16 @@
                     exportReport('csv'); 
                 });
             }
+        });
+
+        // Додаткова перевірка AJV після повного завантаження всіх ресурсів
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                console.log('Final AJV availability check after window load:', isAjvAvailable());
+                if (!isAjvAvailable() && currentMode === 'schema') {
+                    showToast('⚠️ Бібліотека AJV не завантажена. Валідація схеми недоступна.', 'error', 7000);
+                }
+            }, 1000); // Затримка для завершення всіх асинхронних операцій
         });
     </script>
 </body>
