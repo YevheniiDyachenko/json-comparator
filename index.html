@@ -1585,15 +1585,21 @@
                     container.setAttribute('tabindex', '0');
                 }
                 
+                let focusTimeoutId;
+                
                 addGlobalEventListener(container, 'focus', () => {
                     const tooltip = container.querySelector('.tooltip');
                     if (tooltip) {
+                        clearTimeout(focusTimeoutId);
                         // Затримка 2 секунди для focus також
-                        setTimeout(() => {
-                            positionTooltip(container, tooltip);
-                            tooltip.style.visibility = 'visible';
-                            tooltip.style.opacity = '1';
-                            tooltip.style.transform = 'translateY(0)';
+                        focusTimeoutId = setTimeout(() => {
+                            // Перевіряємо чи елемент все ще має фокус
+                            if (document.activeElement === container || container.contains(document.activeElement)) {
+                                positionTooltip(container, tooltip);
+                                tooltip.style.visibility = 'visible';
+                                tooltip.style.opacity = '1';
+                                tooltip.style.transform = 'translateY(0)';
+                            }
                         }, 2000);
                     }
                 });
@@ -1601,6 +1607,7 @@
                 addGlobalEventListener(container, 'blur', () => {
                     const tooltip = container.querySelector('.tooltip');
                     if (tooltip) {
+                        clearTimeout(focusTimeoutId); // Скасовуємо показ tooltip'а при втраті фокуса
                         tooltip.style.visibility = 'hidden';
                         tooltip.style.opacity = '0';
                         tooltip.style.transform = 'translateY(10px)';
@@ -1702,40 +1709,111 @@
             const tooltip = container.querySelector('.tooltip');
             if (!tooltip) return;
 
-            let timeoutId;
+            let showTimeoutId;
+            let hideTimeoutId;
             let mousePosition = { x: 0, y: 0 };
+            let isMouseOver = false; // Флаг відстеження позиції курсора
+            
+            // Очищаємо всі існуючі timeout'и при ініціалізації
+            clearTimeout(showTimeoutId);
+            clearTimeout(hideTimeoutId);
+            
+            // Приховуємо tooltip при ініціалізації
+            tooltip.style.visibility = 'hidden';
+            tooltip.style.opacity = '0';
+            
+            /* 
+             * Логіка роботи tooltip'ів:
+             * 1. При mouseenter - запускається таймер на 2 секунди
+             * 2. При mouseleave - таймер скасовується + tooltip ховається якщо був видимий
+             * 3. Через 2 секунди перевіряється чи курсор все ще на елементі (подвійна перевірка)
+             * 4. Тільки якщо курсор залишався на елементі - показується tooltip
+             */
+
+            // Функція для приховування tooltip'а
+            const hideTooltip = (delay = 100) => {
+                clearTimeout(hideTimeoutId);
+                hideTimeoutId = setTimeout(() => {
+                    tooltip.style.visibility = 'hidden';
+                    tooltip.style.opacity = '0';
+                    tooltip.style.transform = 'translateY(10px)';
+                }, delay);
+            };
+
+            // Функція для показу tooltip'а
+            const showTooltip = () => {
+                clearTimeout(hideTimeoutId);
+                positionTooltipNearCursor(tooltip, mousePosition);
+                tooltip.style.visibility = 'visible';
+                tooltip.style.opacity = '1';
+                tooltip.style.transform = 'translateY(0)';
+            };
 
             const mouseMoveHandler = (e) => {
+                // Оновлюємо позицію курсора для точного позиціонування tooltip'а
                 mousePosition.x = e.clientX;
                 mousePosition.y = e.clientY;
             };
 
             const mouseEnterHandler = (e) => {
-                clearTimeout(timeoutId);
+                isMouseOver = true; // Курсор на елементі
+                clearTimeout(showTimeoutId);
+                clearTimeout(hideTimeoutId);
+                
                 mousePosition.x = e.clientX;
                 mousePosition.y = e.clientY;
                 
                 // Затримка 2 секунди перед показом tooltip
-                timeoutId = setTimeout(() => {
-                    positionTooltipNearCursor(tooltip, mousePosition);
-                    tooltip.style.visibility = 'visible';
-                    tooltip.style.opacity = '1';
-                    tooltip.style.transform = 'translateY(0)';
+                showTimeoutId = setTimeout(() => {
+                    // Подвійна перевірка: флаг + реальна позиція курсора
+                    const elementUnderCursor = document.elementFromPoint(mousePosition.x, mousePosition.y);
+                    const isStillOverElement = isMouseOver && (
+                        elementUnderCursor === container || 
+                        container.contains(elementUnderCursor)
+                    );
+                    
+                    if (isStillOverElement) {
+                        showTooltip();
+                    }
                 }, 2000);
             };
 
             const mouseLeaveHandler = () => {
-                clearTimeout(timeoutId);
-                timeoutId = setTimeout(() => {
-                    tooltip.style.visibility = 'hidden';
-                    tooltip.style.opacity = '0';
-                    tooltip.style.transform = 'translateY(10px)';
-                }, 100);
+                isMouseOver = false; // Курсор покинув елемент
+                clearTimeout(showTimeoutId); // Скасовуємо показ tooltip'а
+                
+                // Ховаємо tooltip якщо він видимий
+                if (tooltip.style.visibility === 'visible') {
+                    hideTooltip();
+                }
             };
 
+            // Додаємо обробники для mouse events
             addGlobalEventListener(container, 'mousemove', mouseMoveHandler);
             addGlobalEventListener(container, 'mouseenter', mouseEnterHandler);
             addGlobalEventListener(container, 'mouseleave', mouseLeaveHandler);
+            
+            // Додаємо обробники для touch events (мобільні пристрої)
+            let touchTimeoutId;
+            
+            addGlobalEventListener(container, 'touchstart', (e) => {
+                clearTimeout(touchTimeoutId);
+                const touch = e.touches[0];
+                mousePosition.x = touch.clientX;
+                mousePosition.y = touch.clientY;
+                
+                touchTimeoutId = setTimeout(() => {
+                    // Для touch events показуємо tooltip одразу після таймауту
+                    showTooltip();
+                }, 2000);
+            });
+            
+            addGlobalEventListener(container, 'touchend', () => {
+                clearTimeout(touchTimeoutId);
+                if (tooltip.style.visibility === 'visible') {
+                    hideTooltip();
+                }
+            });
         }
 
         function positionTooltipNearCursor(tooltip, mousePos) {
