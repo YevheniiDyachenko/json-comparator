@@ -4,31 +4,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Інтерактивний JSON Comparator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ajv/8.12.0/ajv.min.js" onerror="loadAjvFallback()"></script>
+    <!-- AJV JSON Schema Validator - Latest Version with Additional Formats -->
+    <!-- 🎯 AJV v8.17.1: Core JSON Schema validation with Draft 4, 6, 7, 2019-09, 2020-12 support -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ajv/8.17.1/ajv.min.js" onerror="loadAjvFallback()"></script>
+    <!-- 📧 AJV Formats: email, date, time, uri, uuid, regex and other format validators -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ajv-formats/2.1.1/ajv-formats.min.js" onerror="console.warn('AJV Formats failed to load')"></script>
+    <!-- 🔧 AJV Keywords: Additional validation keywords like instanceof, range, etc. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ajv-keywords/5.1.0/ajv-keywords.min.js" onerror="console.warn('AJV Keywords failed to load')"></script>
     <script>
-        // Fallback для AJV бібліотеки
+        // Fallback для AJV бібліотеки з додатковими пакетами
         function loadAjvFallback() {
-            console.log('Loading AJV fallback...');
-            const script = document.createElement('script');
-            script.src = 'https://unpkg.com/ajv@8.12.0/dist/ajv.bundle.js'; // Використовуємо bundle версію
-            script.onload = function() {
-                console.log('AJV fallback loaded successfully');
+            console.log('Loading AJV fallback with additional packages...');
+            
+            // Завантажуємо основну AJV бібліотеку
+            const ajvScript = document.createElement('script');
+            ajvScript.src = 'https://unpkg.com/ajv@8.17.1/dist/ajv.bundle.js';
+            ajvScript.onload = function() {
+                console.log('AJV core fallback loaded successfully');
+                
+                // Завантажуємо додаткові формати
+                const formatsScript = document.createElement('script');
+                formatsScript.src = 'https://unpkg.com/ajv-formats@2.1.1/dist/ajv-formats.min.js';
+                formatsScript.onload = function() {
+                    console.log('AJV formats loaded successfully');
+                    
+                    // Завантажуємо додаткові keywords
+                    const keywordsScript = document.createElement('script');
+                    keywordsScript.src = 'https://unpkg.com/ajv-keywords@5.1.0/dist/ajv-keywords.min.js';
+                    keywordsScript.onload = function() {
+                        console.log('AJV keywords loaded successfully');
+                        window.AjvExtensionsLoaded = true;
+                    };
+                    keywordsScript.onerror = function() {
+                        console.warn('AJV keywords failed to load via fallback');
+                    };
+                    document.head.appendChild(keywordsScript);
+                };
+                formatsScript.onerror = function() {
+                    console.warn('AJV formats failed to load via fallback');
+                };
+                document.head.appendChild(formatsScript);
             };
-            script.onerror = function() {
-                console.warn('Primary AJV fallback failed, trying standalone version...');
-                // Спробуємо ще один fallback
-                const standaloneScript = document.createElement('script');
-                standaloneScript.src = 'https://cdn.jsdelivr.net/npm/ajv@8.12.0/dist/ajv.min.js';
-                standaloneScript.onerror = function() {
+            ajvScript.onerror = function() {
+                console.warn('Primary AJV fallback failed, trying CDN alternatives...');
+                
+                // Спробуємо ще один fallback з jsdelivr
+                const fallbackScript = document.createElement('script');
+                fallbackScript.src = 'https://cdn.jsdelivr.net/npm/ajv@8.17.1/dist/ajv.min.js';
+                fallbackScript.onerror = function() {
                     console.error('All AJV loading attempts failed. Schema validation will be disabled.');
                     window.AjvLoadError = true;
                 };
-                document.head.appendChild(standaloneScript);
+                document.head.appendChild(fallbackScript);
             };
-            document.head.appendChild(script);
+            document.head.appendChild(ajvScript);
         }
         
-        // Перевірка доступності AJV після завантаження
+        // Перевірка доступності AJV та додаткових пакетів після завантаження
         function isAjvAvailable() {
             const ajvExists = (
                 typeof Ajv !== 'undefined' ||
@@ -39,14 +71,31 @@
             
             const available = ajvExists && !window.AjvLoadError;
             
+            // Перевіряємо додаткові пакети (не критично для роботи)
+            const formatsAvailable = typeof addFormats !== 'undefined' || typeof window.addFormats !== 'undefined';
+            const keywordsAvailable = typeof addKeywords !== 'undefined' || typeof window.addKeywords !== 'undefined';
+            
             if (!available) {
                 console.warn('AJV Library Status:', {
                     'typeof Ajv': typeof Ajv,
                     'typeof window.Ajv': typeof window.Ajv,
                     'typeof window.ajv': typeof window.ajv,
                     'window.Ajv.default': window.Ajv && window.Ajv.default,
-                    'AjvLoadError': window.AjvLoadError
+                    'AjvLoadError': window.AjvLoadError,
+                    'formatsAvailable': formatsAvailable,
+                    'keywordsAvailable': keywordsAvailable
                 });
+            } else if (available) {
+                console.log('AJV Status: ✅ Core available, Formats:', formatsAvailable ? '✅' : '❌', 'Keywords:', keywordsAvailable ? '✅' : '❌');
+                
+                // Show version info if available
+                try {
+                    if (typeof Ajv !== 'undefined' && Ajv.version) {
+                        console.log(`📦 AJV Version: ${Ajv.version}`);
+                    }
+                } catch (e) {
+                    // Ignore version check errors
+                }
             }
             return available;
         }
@@ -628,6 +677,77 @@
             font-style: italic;
         }
 
+        /* Schema validation result styling */
+        .schema-success {
+            background-color: rgba(40, 167, 69, 0.1);
+            border-left: 4px solid var(--green);
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+
+        .schema-error {
+            background-color: rgba(220, 53, 69, 0.1);
+            border-left: 4px solid var(--red);
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+
+        /* Schema examples styling */
+        .schema-examples details {
+            margin-top: 8px;
+        }
+
+        .schema-examples details[open] {
+            background-color: var(--bg-color);
+            border-radius: 6px;
+            padding: 8px;
+        }
+
+        .schema-examples summary {
+            font-weight: 500;
+            color: var(--accent-color);
+        }
+
+        .schema-examples summary:hover {
+            opacity: 0.8;
+        }
+
+        .schema-examples pre {
+            background: var(--main-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px;
+            overflow-x: auto;
+        }
+
+        /* Schema validation specific error types */
+        .error-type-SchemaRequiredError {
+            border-left-color: #e74c3c;
+        }
+
+        .error-type-SchemaTypeError {
+            border-left-color: #f39c12;
+        }
+
+        .error-type-SchemaFormatError {
+            border-left-color: #9b59b6;
+        }
+
+        .error-type-SchemaRangeError {
+            border-left-color: #e67e22;
+        }
+
+        /* Dark mode adjustments */
+        body.dark-mode .schema-success {
+            background-color: rgba(40, 167, 69, 0.15);
+        }
+
+        body.dark-mode .schema-error {
+            background-color: rgba(220, 53, 69, 0.15);
+        }
+
         /* Diff highlighting in tree view */
         .json-tree .diff-added-text { background-color: rgba(40, 167, 69, 0.2); }
         .json-tree .diff-removed-text { background-color: rgba(220, 53, 69, 0.2); }
@@ -867,7 +987,7 @@
                 <input type="radio" id="modeSchema" name="compareMode" value="schema" aria-describedby="modeSchema-desc">
                 <div class="tooltip-container">
                     <label for="modeSchema">Валідація схеми</label>
-                    <span class="tooltip">Перевіряє JSON файл на відповідність JSON Schema.<br/>Виявляє порушення типів даних, обов'язкових полів та обмежень.<br/><strong>Використовуйте для:</strong> валідації даних за схемою.<br/><strong>Примітка:</strong> Потребує завантаження AJV бібліотеки.</span>
+                    <span class="tooltip">Перевіряє JSON файл на відповідність JSON Schema.<br/>Виявляє порушення типів даних, обов'язкових полів та обмежень.<br/><strong>Використовуйте для:</strong> валідації даних за схемою.<br/><strong>Підтримка:</strong> AJV v8.17.1 + додаткові формати (email, date, uri, etc.)<br/><strong>Схеми:</strong> Draft 4, 6, 7, 2019-09, 2020-12</span>
                 </div>
                 <span id="modeSchema-desc" class="sr-only">Перевіряє JSON на відповідність схемі</span>
             </div>
@@ -894,9 +1014,30 @@
                 <div id="dropZoneSchema" class="drop-zone hidden" role="region" aria-labelledby="dropZoneSchema-label" aria-describedby="dropZoneSchema-desc">
                     <label id="dropZoneSchema-label" for="schemaText" class="sr-only">JSON Schema файл</label>
                     <span id="dropZoneSchema-desc" class="sr-only">Перетягніть JSON Schema файл або вставте схему для валідації</span>
-                    <textarea id="schemaText" placeholder="Перетягніть сюди JSON Schema файл або вставте схему"
-                              aria-labelledby="dropZoneSchema-label" aria-describedby="dropZoneSchema-desc schemaError"
-                              aria-invalid="false"></textarea>
+                                    <textarea id="schemaText" placeholder="Перетягніть сюди JSON Schema файл або вставте схему"
+                          aria-labelledby="dropZoneSchema-label" aria-describedby="dropZoneSchema-desc schemaError"
+                          aria-invalid="false"></textarea>
+                <div class="schema-examples" style="margin-top: 10px; font-size: 0.9em; color: var(--text-color); opacity: 0.7;">
+                    <details>
+                        <summary style="cursor: pointer; margin-bottom: 5px;">📋 Приклади JSON Schema</summary>
+                        <div style="background: var(--bg-color); padding: 10px; border-radius: 4px; margin-top: 5px;">
+                            <strong>Базова схема користувача:</strong>
+                            <button id="insertExampleSchema" style="float: right; background: var(--accent-color); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.8em; cursor: pointer;" title="Вставити цю схему">📋 Вставити</button>
+                            <pre id="exampleSchemaText" style="font-size: 0.8em; margin: 5px 0; white-space: pre-wrap; clear: both;">{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["name", "email", "age"],
+  "properties": {
+    "name": { "type": "string", "minLength": 1 },
+    "email": { "type": "string", "format": "email" },
+    "age": { "type": "integer", "minimum": 0, "maximum": 150 },
+    "phone": { "type": "string", "pattern": "^\\+?[1-9]\\d{1,14}$" }
+  },
+  "additionalProperties": false
+}</pre>
+                        </div>
+                    </details>
+                </div>
                     <div class="error-message" id="schemaError" role="alert" aria-live="polite"></div>
                     <span class="file-name" id="fileNameSchema" aria-live="polite"></span>
                 </div>
@@ -2242,11 +2383,12 @@
             if (!isAjvAvailable()) {
                 console.warn('AJV not available, attempting to load via alternative method...');
                 const fallbackScript = document.createElement('script');
-                fallbackScript.src = 'https://unpkg.com/ajv@8.12.0/dist/ajv.bundle.js';
-                fallbackScript.onload = function() {
-                                    console.log('AJV fallback loaded successfully');
-                showToast('✅ AJV бібліотека завантажена успішно!', 'success');
-                checkFilesReady(); // Перевірити готовність після завантаження
+                fallbackScript.src = 'https://unpkg.com/ajv@8.17.1/dist/ajv.bundle.js';
+                                fallbackScript.onload = function() {
+                    console.log('AJV fallback loaded successfully');
+                    console.log('🎯 JSON Schema validation is now available with enhanced error reporting');
+                    showToast('✅ AJV бібліотека завантажена успішно!', 'success');
+                    checkFilesReady(); // Перевірити готовність після завантаження
                 };
                 fallbackScript.onerror = function() {
                     console.error('All AJV loading methods failed');
@@ -2320,6 +2462,49 @@
             setupDropZone(dropZone1, document.getElementById('sourceText'), document.getElementById('fileName1'), document.getElementById('sourceError'), content => sourceFileContent = content);
             setupDropZone(dropZone2, document.getElementById('targetText'), document.getElementById('fileName2'), document.getElementById('targetError'), content => targetFileContent = content);
             setupDropZone(dropZoneSchema, document.getElementById('schemaText'), document.getElementById('fileNameSchema'), document.getElementById('schemaError'), content => schemaFileContent = content);
+
+            // --- Setup example schema insertion ---
+            const insertExampleSchemaBtn = document.getElementById('insertExampleSchema');
+            if (insertExampleSchemaBtn) {
+                insertExampleSchemaBtn.addEventListener('click', () => {
+                    const schemaTextArea = document.getElementById('schemaText');
+                    const exampleSchemaText = document.getElementById('exampleSchemaText');
+                    
+                    if (schemaTextArea && exampleSchemaText) {
+                        // Clear any existing error states
+                        const schemaError = document.getElementById('schemaError');
+                        if (schemaError) {
+                            schemaError.style.display = 'none';
+                        }
+                        const dropZoneSchema = document.getElementById('dropZoneSchema');
+                        if (dropZoneSchema) {
+                            dropZoneSchema.classList.remove('invalid');
+                        }
+                        
+                        // Insert the example schema
+                        schemaTextArea.value = exampleSchemaText.textContent.trim();
+                        schemaFileContent = schemaTextArea.value;
+                        
+                        // Update file name display
+                        const fileNameSchema = document.getElementById('fileNameSchema');
+                        if (fileNameSchema) {
+                            fileNameSchema.textContent = '📋 Приклад схеми користувача';
+                        }
+                        
+                        // Check if files are ready for comparison
+                        checkFilesReady();
+                        
+                        // Show success message
+                        showToast('✅ Приклад схеми вставлено успішно!', 'success');
+                        
+                        // Close the details element
+                        const detailsElement = insertExampleSchemaBtn.closest('details');
+                        if (detailsElement) {
+                            detailsElement.open = false;
+                        }
+                    }
+                });
+            }
 
             // Add event listeners for mode changes
             document.querySelectorAll('input[name="compareMode"]').forEach(radio => {
@@ -2643,7 +2828,7 @@
                 }
 
                 try {
-                    // Ініціалізація AJV з правильним конструктором
+                    // Ініціалізація AJV з розширеними можливостями
                     let ajv;
                     let AjvConstructor = null;
                     
@@ -2662,29 +2847,111 @@
                         throw new Error('AJV конструктор недоступний після всіх спроб');
                     }
                     
+                    // Створюємо AJV instance з розширеними опціями
+                    const ajvOptions = {
+                        allErrors: true,           // Показуємо всі помилки, не тільки першу
+                        verbose: true,             // Детальна інформація про помилки
+                        strict: false,             // Менш строгий режим для сумісності
+                        validateFormats: true,     // Валідація форматів (email, date, etc.)
+                        addUsedSchema: false,      // Не додавати схеми автоматично
+                        inlineRefs: true,         // Оптимізація для $ref
+                        loadSchema: false,        // Відключаємо асинхронне завантаження схем
+                        allowUnionTypes: true     // Підтримка union типів
+                    };
+                    
                     // Перевіримо чи це функція-конструктор
                     if (typeof AjvConstructor === 'function') {
-                        ajv = new AjvConstructor({ allErrors: true });
+                        ajv = new AjvConstructor(ajvOptions);
                     } else if (AjvConstructor.default && typeof AjvConstructor.default === 'function') {
-                        ajv = new AjvConstructor.default({ allErrors: true });
+                        ajv = new AjvConstructor.default(ajvOptions);
                     } else {
                         throw new Error('AJV не є валідним конструктором');
                     }
 
-                    const validate = ajv.compile(schema);
+                    // Додаємо формати якщо доступні
+                    if (typeof addFormats !== 'undefined') {
+                        try {
+                            addFormats(ajv);
+                            console.log('✅ AJV Formats додано успішно');
+                        } catch (e) {
+                            console.warn('⚠️ Помилка додавання AJV Formats:', e.message);
+                        }
+                    } else if (typeof window.addFormats !== 'undefined') {
+                        try {
+                            window.addFormats(ajv);
+                            console.log('✅ AJV Formats додано успішно (window)');
+                        } catch (e) {
+                            console.warn('⚠️ Помилка додавання AJV Formats (window):', e.message);
+                        }
+                    }
+
+                    // Додаємо keywords якщо доступні
+                    if (typeof addKeywords !== 'undefined') {
+                        try {
+                            addKeywords(ajv);
+                            console.log('✅ AJV Keywords додано успішно');
+                        } catch (e) {
+                            console.warn('⚠️ Помилка додавання AJV Keywords:', e.message);
+                        }
+                    } else if (typeof window.addKeywords !== 'undefined') {
+                        try {
+                            window.addKeywords(ajv);
+                            console.log('✅ AJV Keywords додано успішно (window)');
+                        } catch (e) {
+                            console.warn('⚠️ Помилка додавання AJV Keywords (window):', e.message);
+                        }
+                    }
+
+                    // Компілюємо схему з обробкою помилок
+                    let validate;
+                    try {
+                        validate = ajv.compile(schema);
+                    } catch (compileError) {
+                        return [{
+                            path: '$',
+                            type: 'SchemaCompileError',
+                            reason: `🚫 Помилка компіляції схеми: ${compileError.message}`,
+                            oldValue: '📋 Перевірте синтаксис схеми',
+                            newValue: '🔧 Виправте помилки в JSON Schema'
+                        }];
+                    }
+
+                    // Виконуємо валідацію
                     const valid = validate(data);
                     
                     if (valid) {
-                        return [];
+                        const schemaInfo = getSchemaInfo(schema);
+                        return [{
+                            path: '$',
+                            type: 'SchemaValidationSuccess',
+                            reason: `✅ JSON успішно пройшов валідацію за схемою ${schemaInfo}`,
+                            oldValue: '🎯 Всі правила схеми дотримано',
+                            newValue: '✨ Дані відповідають всім вимогам'
+                        }];
                     }
                     
-                    return (validate.errors || []).map(err => ({
-                        path: err.instancePath || err.dataPath || '$',
-                        type: 'SchemaError',
-                        reason: err.message || 'Помилка валідації',
-                        oldValue: `Rule: ${err.keyword || 'unknown'}, Params: ${JSON.stringify(err.params || {})}`,
-                        newValue: `Value: ${JSON.stringify(err.data)}`
-                    }));
+                    // Обробляємо помилки валідації з додатковою інформацією
+                    return (validate.errors || []).map((err, index) => {
+                        const errorPath = err.instancePath || err.dataPath || '$';
+                        const errorValue = err.data !== undefined ? err.data : 'undefined';
+                        
+                        // Формуємо детальний опис помилки
+                        let detailedReason = formatValidationError(err);
+                        
+                        // Додаємо контекст помилки
+                        let contextInfo = '';
+                        if (err.schemaPath) {
+                            contextInfo = `Schema path: ${err.schemaPath}`;
+                        }
+                        
+                        return {
+                            path: errorPath,
+                            type: getErrorType(err.keyword),
+                            reason: detailedReason,
+                            oldValue: `${contextInfo} | Expected: ${getExpectedValue(err)}`,
+                            newValue: `Actual: ${JSON.stringify(errorValue, null, 2)}`
+                        };
+                    });
                 } catch (e) {
                     console.error('Schema validation error:', e);
                     return [{
@@ -2697,13 +2964,155 @@
                 }
             }
 
+            // --- HELPER FUNCTIONS FOR SCHEMA VALIDATION ---
+            
+            // Отримуємо інформацію про схему
+            function getSchemaInfo(schema) {
+                let info = '';
+                if (schema.title) info += `"${schema.title}"`;
+                if (schema.version) info += ` v${schema.version}`;
+                if (schema.$schema) {
+                    const schemaVersion = schema.$schema.match(/draft-(\d+)/);
+                    if (schemaVersion) info += ` (Draft ${schemaVersion[1]})`;
+                }
+                return info || 'Custom Schema';
+            }
+
+            // Форматуємо помилку валідації з емоджі та деталями
+            function formatValidationError(err) {
+                const keyword = err.keyword || 'unknown';
+                const message = err.message || 'Помилка валідації';
+                
+                switch (keyword) {
+                    case 'required':
+                        return `🔴 Обов'язкове поле відсутнє: ${err.params?.missingProperty || 'невідоме'}`;
+                    case 'type':
+                        return `🔸 Неправильний тип даних: ${message}`;
+                    case 'format':
+                        return `📧 Неправильний формат: ${message} (очікується ${err.params?.format})`;
+                    case 'minimum':
+                        return `📏 Значення занадто мале: ${message} (мінімум: ${err.params?.limit})`;
+                    case 'maximum':
+                        return `📏 Значення занадто велике: ${message} (максимум: ${err.params?.limit})`;
+                    case 'minLength':
+                        return `📝 Рядок занадто короткий: ${message} (мінімум: ${err.params?.limit} символів)`;
+                    case 'maxLength':
+                        return `📝 Рядок занадто довгий: ${message} (максимум: ${err.params?.limit} символів)`;
+                    case 'pattern':
+                        return `🔍 Не відповідає шаблону: ${message}`;
+                    case 'enum':
+                        return `🎯 Недозволене значення: ${message}. Дозволені: ${JSON.stringify(err.params?.allowedValues)}`;
+                    case 'additionalProperties':
+                        return `🚫 Заборонені додаткові властивості: ${err.params?.additionalProperty}`;
+                    case 'minItems':
+                        return `📋 Масив занадто короткий: ${message} (мінімум: ${err.params?.limit} елементів)`;
+                    case 'maxItems':
+                        return `📋 Масив занадто довгий: ${message} (максимум: ${err.params?.limit} елементів)`;
+                    case 'uniqueItems':
+                        return `🔄 Дублікати в масиві: ${message}`;
+                    case 'const':
+                        return `🎯 Значення має дорівнювати: ${JSON.stringify(err.params?.allowedValue)}`;
+                    case 'multipleOf':
+                        return `🔢 Число має бути кратним ${err.params?.multipleOf}`;
+                    case 'if':
+                        return `🔀 Умовна валідація: ${message}`;
+                    case 'not':
+                        return `❌ Заборонене значення: ${message}`;
+                    case 'oneOf':
+                        return `1️⃣ Має відповідати рівно одній схемі: ${message}`;
+                    case 'anyOf':
+                        return `🔀 Має відповідати принаймні одній схемі: ${message}`;
+                    case 'allOf':
+                        return `✅ Має відповідати всім схемам: ${message}`;
+                    default:
+                        return `⚠️ ${message} (правило: ${keyword})`;
+                }
+            }
+
+            // Визначаємо тип помилки для кращої категоризації
+            function getErrorType(keyword) {
+                const typeMap = {
+                    'required': 'SchemaRequiredError',
+                    'type': 'SchemaTypeError',
+                    'format': 'SchemaFormatError',
+                    'minimum': 'SchemaRangeError',
+                    'maximum': 'SchemaRangeError',
+                    'minLength': 'SchemaLengthError',
+                    'maxLength': 'SchemaLengthError',
+                    'pattern': 'SchemaPatternError',
+                    'enum': 'SchemaEnumError',
+                    'additionalProperties': 'SchemaPropertiesError',
+                    'minItems': 'SchemaArrayError',
+                    'maxItems': 'SchemaArrayError',
+                    'uniqueItems': 'SchemaArrayError',
+                    'const': 'SchemaConstError',
+                    'multipleOf': 'SchemaNumericError',
+                    'if': 'SchemaConditionalError',
+                    'not': 'SchemaNegationError',
+                    'oneOf': 'SchemaCompositionError',
+                    'anyOf': 'SchemaCompositionError',
+                    'allOf': 'SchemaCompositionError'
+                };
+                return typeMap[keyword] || 'SchemaError';
+            }
+
+            // Визначаємо очікуване значення для помилки
+            function getExpectedValue(err) {
+                const keyword = err.keyword;
+                const params = err.params || {};
+                
+                switch (keyword) {
+                    case 'type':
+                        return params.type || 'correct type';
+                    case 'format':
+                        return `${params.format} format`;
+                    case 'minimum':
+                        return `>= ${params.limit}`;
+                    case 'maximum':
+                        return `<= ${params.limit}`;
+                    case 'minLength':
+                        return `length >= ${params.limit}`;
+                    case 'maxLength':
+                        return `length <= ${params.limit}`;
+                    case 'pattern':
+                        return `pattern: ${params.pattern}`;
+                    case 'enum':
+                        return `one of: ${JSON.stringify(params.allowedValues)}`;
+                    case 'const':
+                        return JSON.stringify(params.allowedValue);
+                    case 'minItems':
+                        return `array length >= ${params.limit}`;
+                    case 'maxItems':
+                        return `array length <= ${params.limit}`;
+                    case 'multipleOf':
+                        return `multiple of ${params.multipleOf}`;
+                    case 'required':
+                        return `property "${params.missingProperty}" present`;
+                    default:
+                        return 'valid value';
+                }
+            }
+
             // --- REPORT GENERATION ---
             function renderReport(differences, sourceJson, targetJson) {
                 let reportHtml = ``;
-                if (differences.length === 0) {
-                    reportHtml = `<h2>✅ ${currentMode === 'schema' ? 'JSON валідний за схемою' : 'Відмінностей не знайдено'}.</h2>`;
+                
+                // Check for successful schema validation
+                const hasSuccessValidation = differences.some(d => d.type === 'SchemaValidationSuccess');
+                const errorDifferences = differences.filter(d => d.type !== 'SchemaValidationSuccess');
+                
+                if (differences.length === 0 || hasSuccessValidation) {
+                    if (currentMode === 'schema' && hasSuccessValidation) {
+                        const successMsg = differences.find(d => d.type === 'SchemaValidationSuccess');
+                        reportHtml = `<div class="schema-success">
+                            <h2>✅ ${successMsg ? successMsg.reason : 'JSON валідний за схемою'}</h2>
+                            <p>${successMsg ? successMsg.oldValue : 'Всі правила схеми дотримано'}</p>
+                        </div>`;
+                    } else {
+                        reportHtml = `<h2>✅ ${currentMode === 'schema' ? 'JSON валідний за схемою' : 'Відмінностей не знайдено'}.</h2>`;
+                    }
                 } else {
-                    const stats = differences.reduce((acc, diff) => {
+                    const stats = errorDifferences.reduce((acc, diff) => {
                         if (diff.type.toLowerCase().includes('add')) acc.added++;
                         else if (diff.type.toLowerCase().includes('remov')) acc.removed++;
                         else acc.changed++;
@@ -2723,7 +3132,7 @@
                                     <div class="stats-bar">
                                         <span class="stat-item stat-item-total">
                                             <span class="icon-circle icon-circle-total">Σ</span> 
-                                            <strong>Всього відмінностей: ${differences.length}</strong>
+                                            <strong>Всього ${currentMode === 'schema' ? 'помилок валідації' : 'відмінностей'}: ${errorDifferences.length}</strong>
                                         </span>
                                         <div class="stats-divider"></div>
                                         <span class="stat-item"><span class="icon-circle icon-circle-added">+</span> Додано: ${stats.added}</span>
@@ -2785,7 +3194,7 @@
                 exportBtn.style.display = 'inline-block';
                 copyResultsBtn.style.display = 'inline-block';
 
-                renderInteractiveTable(differences);
+                renderInteractiveTable(errorDifferences.length > 0 ? errorDifferences : differences);
                 synchronizeJsonViewHeights();
                 setupCollapsibleSections();
                 setupJsonViewToggle(sourceJson, targetJson, differences); // Setup tree view
