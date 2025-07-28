@@ -137,10 +137,32 @@
             font-weight: 500;
         }
         .mode-selector input { display: none; }
-        .mode-selector input:checked + label {
+        .mode-selector input:checked + .tooltip-container label {
             background-color: var(--accent-color);
             color: white;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        /* Special positioning for mode selector tooltips */
+        .mode-selector .tooltip-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .mode-selector .tooltip {
+            min-width: 280px;
+            max-width: 350px;
+            text-align: left;
+            z-index: 1001; /* Higher than normal tooltips to appear above other elements */
+        }
+        
+        .tooltip strong {
+            color: inherit;
+            font-weight: 600;
+        }
+        
+        .tooltip br {
+            line-height: 1.6;
         }
         .drop-zones {
             display: grid;
@@ -625,15 +647,36 @@
             <div class="mode-selector" role="radiogroup" aria-labelledby="mode-selector-label">
                 <span id="mode-selector-label" class="sr-only">Оберіть режим порівняння</span>
                 <input type="radio" id="modeDirect" name="compareMode" value="direct" checked aria-describedby="modeDirect-desc">
-                <label for="modeDirect">Пряме порівняння</label>
+                <div class="tooltip-container">
+                    <label for="modeDirect">Пряме порівняння</label>
+                    <span class="tooltip">
+                        Порівнює всі поля та значення між двома JSON файлами.<br/>
+                        Показує всі відмінності: додані, видалені та змінені елементи.<br/>
+                        <strong>Використовуйте для:</strong> повного аналізу відмінностей.
+                    </span>
+                </div>
                 <span id="modeDirect-desc" class="sr-only">Порівнює всі значення у JSON файлах</span>
                 
                 <input type="radio" id="modeKeys" name="compareMode" value="keys" aria-describedby="modeKeys-desc">
-                <label for="modeKeys">Лише ключі</label>
+                <div class="tooltip-container">
+                    <label for="modeKeys">Лише ключі</label>
+                    <span class="tooltip">
+                        Порівнює тільки структуру та назви ключів, ігноруючи значення.<br/>
+                        Корисно для перевірки схеми без аналізу даних.<br/>
+                        <strong>Використовуйте для:</strong> валідації структури JSON.
+                    </span>
+                </div>
                 <span id="modeKeys-desc" class="sr-only">Порівнює тільки структуру ключів без значень</span>
 
                 <input type="radio" id="modeSchema" name="compareMode" value="schema" aria-describedby="modeSchema-desc">
-                <label for="modeSchema">Валідація схеми</label>
+                <div class="tooltip-container">
+                    <label for="modeSchema">Валідація схеми</label>
+                    <span class="tooltip">
+                        Перевіряє JSON файл на відповідність JSON Schema.<br/>
+                        Виявляє порушення типів даних, обов'язкових полів та обмежень.<br/>
+                        <strong>Використовуйте для:</strong> валідації даних за схемою.
+                    </span>
+                </div>
                 <span id="modeSchema-desc" class="sr-only">Перевіряє JSON на відповідність схемі</span>
             </div>
 
@@ -708,18 +751,30 @@
         toastContainer.id = 'toast-container';
         document.body.appendChild(toastContainer); // Append toast container early
         function showToast(message, type = 'info', duration = 3000) {
-            const toast = document.createElement('div');
-            toast.classList.add('toast', type);
-            toast.textContent = message;
-            toastContainer.appendChild(toast);
+            try {
+                const toast = document.createElement('div');
+                toast.classList.add('toast', type);
+                toast.textContent = message;
+                
+                if (toastContainer && toastContainer.appendChild) {
+                    toastContainer.appendChild(toast);
+                } else {
+                    console.warn('Toast container not available');
+                    return;
+                }
 
-            void toast.offsetWidth; // Force reflow
-            toast.classList.add('show');
+                void toast.offsetWidth; // Force reflow
+                toast.classList.add('show');
 
-            setTimeout(() => {
-                toast.classList.remove('show');
-                toast.addEventListener('transitionend', () => toast.remove());
-            }, duration);
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    toast.addEventListener('transitionend', () => toast.remove());
+                }, duration);
+            } catch (e) {
+                console.error('Error showing toast:', e);
+                // Fallback to console log
+                console.log(`[${type.toUpperCase()}] ${message}`);
+            }
         }
 
         // Enhanced HTML escaping for better XSS protection
@@ -977,7 +1032,12 @@
                             
                             if (typeof value !== 'object' || value === null) {
                                 // Primitive value: display key-value directly in this <li>
-                                childLi.innerHTML = `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> ${applySyntaxHighlighting(value)}`;
+                                try {
+                                    childLi.innerHTML = `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> ${applySyntaxHighlighting(value)}`;
+                                } catch (e) {
+                                    console.error('Error rendering primitive value:', e);
+                                    childLi.textContent = `"${key}": ${String(value)}`;
+                                }
                             } else {
                                 // Nested object/array: this <li> will have a toggle and a nested <ul>
                                 const nestedToggleSpan = document.createElement('span');
@@ -1007,7 +1067,12 @@
                     li.appendChild(childUl); // Append the child list to the current li
                 } else {
                     // Primitive value node
-                    li.appendChild(applySyntaxHighlighting(node));
+                    try {
+                        li.innerHTML = applySyntaxHighlighting(node);
+                    } catch (e) {
+                        console.error('Error rendering primitive node:', e);
+                        li.textContent = String(node);
+                    }
                 }
                 parentUl.appendChild(li);
             }
@@ -1390,7 +1455,9 @@
 
         function initializeTooltips() {
             // Add tooltip listeners to existing containers without cloning
-            document.querySelectorAll('.tooltip-container').forEach(container => {
+            const containers = document.querySelectorAll('.tooltip-container');
+            console.log(`Initializing ${containers.length} tooltip containers`);
+            containers.forEach(container => {
                 addTooltipListeners(container);
             });
         }
